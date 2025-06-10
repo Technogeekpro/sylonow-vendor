@@ -1,0 +1,110 @@
+name: sylonow_vendor
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.3 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # State Management
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.6.1
+  
+  # Routing
+  go_router: ^13.0.1
+  
+  # Database
+  supabase_flutter: ^2.3.2
+  
+  # Code Generation
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
+  
+  # Image Handling
+  image_picker: ^1.0.7
+  
+  # Form Validation
+  flutter_form_builder: ^9.4.1
+  form_builder_validators: ^11.0.0
+  
+  # OTP
+  pinput: ^3.0.1
+  
+  # Permissions
+  permission_handler: ^11.3.1
+  
+  # Storage
+  path_provider: ^2.1.2
+  path: ^1.9.0
+  
+  # UI
+  cached_network_image: ^3.3.1
+  flutter_svg: ^2.0.9
+  lottie: ^3.0.0
+  google_fonts: ^6.2.1
+  cupertino_icons: ^1.0.2
+  firebase_core: ^3.8.0
+  firebase_messaging: ^15.1.4
+  flutter_local_notifications: ^18.0.1
+  google_sign_in: ^6.2.1
+  fpdart: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  
+  # Code Generation
+  build_runner: ^2.4.8
+  freezed: ^2.4.6
+  json_serializable: ^6.7.1
+  riverpod_generator: ^2.6.2
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.1
+
+dependency_overrides:
+  analyzer: ^6.4.1
+  custom_lint_core: ^0.6.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+    - assets/images/
+
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  image_path: "assets/images/app_logo_new.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: "assets/images/app_logo_new.png"
+    background_color: "#FF0080"
+    theme_color: "#FF0080"
+  windows:
+    generate: true
+    image_path: "assets/images/app_logo_new.png"
+    icon_size: 48 # min:48, max:256, default: 48
+  macos:
+    generate: true
+    image_path: "assets/images/app_logo_new.png"
+
+flutter_native_splash:
+  color: "#FF0080"
+  image: assets/images/app_logo_new.png
+  branding: assets/images/app_logo_new.png
+  color_dark: "#FF0080"
+  image_dark: assets/images/app_logo_new.png
+  branding_dark: assets/images/app_logo_new.png
+  android_12:
+    image: assets/images/app_logo_new.png
+    color: "#FF0080"
+    image_dark: assets/images/app_logo_new.png
+    color_dark: "#FF0080"
+  web: false
