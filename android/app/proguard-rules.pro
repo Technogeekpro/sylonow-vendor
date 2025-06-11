@@ -115,4 +115,14 @@
     private void readObject(java.io.ObjectInputStream);
     java.lang.Object writeReplace();
     java.lang.Object readResolve();
-} 
+}
+
+# Google Sign-In
+-keep class com.google.android.gms.auth.** { *; }
+-keep class com.google.android.gms.common.** { *; }
+
+# Flutter Google Sign-In plugin
+-keep class io.flutter.plugins.googlesignin.** { *; }
+
+# Keep Flutter
+-keep class io.flutter.plugins.** { *; } 
