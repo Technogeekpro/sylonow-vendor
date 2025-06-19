@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-// import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/config/supabase_config.dart';
 import '../../../core/theme/app_theme.dart';
-import 'dart:convert';
+import '../../../core/services/google_auth_service.dart';
 
 class WelcomeScreen extends ConsumerStatefulWidget {
   const WelcomeScreen({super.key});
@@ -46,7 +46,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic));
+    ).animate(
+        CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic));
   }
 
   void _startAnimations() async {
@@ -70,16 +71,104 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
 
     setState(() => _isGoogleLoading = true);
 
-    // Google Sign-In temporarily disabled
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Google Sign-In temporarily disabled'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+    try {
+      final AuthResponse? response = await GoogleAuthService().signInWithGoogle();
+      
+      if (response?.user != null && mounted) {
+        print('🟢 Google Sign-In successful!');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Text('Welcome, ${response!.user!.email ?? 'Vendor'}!'),
+              ],
+            ),
+            backgroundColor: AppTheme.successColor,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+        
+        // Navigate to home after successful sign-in
+        context.go('/');
+      } else if (response == null) {
+        // User cancelled the sign-in
+        print('🔵 User cancelled Google Sign-In');
+      }
+      
+    } catch (error) {
+      print('🔴 Google Sign-In Error: $error');
+      if (mounted) {
+        String errorMessage = 'Google Sign-In failed';
+        
+        // Handle specific error types
+        if (error.toString().contains('PlatformException')) {
+          if (error.toString().contains('sign_in_failed') || error.toString().contains('10')) {
+            errorMessage = 'Google Sign-In configuration issue. Please try phone verification.';
+          } else if (error.toString().contains('network_error')) {
+            errorMessage = 'Network error. Please check your internet connection.';
+          } else if (error.toString().contains('sign_in_canceled')) {
+            errorMessage = 'Sign-in was cancelled.';
+          }
+        } else if (error.toString().contains('Failed to get ID token')) {
+          errorMessage = 'Authentication failed. Please try again.';
+        } else if (error is AuthException) {
+          errorMessage = error.message;
+          print('🔴 AuthException details: ${error.message}');
+        } else if (error.toString().contains('Bad ID token')) {
+          errorMessage = 'Authentication configuration issue. Please try phone verification.';
+          print('🔴 Bad ID token - likely client ID mismatch');
+        }
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.white),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(errorMessage)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'You can continue with phone verification instead.',
+                  style: TextStyle(fontSize: 12, color: Colors.white70),
+                ),
+              ],
+            ),
+            backgroundColor: AppTheme.errorColor,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Use Phone',
+              textColor: Colors.white,
+              onPressed: () {
+                if (_termsAccepted) {
+                  context.go('/phone');
+                } else {
+                  _showTermsRequiredDialog();
+                }
+              },
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGoogleLoading = false);
+      }
     }
-    setState(() => _isGoogleLoading = false);
   }
 
   void _showTermsRequiredDialog() {
@@ -87,7 +176,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Terms Required'),
-        content: const Text('Please accept the terms and conditions to continue.'),
+        content:
+            const Text('Please accept the terms and conditions to continue.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -107,8 +197,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF667eea),
-              Color(0xFF764ba2),
+              AppTheme.primaryColor,
+              AppTheme.secondaryColor,
             ],
           ),
         ),
@@ -124,10 +214,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                   child: SlideTransition(
                     position: _slideAnimation,
                     child: Container(
-                      width: 120,
-                      height: 120,
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppTheme.surfaceColor,
                         borderRadius: BorderRadius.circular(30),
                         boxShadow: [
                           BoxShadow(
@@ -137,16 +226,16 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                           ),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.store,
-                        size: 60,
-                        color: Color(0xFF667eea),
+                      child: Image.asset(
+                        'assets/images/app_logo.png',
+                        width: 100,
+                        height: 100,
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 40),
-                
+
                 // Welcome Text
                 FadeTransition(
                   opacity: _fadeAnimation,
@@ -157,20 +246,20 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                         const Text(
                           'Welcome to',
                           style: TextStyle(
-                            fontSize: 28,
+                            fontSize: 24,
                             fontWeight: FontWeight.w300,
                             color: Colors.white,
                           ),
                         ),
                         const Text(
-                          'SyloNow Vendor',
+                          'Sylonow Vendor',
                           style: TextStyle(
                             fontSize: 36,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 8),
                         Text(
                           'Manage your business with ease',
                           style: TextStyle(
@@ -182,9 +271,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                     ),
                   ),
                 ),
-                
+
                 const Spacer(),
-                
+
                 // Terms and Conditions Checkbox
                 FadeTransition(
                   opacity: _fadeAnimation,
@@ -212,9 +301,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Google Sign-In Button
                 FadeTransition(
                   opacity: _fadeAnimation,
@@ -234,22 +323,19 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                       ),
                       child: _isGoogleLoading
                           ? const CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667eea)),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  Color(0xFF667eea)),
                             )
                           : Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Container(
+                                SizedBox(
                                   width: 24,
                                   height: 24,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.grey,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.g_mobiledata,
-                                    color: Colors.white,
-                                    size: 18,
+                                  child: Image.asset(
+                                    'assets/images/google_logo.png',
+                                    width: 24,
+                                    height: 24,
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -265,9 +351,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Phone Sign-In Button
                 FadeTransition(
                   opacity: _fadeAnimation,
@@ -302,9 +388,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 32),
-                
+
                 // Footer
                 FadeTransition(
                   opacity: _fadeAnimation,
@@ -317,7 +403,26 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                     ),
                   ),
                 ),
-                
+
+                // Debug Button (only in debug mode)
+                if (kDebugMode)
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: TextButton(
+                        onPressed: () => context.go('/debug-google'),
+                        child: Text(
+                          '🛠️ Debug Google OAuth',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.8),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
                 const SizedBox(height: 24),
               ],
             ),
@@ -326,4 +431,4 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
       ),
     );
   }
-} 
+}

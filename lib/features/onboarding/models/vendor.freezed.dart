@@ -21,10 +21,10 @@ Vendor _$VendorFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$Vendor {
   String get id => throw _privateConstructorUsedError;
+  String? get phone => throw _privateConstructorUsedError;
+  String? get email => throw _privateConstructorUsedError;
   @JsonKey(name: 'vendor_id')
   String? get vendorId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'mobile_number')
-  String get mobileNumber => throw _privateConstructorUsedError;
   @JsonKey(name: 'full_name')
   String get fullName => throw _privateConstructorUsedError;
   @JsonKey(name: 'service_area')
@@ -40,10 +40,10 @@ mixin _$Vendor {
   String? get aadhaarBackImage => throw _privateConstructorUsedError;
   @JsonKey(name: 'pan_card_image')
   String? get panCardImage => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_verified')
-  bool? get isVerified => throw _privateConstructorUsedError;
+  @JsonKey(name: 'verification_status')
+  String get verificationStatus => throw _privateConstructorUsedError;
   @JsonKey(name: 'is_onboarding_complete')
-  bool? get isOnboardingComplete => throw _privateConstructorUsedError;
+  bool get isOnboardingComplete => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
   DateTime? get createdAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'updated_at')
@@ -79,8 +79,9 @@ abstract class $VendorCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
+      String? phone,
+      String? email,
       @JsonKey(name: 'vendor_id') String? vendorId,
-      @JsonKey(name: 'mobile_number') String mobileNumber,
       @JsonKey(name: 'full_name') String fullName,
       @JsonKey(name: 'service_area') String? serviceArea,
       String? pincode,
@@ -89,8 +90,8 @@ abstract class $VendorCopyWith<$Res> {
       @JsonKey(name: 'aadhaar_front_image') String? aadhaarFrontImage,
       @JsonKey(name: 'aadhaar_back_image') String? aadhaarBackImage,
       @JsonKey(name: 'pan_card_image') String? panCardImage,
-      @JsonKey(name: 'is_verified') bool? isVerified,
-      @JsonKey(name: 'is_onboarding_complete') bool? isOnboardingComplete,
+      @JsonKey(name: 'verification_status') String verificationStatus,
+      @JsonKey(name: 'is_onboarding_complete') bool isOnboardingComplete,
       @JsonKey(name: 'created_at') DateTime? createdAt,
       @JsonKey(name: 'updated_at') DateTime? updatedAt,
       @JsonKey(name: 'auth_user_id') String? authUserId,
@@ -118,8 +119,9 @@ class _$VendorCopyWithImpl<$Res, $Val extends Vendor>
   @override
   $Res call({
     Object? id = null,
+    Object? phone = freezed,
+    Object? email = freezed,
     Object? vendorId = freezed,
-    Object? mobileNumber = null,
     Object? fullName = null,
     Object? serviceArea = freezed,
     Object? pincode = freezed,
@@ -128,8 +130,8 @@ class _$VendorCopyWithImpl<$Res, $Val extends Vendor>
     Object? aadhaarFrontImage = freezed,
     Object? aadhaarBackImage = freezed,
     Object? panCardImage = freezed,
-    Object? isVerified = freezed,
-    Object? isOnboardingComplete = freezed,
+    Object? verificationStatus = null,
+    Object? isOnboardingComplete = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? authUserId = freezed,
@@ -145,14 +147,18 @@ class _$VendorCopyWithImpl<$Res, $Val extends Vendor>
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
+      phone: freezed == phone
+          ? _value.phone
+          : phone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: freezed == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
       vendorId: freezed == vendorId
           ? _value.vendorId
           : vendorId // ignore: cast_nullable_to_non_nullable
               as String?,
-      mobileNumber: null == mobileNumber
-          ? _value.mobileNumber
-          : mobileNumber // ignore: cast_nullable_to_non_nullable
-              as String,
       fullName: null == fullName
           ? _value.fullName
           : fullName // ignore: cast_nullable_to_non_nullable
@@ -185,14 +191,14 @@ class _$VendorCopyWithImpl<$Res, $Val extends Vendor>
           ? _value.panCardImage
           : panCardImage // ignore: cast_nullable_to_non_nullable
               as String?,
-      isVerified: freezed == isVerified
-          ? _value.isVerified
-          : isVerified // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      isOnboardingComplete: freezed == isOnboardingComplete
+      verificationStatus: null == verificationStatus
+          ? _value.verificationStatus
+          : verificationStatus // ignore: cast_nullable_to_non_nullable
+              as String,
+      isOnboardingComplete: null == isOnboardingComplete
           ? _value.isOnboardingComplete
           : isOnboardingComplete // ignore: cast_nullable_to_non_nullable
-              as bool?,
+              as bool,
       createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -242,8 +248,9 @@ abstract class _$$VendorImplCopyWith<$Res> implements $VendorCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
+      String? phone,
+      String? email,
       @JsonKey(name: 'vendor_id') String? vendorId,
-      @JsonKey(name: 'mobile_number') String mobileNumber,
       @JsonKey(name: 'full_name') String fullName,
       @JsonKey(name: 'service_area') String? serviceArea,
       String? pincode,
@@ -252,8 +259,8 @@ abstract class _$$VendorImplCopyWith<$Res> implements $VendorCopyWith<$Res> {
       @JsonKey(name: 'aadhaar_front_image') String? aadhaarFrontImage,
       @JsonKey(name: 'aadhaar_back_image') String? aadhaarBackImage,
       @JsonKey(name: 'pan_card_image') String? panCardImage,
-      @JsonKey(name: 'is_verified') bool? isVerified,
-      @JsonKey(name: 'is_onboarding_complete') bool? isOnboardingComplete,
+      @JsonKey(name: 'verification_status') String verificationStatus,
+      @JsonKey(name: 'is_onboarding_complete') bool isOnboardingComplete,
       @JsonKey(name: 'created_at') DateTime? createdAt,
       @JsonKey(name: 'updated_at') DateTime? updatedAt,
       @JsonKey(name: 'auth_user_id') String? authUserId,
@@ -279,8 +286,9 @@ class __$$VendorImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
+    Object? phone = freezed,
+    Object? email = freezed,
     Object? vendorId = freezed,
-    Object? mobileNumber = null,
     Object? fullName = null,
     Object? serviceArea = freezed,
     Object? pincode = freezed,
@@ -289,8 +297,8 @@ class __$$VendorImplCopyWithImpl<$Res>
     Object? aadhaarFrontImage = freezed,
     Object? aadhaarBackImage = freezed,
     Object? panCardImage = freezed,
-    Object? isVerified = freezed,
-    Object? isOnboardingComplete = freezed,
+    Object? verificationStatus = null,
+    Object? isOnboardingComplete = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? authUserId = freezed,
@@ -306,14 +314,18 @@ class __$$VendorImplCopyWithImpl<$Res>
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
+      phone: freezed == phone
+          ? _value.phone
+          : phone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: freezed == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
       vendorId: freezed == vendorId
           ? _value.vendorId
           : vendorId // ignore: cast_nullable_to_non_nullable
               as String?,
-      mobileNumber: null == mobileNumber
-          ? _value.mobileNumber
-          : mobileNumber // ignore: cast_nullable_to_non_nullable
-              as String,
       fullName: null == fullName
           ? _value.fullName
           : fullName // ignore: cast_nullable_to_non_nullable
@@ -346,14 +358,14 @@ class __$$VendorImplCopyWithImpl<$Res>
           ? _value.panCardImage
           : panCardImage // ignore: cast_nullable_to_non_nullable
               as String?,
-      isVerified: freezed == isVerified
-          ? _value.isVerified
-          : isVerified // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      isOnboardingComplete: freezed == isOnboardingComplete
+      verificationStatus: null == verificationStatus
+          ? _value.verificationStatus
+          : verificationStatus // ignore: cast_nullable_to_non_nullable
+              as String,
+      isOnboardingComplete: null == isOnboardingComplete
           ? _value.isOnboardingComplete
           : isOnboardingComplete // ignore: cast_nullable_to_non_nullable
-              as bool?,
+              as bool,
       createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -396,11 +408,12 @@ class __$$VendorImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$VendorImpl implements _Vendor {
+class _$VendorImpl extends _Vendor {
   const _$VendorImpl(
       {required this.id,
+      this.phone,
+      this.email,
       @JsonKey(name: 'vendor_id') this.vendorId,
-      @JsonKey(name: 'mobile_number') required this.mobileNumber,
       @JsonKey(name: 'full_name') required this.fullName,
       @JsonKey(name: 'service_area') this.serviceArea,
       this.pincode,
@@ -409,7 +422,7 @@ class _$VendorImpl implements _Vendor {
       @JsonKey(name: 'aadhaar_front_image') this.aadhaarFrontImage,
       @JsonKey(name: 'aadhaar_back_image') this.aadhaarBackImage,
       @JsonKey(name: 'pan_card_image') this.panCardImage,
-      @JsonKey(name: 'is_verified') this.isVerified = false,
+      @JsonKey(name: 'verification_status') this.verificationStatus = 'pending',
       @JsonKey(name: 'is_onboarding_complete')
       this.isOnboardingComplete = false,
       @JsonKey(name: 'created_at') this.createdAt,
@@ -420,7 +433,8 @@ class _$VendorImpl implements _Vendor {
       @JsonKey(name: 'aadhaar_number') this.aadhaarNumber,
       @JsonKey(name: 'bank_account_number') this.bankAccountNumber,
       @JsonKey(name: 'bank_ifsc_code') this.bankIfscCode,
-      @JsonKey(name: 'gst_number') this.gstNumber});
+      @JsonKey(name: 'gst_number') this.gstNumber})
+      : super._();
 
   factory _$VendorImpl.fromJson(Map<String, dynamic> json) =>
       _$$VendorImplFromJson(json);
@@ -428,11 +442,12 @@ class _$VendorImpl implements _Vendor {
   @override
   final String id;
   @override
+  final String? phone;
+  @override
+  final String? email;
+  @override
   @JsonKey(name: 'vendor_id')
   final String? vendorId;
-  @override
-  @JsonKey(name: 'mobile_number')
-  final String mobileNumber;
   @override
   @JsonKey(name: 'full_name')
   final String fullName;
@@ -457,11 +472,11 @@ class _$VendorImpl implements _Vendor {
   @JsonKey(name: 'pan_card_image')
   final String? panCardImage;
   @override
-  @JsonKey(name: 'is_verified')
-  final bool? isVerified;
+  @JsonKey(name: 'verification_status')
+  final String verificationStatus;
   @override
   @JsonKey(name: 'is_onboarding_complete')
-  final bool? isOnboardingComplete;
+  final bool isOnboardingComplete;
   @override
   @JsonKey(name: 'created_at')
   final DateTime? createdAt;
@@ -492,7 +507,7 @@ class _$VendorImpl implements _Vendor {
 
   @override
   String toString() {
-    return 'Vendor(id: $id, vendorId: $vendorId, mobileNumber: $mobileNumber, fullName: $fullName, serviceArea: $serviceArea, pincode: $pincode, serviceType: $serviceType, profilePicture: $profilePicture, aadhaarFrontImage: $aadhaarFrontImage, aadhaarBackImage: $aadhaarBackImage, panCardImage: $panCardImage, isVerified: $isVerified, isOnboardingComplete: $isOnboardingComplete, createdAt: $createdAt, updatedAt: $updatedAt, authUserId: $authUserId, fcmToken: $fcmToken, businessName: $businessName, aadhaarNumber: $aadhaarNumber, bankAccountNumber: $bankAccountNumber, bankIfscCode: $bankIfscCode, gstNumber: $gstNumber)';
+    return 'Vendor(id: $id, phone: $phone, email: $email, vendorId: $vendorId, fullName: $fullName, serviceArea: $serviceArea, pincode: $pincode, serviceType: $serviceType, profilePicture: $profilePicture, aadhaarFrontImage: $aadhaarFrontImage, aadhaarBackImage: $aadhaarBackImage, panCardImage: $panCardImage, verificationStatus: $verificationStatus, isOnboardingComplete: $isOnboardingComplete, createdAt: $createdAt, updatedAt: $updatedAt, authUserId: $authUserId, fcmToken: $fcmToken, businessName: $businessName, aadhaarNumber: $aadhaarNumber, bankAccountNumber: $bankAccountNumber, bankIfscCode: $bankIfscCode, gstNumber: $gstNumber)';
   }
 
   @override
@@ -501,10 +516,10 @@ class _$VendorImpl implements _Vendor {
         (other.runtimeType == runtimeType &&
             other is _$VendorImpl &&
             (identical(other.id, id) || other.id == id) &&
+            (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.email, email) || other.email == email) &&
             (identical(other.vendorId, vendorId) ||
                 other.vendorId == vendorId) &&
-            (identical(other.mobileNumber, mobileNumber) ||
-                other.mobileNumber == mobileNumber) &&
             (identical(other.fullName, fullName) ||
                 other.fullName == fullName) &&
             (identical(other.serviceArea, serviceArea) ||
@@ -520,8 +535,8 @@ class _$VendorImpl implements _Vendor {
                 other.aadhaarBackImage == aadhaarBackImage) &&
             (identical(other.panCardImage, panCardImage) ||
                 other.panCardImage == panCardImage) &&
-            (identical(other.isVerified, isVerified) ||
-                other.isVerified == isVerified) &&
+            (identical(other.verificationStatus, verificationStatus) ||
+                other.verificationStatus == verificationStatus) &&
             (identical(other.isOnboardingComplete, isOnboardingComplete) ||
                 other.isOnboardingComplete == isOnboardingComplete) &&
             (identical(other.createdAt, createdAt) ||
@@ -549,8 +564,9 @@ class _$VendorImpl implements _Vendor {
   int get hashCode => Object.hashAll([
         runtimeType,
         id,
+        phone,
+        email,
         vendorId,
-        mobileNumber,
         fullName,
         serviceArea,
         pincode,
@@ -559,7 +575,7 @@ class _$VendorImpl implements _Vendor {
         aadhaarFrontImage,
         aadhaarBackImage,
         panCardImage,
-        isVerified,
+        verificationStatus,
         isOnboardingComplete,
         createdAt,
         updatedAt,
@@ -588,11 +604,12 @@ class _$VendorImpl implements _Vendor {
   }
 }
 
-abstract class _Vendor implements Vendor {
+abstract class _Vendor extends Vendor {
   const factory _Vendor(
       {required final String id,
+      final String? phone,
+      final String? email,
       @JsonKey(name: 'vendor_id') final String? vendorId,
-      @JsonKey(name: 'mobile_number') required final String mobileNumber,
       @JsonKey(name: 'full_name') required final String fullName,
       @JsonKey(name: 'service_area') final String? serviceArea,
       final String? pincode,
@@ -601,8 +618,8 @@ abstract class _Vendor implements Vendor {
       @JsonKey(name: 'aadhaar_front_image') final String? aadhaarFrontImage,
       @JsonKey(name: 'aadhaar_back_image') final String? aadhaarBackImage,
       @JsonKey(name: 'pan_card_image') final String? panCardImage,
-      @JsonKey(name: 'is_verified') final bool? isVerified,
-      @JsonKey(name: 'is_onboarding_complete') final bool? isOnboardingComplete,
+      @JsonKey(name: 'verification_status') final String verificationStatus,
+      @JsonKey(name: 'is_onboarding_complete') final bool isOnboardingComplete,
       @JsonKey(name: 'created_at') final DateTime? createdAt,
       @JsonKey(name: 'updated_at') final DateTime? updatedAt,
       @JsonKey(name: 'auth_user_id') final String? authUserId,
@@ -612,17 +629,19 @@ abstract class _Vendor implements Vendor {
       @JsonKey(name: 'bank_account_number') final String? bankAccountNumber,
       @JsonKey(name: 'bank_ifsc_code') final String? bankIfscCode,
       @JsonKey(name: 'gst_number') final String? gstNumber}) = _$VendorImpl;
+  const _Vendor._() : super._();
 
   factory _Vendor.fromJson(Map<String, dynamic> json) = _$VendorImpl.fromJson;
 
   @override
   String get id;
   @override
+  String? get phone;
+  @override
+  String? get email;
+  @override
   @JsonKey(name: 'vendor_id')
   String? get vendorId;
-  @override
-  @JsonKey(name: 'mobile_number')
-  String get mobileNumber;
   @override
   @JsonKey(name: 'full_name')
   String get fullName;
@@ -647,11 +666,11 @@ abstract class _Vendor implements Vendor {
   @JsonKey(name: 'pan_card_image')
   String? get panCardImage;
   @override
-  @JsonKey(name: 'is_verified')
-  bool? get isVerified;
+  @JsonKey(name: 'verification_status')
+  String get verificationStatus;
   @override
   @JsonKey(name: 'is_onboarding_complete')
-  bool? get isOnboardingComplete;
+  bool get isOnboardingComplete;
   @override
   @JsonKey(name: 'created_at')
   DateTime? get createdAt;

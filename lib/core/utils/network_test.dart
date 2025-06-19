@@ -8,11 +8,11 @@ class NetworkTest {
     try {
       print('🔍 Testing Supabase connectivity...');
       
-      // Test basic HTTP connectivity
+      // Test basic HTTP connectivity using current project config
       final response = await http.get(
-        Uri.parse('https://bsxkxgtwxtggicjocqvp.supabase.co/rest/v1/'),
+        Uri.parse('https://txgszrxjyanazlrupaty.supabase.co/rest/v1/'),
         headers: {
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzeGt4Z3R3eHRnZ2ljam9jcXZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwOTg3NzEsImV4cCI6MjA2MzY3NDc3MX0.tF41-kL97cw1EjRGaKLrR-c265Bsw5a-q7IurnVB6ok',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR4Z3N6cnhqeWFuYXpscnVwYXR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyNzU4MjcsImV4cCI6MjA2NTg1MTgyN30.7MDiDGMCEa-E8c3HgIGxSpkOsH9kClD5i5LNSjzFul4',
         },
       ).timeout(const Duration(seconds: 10));
       

@@ -22,13 +22,13 @@ class ServiceListingsNotifier extends AsyncNotifier<List<ServiceListing>> {
       print('🔵 ServiceListingsNotifier: Loading listings...');
       
       final vendor = await ref.read(vendorProvider.future);
-      if (vendor?.vendorId == null) {
+      if (vendor?.authUserId == null) {
         print('🔴 ServiceListingsNotifier: No vendor ID found');
         throw Exception('Vendor not found');
       }
 
-      print('🔵 ServiceListingsNotifier: Vendor ID: ${vendor!.vendorId}');
-      final listings = await _serviceListingService.getVendorListings(vendor.vendorId!);
+      print('🔵 ServiceListingsNotifier: Vendor ID: ${vendor!.authUserId}');
+      final listings = await _serviceListingService.getVendorListings(vendor.authUserId!);
       
       print('🟢 ServiceListingsNotifier: Loaded ${listings.length} listings');
       return listings;
@@ -49,10 +49,15 @@ class ServiceListingsNotifier extends AsyncNotifier<List<ServiceListing>> {
     try {
       print('🔵 ServiceListingsNotifier: Creating listing...');
       
+      final vendor = await ref.read(vendorProvider.future);
+      if (vendor == null) {
+        throw Exception('Cannot create listing without a vendor.');
+      }
+
       // Optimistically update the state
       state = const AsyncLoading();
       
-      final newListing = await _serviceListingService.createListing(listing);
+      await _serviceListingService.createListing(listing, vendor.id);
       
       // Update state with new listing added
       state = await AsyncValue.guard(() async {

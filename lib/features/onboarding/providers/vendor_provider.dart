@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sylonow_vendor/core/config/supabase_config.dart';
 import 'package:sylonow_vendor/core/providers/auth_provider.dart';
 import 'package:sylonow_vendor/features/onboarding/models/vendor.dart';
 import 'package:sylonow_vendor/features/onboarding/service/vendor_service.dart';

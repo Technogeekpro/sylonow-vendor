@@ -52,190 +52,9 @@ class VendorService {
     await _client.from('vendors').upsert(vendor.toJson());
   }
 
-  /// Upload image to appropriate Supabase storage bucket
-  /// For profile pictures: uses 'profile-pictures' bucket (public)
-  /// For documents: uses 'vendor-documents' bucket (private with RLS)
-  Future<String> uploadImage(File imageFile, String imageType) async {
-    try {
-      // Get current user and validate session
-      final user = _client.auth.currentUser;
-      final session = _client.auth.currentSession;
-      
-      if (user == null || session == null) {
-        print('🔴 Authentication check failed:');
-        print('   - User: ${user?.id ?? 'null'}');
-        print('   - Session: ${session?.accessToken != null ? 'present' : 'null'}');
-        throw Exception('User not authenticated or session invalid');
-      }
-
-      // Additional session validation for release builds
-      if (session.isExpired) {
-        print('🔴 Session expired, attempting refresh...');
-        try {
-          await _client.auth.refreshSession();
-          print('🟢 Session refreshed successfully');
-        } catch (e) {
-          print('🔴 Failed to refresh session: $e');
-          throw Exception('Authentication session expired and could not be refreshed');
-        }
-      }
-
-      print('🔵 Uploading image for user: ${user.id}');
-      print('🔵 Image type: $imageType');
-      print('🔵 File size: ${await imageFile.length()} bytes');
-      print('🔵 Session valid: ${!session.isExpired}');
-
-      // Determine bucket and path based on image type
-      String bucketName;
-      String folderPath;
-      bool isPublicBucket = false;
-      
-      switch (imageType.toLowerCase()) {
-        case 'profile_pictures':
-        case 'profile':
-          bucketName = 'profile-pictures';
-          folderPath = user.id; // User ID folder for profile pictures
-          isPublicBucket = true; // Profile pictures are public
-          break;
-        case 'aadhaar_images':
-        case 'aadhaar':
-        case 'pan_images': 
-        case 'pan':
-        case 'documents':
-        default:              
-          bucketName = 'vendor-documents';
-          folderPath = user.id; // User ID folder for documents
-          isPublicBucket = false; // Documents are private
-          break;
-      }
-
-      final fileName = '${imageType}_${DateTime.now().millisecondsSinceEpoch}_${imageFile.path.split('/').last}';
-      final filePath = '$folderPath/$fileName';
-      
-      print('🔵 Upload details:');
-      print('   - Bucket: $bucketName');
-      print('   - Path: $filePath');
-      print('   - File: $fileName');
-      print('   - Public bucket: $isPublicBucket');
-      print('   - Auth User ID: ${user.id}');
-      print('   - Folder matches auth: ${folderPath == user.id}');
-
-      // Upload file to storage with additional error handling
-      try {
-        await _client.storage.from(bucketName).upload(
-          filePath,
-          imageFile,
-          fileOptions: const FileOptions(
-            cacheControl: '3600',
-            upsert: true, // Allow overwriting if needed
-          ),
-        );
-        print('🟢 File uploaded to storage successfully');
-      } catch (uploadError) {
-        print('🔴 Storage upload failed: $uploadError');
-        
-        // Specific error handling for common release build issues
-        if (uploadError.toString().contains('row-level security policy')) {
-          print('🔴 RLS Policy Error Details:');
-          print('   - Current user ID: ${user.id}');
-          print('   - Expected folder: $folderPath');
-          print('   - Bucket: $bucketName');
-          print('   - Session expired: ${session.isExpired}');
-          throw Exception('Storage security policy error: Please ensure you are properly authenticated and try again.');
-        } else if (uploadError.toString().contains('unauthorized') || uploadError.toString().contains('403')) {
-          throw Exception('Upload unauthorized: Please logout and login again.');
-        } else if (uploadError.toString().contains('network') || uploadError.toString().contains('connection')) {
-          throw Exception('Network error during upload: Please check your internet connection and try again.');
-        } else {
-          throw Exception('Upload failed: ${uploadError.toString()}');
-        }
-      }
-
-      // Generate appropriate URL based on bucket privacy
-      String accessUrl;
-      if (isPublicBucket) {
-        // For public buckets (profile pictures), use public URL
-        accessUrl = _client.storage
-            .from(bucketName)
-            .getPublicUrl(filePath);
-        print('🟢 Generated public URL');
-      } else {
-        // For private buckets (documents), generate signed URL (valid for 1 year)
-        accessUrl = await _client.storage
-            .from(bucketName)
-            .createSignedUrl(filePath, 31536000); // 1 year = 365 * 24 * 60 * 60 seconds
-        print('🟢 Generated signed URL (private)');
-      }
-
-      print('🟢 Upload successful!');
-      print('🟢 Access URL: $accessUrl');
-      
-      return accessUrl;
-    } catch (e) {
-      print('🔴 Error uploading image: $e');
-      
-      // Provide detailed error information
-      if (e.toString().contains('row-level security policy')) {
-        print('🔴 RLS policy violation - check that user is authenticated and policies allow upload');
-        print('🔴 User ID: ${_client.auth.currentUser?.id}');
-        print('🔴 Image type: $imageType');
-      } else if (e.toString().contains('Duplicate')) {
-        print('🔴 File already exists - trying with upsert enabled');
-      } else if (e.toString().contains('payload too large')) {
-        print('🔴 File size too large - check file size limits');
-      }
-      
-      rethrow;
-    }
-  }
-
-  // Find existing vendor by mobile or auth user id
-  Future<Vendor?> findExistingVendor({
-    required String mobileNumber,
-    required String authUserId,
-  }) async {
-    try {
-      print('🔍 Looking for existing vendor:');
-      print('   - Mobile: $mobileNumber');
-      print('   - Auth User ID: $authUserId');
-      
-      // First try to find by auth_user_id (most reliable)
-      var response = await _client
-          .from('vendors')
-          .select('*')
-          .eq('auth_user_id', authUserId)
-          .maybeSingle();
-
-      if (response != null) {
-        print('🟢 Found existing vendor by auth_user_id: ${response['vendor_id']}');
-        return Vendor.fromJson(response);
-      }
-
-      // If not found and mobile number is not empty, try by mobile number
-      if (mobileNumber.trim().isNotEmpty) {
-      response = await _client
-          .from('vendors')
-          .select('*')
-          .eq('mobile_number', mobileNumber)
-          .maybeSingle();
-
-      if (response != null) {
-          print('🟢 Found existing vendor by mobile number: ${response['vendor_id']}');
-        return Vendor.fromJson(response);
-        }
-      }
-
-      print('🔍 No existing vendor found');
-      return null;
-    } catch (e) {
-      print('🔴 Error finding vendor: $e');
-      return null;
-    }
-  }
-
-  // Create or update vendor (upsert approach)
-  Future<void> createVendor({
-    required String mobileNumber,
+  /// Creates or updates a vendor and their associated documents within a single transaction.
+  Future<void> createVendorAndDocuments({
+    // Vendor details
     required String fullName,
     required String authUserId,
     required String serviceArea,
@@ -246,92 +65,159 @@ class VendorService {
     required String bankAccountNumber,
     required String bankIfscCode,
     String? gstNumber,
-    String? profilePicture,
-    String? aadhaarFrontImage,
-    String? aadhaarBackImage,
-    String? panCardImage,
+    // Image files to be uploaded
+    File? profileImageFile,
+    File? aadhaarFrontFile,
+    File? aadhaarBackFile,
+    File? panCardFile,
   }) async {
     try {
-      print('Creating vendor for user: $authUserId');
-      print('Mobile number provided: "$mobileNumber"');
-      
-      // Clean and validate mobile number
-      final cleanedMobileNumber = mobileNumber.trim();
-      
-      // First check if vendor already exists
-      final existingVendor = await findExistingVendor(
-        mobileNumber: cleanedMobileNumber,
-        authUserId: authUserId,
-      );
-      
-      final vendorData = {
-        'mobile_number': cleanedMobileNumber,
-        'full_name': fullName,
-        'auth_user_id': authUserId,
-        'service_area': serviceArea,
-        'pincode': pincode,
-        'service_type': serviceType,
-        'business_name': businessName,
+      print('🔵 Starting vendor upsert transaction...');
+      final authUserId = _client.auth.currentUser!.id;
+      final authEmail = _client.auth.currentUser!.email!;
+
+      // 1. Find or create the vendor record.
+      String vendorId;
+      final existingVendor = await _client
+          .from('vendors')
+          .select('id')
+          .eq('auth_user_id', authUserId)
+          .maybeSingle();
+
+      if (existingVendor != null) {
+        vendorId = existingVendor['id'];
+        print('🟢 Vendor found with ID: $vendorId. Updating record...');
+        await _client.from('vendors').update({
+          'full_name': fullName,
+          'business_name': businessName,
+          'business_type': serviceType,
+          'updated_at': DateTime.now().toIso8601String(),
+        }).eq('id', vendorId);
+      } else {
+        print('🟡 No vendor found. Creating new record...');
+        final newVendor = await _client.from('vendors').insert({
+          'full_name': fullName,
+          'auth_user_id': authUserId,
+          'email': authEmail,
+          'business_name': businessName,
+          'business_type': serviceType,
+          'verification_status': 'pending',
+          'is_active': false,
+        }).select('id').single();
+        vendorId = newVendor['id'];
+        print('🟢 New vendor created with ID: $vendorId');
+      }
+
+      // 2. Upsert the private details.
+      await _client.from('vendor_private_details').upsert({
+        'vendor_id': vendorId,
         'aadhaar_number': aadhaarNumber,
         'bank_account_number': bankAccountNumber,
         'bank_ifsc_code': bankIfscCode,
         'gst_number': gstNumber,
-        'profile_picture': profilePicture,
-        'aadhaar_front_image': aadhaarFrontImage,
-        'aadhaar_back_image': aadhaarBackImage,
-        'pan_card_image': panCardImage,
-        'is_verified': false,
-        'is_onboarding_complete': true,
-        'updated_at': DateTime.now().toIso8601String(),
-      };
+      }, onConflict: 'vendor_id');
+      print('🟢 Vendor private details upserted.');
 
-      print('Vendor data prepared: ${vendorData.keys.toList()}');
-      
-      if (existingVendor != null) {
-        print('Vendor already exists, updating record with ID: ${existingVendor.id}');
-        // Update existing vendor
-        await _client
-            .from('vendors')
-            .update(vendorData)
-            .eq('id', existingVendor.id);
-        print('Vendor updated successfully');
-      } else {
-        print('Creating new vendor record');
-        // Add created_at only for new records
-        vendorData['created_at'] = DateTime.now().toIso8601String();
-      await _client.from('vendors').insert(vendorData);
-      print('Vendor created successfully');
-      }
-    } catch (e) {
-      print('🔴 Error creating vendor: $e');
-      
-      if (e is PostgrestException) {
-        print('🔴 PostgrestException details:');
-        print('   - Message: ${e.message}');
-        print('   - Code: ${e.code}');
-        print('   - Details: ${e.details}');
-        print('   - Hint: ${e.hint}');
-        
-        if (e.code == '23505') {
-          // Unique constraint violation
-          if (e.message.contains('mobile_number_key')) {
-            throw Exception('A vendor with this mobile number already exists. Please use a different number or contact support.');
-          } else if (e.message.contains('auth_user_id')) {
-            throw Exception('A vendor profile already exists for this user account.');
-          } else {
-            throw Exception('Duplicate data detected: ${e.message}');
-          }
-        } else if (e.message.contains('row-level security policy')) {
-          throw Exception('Permission denied. Please ensure you are logged in with the correct account.');
+      // 3. Upload images and create/update document records.
+      final List<Future> documentFutures = [];
+
+      Future<void> uploadAndCreateDocument(File? file, String docType) async {
+        if (file != null) {
+          final imageUrl = await uploadImage(file, docType, vendorId);
+          // Use upsert to avoid errors on retry
+          documentFutures.add(
+            _client.from('vendor_documents').upsert({
+              'vendor_id': vendorId,
+              'document_type': docType,
+              'document_url': imageUrl,
+              'verification_status': 'pending',
+            }, onConflict: 'vendor_id, document_type'), // Assumes a vendor has one doc of each type
+          );
+          print('🟢 Queued document for upsert: $docType');
         }
       }
       
-      if (e.toString().contains('row-level security policy')) {
-        print('🔴 RLS policy violation - check that auth_user_id matches authenticated user');
-        throw Exception('Authentication error. Please logout and login again.');
+      if (profileImageFile != null) {
+        final profileImageUrl = await uploadImage(profileImageFile, 'profile', vendorId);
+        documentFutures.add(
+          _client.from('vendors').update({'profile_image_url': profileImageUrl}).eq('id', vendorId)
+        );
+        print('🟢 Queued profile picture update');
       }
-      
+
+      await uploadAndCreateDocument(aadhaarFrontFile, 'identity_aadhaar_front');
+      await uploadAndCreateDocument(aadhaarBackFile, 'identity_aadhaar_back');
+      await uploadAndCreateDocument(panCardFile, 'identity_pan');
+
+      if (documentFutures.isNotEmpty) {
+        await Future.wait(documentFutures);
+      }
+
+      // Final update to mark onboarding as complete
+      await _client.from('vendors').update({
+        'is_onboarding_complete': true,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', vendorId);
+
+      print('🎉 Transaction complete: Vendor and documents upserted successfully!');
+    } catch (e) {
+      print('🔴 Transaction failed in createVendorAndDocuments: $e');
       rethrow;
+    }
+  }
+
+  /// Uploads an image to Supabase storage.
+  /// Now requires a vendorId to structure the path correctly.
+  Future<String> uploadImage(File imageFile, String imageType, String vendorId) async {
+    try {
+      final user = _client.auth.currentUser;
+      if (user == null) throw Exception('User not authenticated.');
+
+      final bucketName = (imageType == 'profile') ? 'profile-pictures' : 'vendor-documents';
+      final folderPath = vendorId; 
+      final fileName = '${imageType}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final filePath = '$folderPath/$fileName';
+
+      print('🔵 Uploading to bucket: $bucketName, path: $filePath');
+      await _client.storage.from(bucketName).upload(
+            filePath,
+            imageFile,
+            fileOptions: const FileOptions(cacheControl: '3600', upsert: true), // Use upsert to handle retries
+          );
+
+      final String publicUrl = _client.storage.from(bucketName).getPublicUrl(filePath);
+      print('🟢 Upload successful. URL: $publicUrl');
+      return publicUrl;
+    } catch (e) {
+      print('🔴 Image upload failed: $e');
+      rethrow;
+    }
+  }
+
+  // Find existing vendor by auth user id
+  Future<Vendor?> findExistingVendor({
+    required String authUserId,
+  }) async {
+    try {
+      print('🔍 Looking for existing vendor by Auth User ID: $authUserId');
+
+      // Only find by auth_user_id (most reliable)
+      var response = await _client
+          .from('vendors')
+          .select('*')
+          .eq('auth_user_id', authUserId)
+          .maybeSingle();
+
+      if (response != null) {
+        print('🟢 Found existing vendor by auth_user_id');
+        return Vendor.fromJson(response);
+      }
+
+      print('🔍 No existing vendor found');
+      return null;
+    } catch (e) {
+      print('🔴 Error finding vendor: $e');
+      return null;
     }
   }
 

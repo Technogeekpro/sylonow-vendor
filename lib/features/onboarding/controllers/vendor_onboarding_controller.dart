@@ -80,93 +80,20 @@ class VendorOnboardingController extends StateNotifier<VendorOnboardingState> {
     required String bankIfscCode,
     String? gstNumber,
   }) async {
-    try {
-      state = state.copyWith(isLoading: true, errorMessage: null);
+    state = state.copyWith(isLoading: true, errorMessage: null);
 
-      // Enhanced authentication validation for release builds
+    try {
       final user = SupabaseConfig.client.auth.currentUser;
-      final session = SupabaseConfig.client.auth.currentSession;
-      
-      print('🔵 Pre-upload authentication check:');
-      print('   - User ID: ${user?.id ?? 'null'}');
-      print('   - User email: ${user?.email ?? user?.phone ?? 'no email/phone'}');
-      print('   - Session present: ${session != null}');
-      print('   - Session expired: ${session?.isExpired ?? 'unknown'}');
-      
       if (user == null) {
         throw Exception('User not authenticated. Please login again.');
       }
       
-      if (session == null) {
-        throw Exception('Authentication session not found. Please login again.');
-      }
-      
-      if (session.isExpired) {
-        print('🔵 Session expired, refreshing...');
-        try {
-          await SupabaseConfig.client.auth.refreshSession();
-          print('🟢 Session refreshed successfully');
-        } catch (refreshError) {
-          print('🔴 Session refresh failed: $refreshError');
-          throw Exception('Authentication expired. Please logout and login again.');
-        }
-      }
-
-      print('🔵 Starting vendor application submission...');
+      print('🔵 Starting vendor application submission for user: ${user.id}');
       final vendorService = ref.read(vendorServiceProvider);
 
-      // Upload images first with proper type names
-      String? profileImageUrl;
-      String? aadhaarFrontUrl;
-      String? aadhaarBackUrl;
-      String? panCardUrl;
-
-      print('🔵 Uploading images...');
-
-      if (state.profileImage != null) {
-        print('🔵 Uploading profile picture...');
-        profileImageUrl = await vendorService.uploadImage(
-          state.profileImage!, 
-          'profile', // This will use profile-pictures bucket
-        );
-        print('🟢 Profile picture uploaded: $profileImageUrl');
-      }
-
-      if (state.aadhaarFrontImage != null) {
-        print('🔵 Uploading Aadhaar front image...');
-        aadhaarFrontUrl = await vendorService.uploadImage(
-          state.aadhaarFrontImage!, 
-          'aadhaar', // This will use vendor-documents bucket
-        );
-        print('🟢 Aadhaar front uploaded: $aadhaarFrontUrl');
-      }
-
-      if (state.aadhaarBackImage != null) {
-        print('🔵 Uploading Aadhaar back image...');
-        aadhaarBackUrl = await vendorService.uploadImage(
-          state.aadhaarBackImage!, 
-          'aadhaar', // This will use vendor-documents bucket
-        );
-        print('🟢 Aadhaar back uploaded: $aadhaarBackUrl');
-      }
-
-      if (state.panCardImage != null) {
-        print('🔵 Uploading PAN card image...');
-        panCardUrl = await vendorService.uploadImage(
-          state.panCardImage!, 
-          'pan', // This will use vendor-documents bucket
-        );
-        print('🟢 PAN card uploaded: $panCardUrl');
-      }
-
-      print('🔵 All images uploaded successfully, creating vendor record...');
-
-      // Create vendor record
-      final userPhone = user.phone?.trim() ?? '';
-      print('🔵 User phone from auth: "$userPhone"');
-      
-      await vendorService.createVendor(
-        mobileNumber: userPhone,
+      // Call the new transactional method in the service
+      await vendorService.createVendorAndDocuments(
+        // Vendor details
         fullName: fullName,
         authUserId: user.id,
         serviceArea: serviceArea,
@@ -177,62 +104,21 @@ class VendorOnboardingController extends StateNotifier<VendorOnboardingState> {
         bankAccountNumber: bankAccountNumber,
         bankIfscCode: bankIfscCode,
         gstNumber: gstNumber,
-        profilePicture: profileImageUrl,
-        aadhaarFrontImage: aadhaarFrontUrl,
-        aadhaarBackImage: aadhaarBackUrl,
-        panCardImage: panCardUrl,
+        // Image files
+        profileImageFile: state.profileImage,
+        aadhaarFrontFile: state.aadhaarFrontImage,
+        aadhaarBackFile: state.aadhaarBackImage,
+        panCardFile: state.panCardImage,
       );
 
-      print('🟢 Vendor application submitted successfully!');
+      print('🟢 Vendor application submitted successfully in controller!');
       state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
-      print('🔴 Error submitting vendor application: $e');
-      
-      // Add detailed error logging for release build debugging
-      if (e.toString().contains('SocketException')) {
-        print('🔴 Network Error: Unable to connect to server');
-        print('🔴 This could be due to:');
-        print('🔴 1. No internet connection');
-        print('🔴 2. Server is down');
-        print('🔴 3. Network security policy blocking HTTPS');
-        print('🔴 4. DNS resolution failure');
-      } else if (e.toString().contains('HttpException')) {
-        print('🔴 HTTP Error: Server responded with error');
-        print('🔴 This could be due to:');
-        print('🔴 1. Authentication token expired');
-        print('🔴 2. API endpoint not found');
-        print('🔴 3. Server configuration issue');
-      } else if (e.toString().contains('FormatException')) {
-        print('🔴 Data Format Error: Invalid response from server');
-        print('🔴 This could be due to:');
-        print('🔴 1. Server returned unexpected data format');
-        print('🔴 2. JSON parsing error');
-        print('🔴 3. API version mismatch');
-      } else if (e.toString().contains('TimeoutException')) {
-        print('🔴 Timeout Error: Request took too long');
-        print('🔴 This could be due to:');
-        print('🔴 1. Slow internet connection');
-        print('🔴 2. Server overloaded');
-        print('🔴 3. Large file upload timeout');
-      } else {
-        print('🔴 Unknown Error Type: ${e.runtimeType}');
-        print('🔴 Full error: $e');
-      }
-      
-      // Set user-friendly error message
-      String userMessage = 'Failed to submit application. Please try again later.';
-      if (e.toString().contains('SocketException') || e.toString().contains('network')) {
-        userMessage = 'Network error. Please check your internet connection and try again.';
-      } else if (e.toString().contains('timeout')) {
-        userMessage = 'Request timeout. Please check your connection and try again.';
-      } else if (e.toString().contains('authentication') || e.toString().contains('token')) {
-        userMessage = 'Authentication error. Please logout and login again.';
-      }
-      
+      print('🔴 Error submitting vendor application in controller: $e');
       state = state.copyWith(
         isLoading: false,
-        errorMessage: userMessage,
+        errorMessage: 'Failed to submit application. Please try again. Error: ${e.toString()}',
       );
       return false;
     }

@@ -3,12 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sylonow_vendor/core/theme/app_theme.dart';
 import 'core/config/router_config.dart';
 import 'core/config/supabase_config.dart';
+import 'core/services/google_auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Supabase using the config class
   await SupabaseConfig.initialize();
+  
+  // Initialize Google Auth Service
+  GoogleAuthService().initialize();
 
   runApp(const ProviderScope(child: MyApp()));
 }

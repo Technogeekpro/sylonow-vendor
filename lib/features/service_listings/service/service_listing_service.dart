@@ -38,33 +38,41 @@ class ServiceListingService {
   }
 
   // Create a new service listing
-  Future<ServiceListing> createListing(ServiceListing listing) async {
+  Future<ServiceListing> createListing(ServiceListing listing, String vendorId) async {
     try {
-      print('🔵 ServiceListingService: Creating new listing');
-      print('🔵 ServiceListingService: Title: ${listing.title}');
-      print('🔵 ServiceListingService: Vendor ID: ${listing.vendorId}');
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null) {
+        throw Exception('User is not authenticated.');
+      }
+      print('🔵 ServiceListingService: Creating new listing for vendor ID: $vendorId and auth user id ${currentUser.id}');
       
-      final listingData = listing.toJson();
-      // Remove auto-generated fields that will be set by the database
+      final listingData = listing.toJson()
+        ..['vendor_id'] = currentUser.id; // Ensure vendor_id is set correctly
+
+      // Remove fields that should not be sent on creation
       listingData.remove('id');
-      listingData.remove('listing_id');
       listingData.remove('created_at');
       listingData.remove('updated_at');
-      
+
+      print('🔵 ServiceListingService: Payload to be inserted: $listingData');
+
       final response = await _client
           .from('service_listings')
           .insert(listingData)
           .select()
           .single();
       
-      print('🟢 ServiceListingService: Listing created successfully');
+      print('🟢 ServiceListingService: Listing created successfully. Response: $response');
       return ServiceListing.fromJson(response);
+    } on PostgrestException catch (e) {
+      print('🔴 ServiceListingService: Postgrest error creating listing:');
+      print('   - Message: ${e.message}');
+      print('   - Code: ${e.code}');
+      print('   - Details: ${e.details}');
+      rethrow;
     } catch (e) {
-      print('🔴 ServiceListingService: Error creating listing: $e');
-      if (e is PostgrestException) {
-        print('🔴 ServiceListingService: Postgrest error details: ${e.details}');
-        print('🔴 ServiceListingService: Postgrest error message: ${e.message}');
-      }
+      print('🔴 ServiceListingService: A generic error occurred creating listing: $e');
+      print('   - Error Type: ${e.runtimeType}');
       rethrow;
     }
   }

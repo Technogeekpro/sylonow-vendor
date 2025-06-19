@@ -8,8 +8,9 @@ part of 'vendor.dart';
 
 _$VendorImpl _$$VendorImplFromJson(Map<String, dynamic> json) => _$VendorImpl(
       id: json['id'] as String,
+      phone: json['phone'] as String?,
+      email: json['email'] as String?,
       vendorId: json['vendor_id'] as String?,
-      mobileNumber: json['mobile_number'] as String,
       fullName: json['full_name'] as String,
       serviceArea: json['service_area'] as String?,
       pincode: json['pincode'] as String?,
@@ -18,7 +19,7 @@ _$VendorImpl _$$VendorImplFromJson(Map<String, dynamic> json) => _$VendorImpl(
       aadhaarFrontImage: json['aadhaar_front_image'] as String?,
       aadhaarBackImage: json['aadhaar_back_image'] as String?,
       panCardImage: json['pan_card_image'] as String?,
-      isVerified: json['is_verified'] as bool? ?? false,
+      verificationStatus: json['verification_status'] as String? ?? 'pending',
       isOnboardingComplete: json['is_onboarding_complete'] as bool? ?? false,
       createdAt: json['created_at'] == null
           ? null
@@ -38,8 +39,9 @@ _$VendorImpl _$$VendorImplFromJson(Map<String, dynamic> json) => _$VendorImpl(
 Map<String, dynamic> _$$VendorImplToJson(_$VendorImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
+      'phone': instance.phone,
+      'email': instance.email,
       'vendor_id': instance.vendorId,
-      'mobile_number': instance.mobileNumber,
       'full_name': instance.fullName,
       'service_area': instance.serviceArea,
       'pincode': instance.pincode,
@@ -48,7 +50,7 @@ Map<String, dynamic> _$$VendorImplToJson(_$VendorImpl instance) =>
       'aadhaar_front_image': instance.aadhaarFrontImage,
       'aadhaar_back_image': instance.aadhaarBackImage,
       'pan_card_image': instance.panCardImage,
-      'is_verified': instance.isVerified,
+      'verification_status': instance.verificationStatus,
       'is_onboarding_complete': instance.isOnboardingComplete,
       'created_at': instance.createdAt?.toIso8601String(),
       'updated_at': instance.updatedAt?.toIso8601String(),

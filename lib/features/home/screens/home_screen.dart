@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:sylonow_vendor/features/dashboard/models/booking.dart';
+import 'package:sylonow_vendor/features/dashboard/models/dashboard_data.dart';
+import 'package:sylonow_vendor/features/dashboard/models/dashboard_stats.dart';
+import 'package:sylonow_vendor/features/dashboard/providers/dashboard_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../onboarding/providers/vendor_provider.dart';
-import '../providers/dashboard_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -61,50 +65,68 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   Widget build(BuildContext context) {
     final vendorAsync = ref.watch(vendorProvider);
-    
+    final dashboardDataAsync = ref.watch(dashboardDataProvider);
+
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       extendBodyBehindAppBar: true,
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Minimalistic Header
-              _buildHeader(vendorAsync),
-              
-              // Main Content
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 20),
-                    
-                    // Business Overview - Four Cards
-                    _buildBusinessOverview(),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // New Booking Alert
-                    _buildNewBookingAlert(),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Recent Activity
-                    _buildRecentActivity(),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Quick Actions
-                    _buildQuickActions(),
-                    
-                    const SizedBox(height: 100), // Space for bottom navigation
-                  ],
-                ),
+      body: dashboardDataAsync.when(
+        data: (dashboardData) {
+          return FadeTransition(
+            opacity: _fadeAnimation,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Minimalistic Header
+                  _buildHeader(vendorAsync),
+                  
+                  // Main Content
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 20),
+                        
+                        // Business Overview - Four Cards
+                        _buildBusinessOverview(dashboardData.stats),
+                        
+                        const SizedBox(height: 24),
+                        
+                        // New Booking Alert
+                        _buildNewBookingAlert(dashboardData.latestPendingBooking),
+                        
+                        const SizedBox(height: 24),
+                        
+                        // Recent Activity
+                        _buildRecentActivity(),
+                        
+                        const SizedBox(height: 24),
+                        
+                        // Quick Actions
+                        _buildQuickActions(),
+                        
+                        const SizedBox(height: 100), // Space for bottom navigation
+                      ],
+                    ),
+                  ),
+                ],
               ),
+            ),
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Error: $err'),
+              ElevatedButton(
+                onPressed: () => ref.invalidate(dashboardDataProvider),
+                child: const Text('Retry'),
+              )
             ],
           ),
         ),
@@ -382,255 +404,59 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  Widget _buildBusinessOverview() {
-    final dashboardAsync = ref.watch(dashboardStatsProvider);
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildBusinessOverview(DashboardStats stats) {
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Business Overview',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textPrimaryColor,
-              ),
-            ),
-            // Refresh button
-            GestureDetector(
-              onTap: () {
-                ref.read(dashboardStatsProvider.notifier).refreshStats();
-              },
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.refresh_rounded,
-                  size: 16,
-                  color: AppTheme.primaryColor,
-                ),
-              ),
-            ),
-          ],
+        // Gross Sales
+        _buildOverviewCard(
+          icon: Icons.trending_up_rounded,
+          label: 'Gross Sales',
+          value: '₹${stats.grossSales.toStringAsFixed(0)}',
+          color: AppTheme.successColor,
         ),
-        const SizedBox(height: 16),
-        
-        dashboardAsync.when(
-          data: (stats) => Column(
-            children: [
-              // First Row - Gross Sales & Earnings
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      icon: Icons.trending_up_rounded,
-                      iconColor: AppTheme.successColor,
-                      title: stats.formattedGrossSales,
-                      subtitle: 'Gross Sales',
-                      backgroundColor: AppTheme.successColor.withOpacity(0.1),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(
-                      icon: Icons.account_balance_wallet_rounded,
-                      iconColor: AppTheme.primaryColor,
-                      title: stats.formattedEarnings,
-                      subtitle: 'Earnings',
-                      backgroundColor: AppTheme.primarySurface,
-                    ),
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 12),
-              
-              // Second Row - Service Listings & Total Orders
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => context.push('/service-listings'),
-                      child: _buildStatCard(
-                        icon: Icons.list_alt_rounded,
-                        iconColor: AppTheme.accentBlue,
-                        title: stats.formattedTotalServiceListings,
-                        subtitle: 'Service Listings',
-                        backgroundColor: AppTheme.accentBlue.withOpacity(0.1),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(
-                      icon: Icons.shopping_bag_rounded,
-                      iconColor: AppTheme.accentTeal,
-                      title: stats.formattedTotalOrders,
-                      subtitle: 'Total Orders',
-                      backgroundColor: AppTheme.accentTeal.withOpacity(0.1),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          loading: () => _buildBusinessOverviewSkeleton(),
-          error: (error, stack) => _buildBusinessOverviewError(),
+        // Earnings
+        _buildOverviewCard(
+          icon: Icons.account_balance_wallet_rounded,
+          label: 'Earnings',
+          value: '₹${stats.grossSales.toStringAsFixed(0)}', // Assuming earnings are same as gross for now
+          color: AppTheme.accentPink,
+        ),
+        // Service Listings
+        _buildOverviewCard(
+          icon: Icons.list_alt_rounded,
+          label: 'Service Listings',
+          value: stats.serviceListingsCount.toString(),
+          color: AppTheme.accentBlue,
+        ),
+        // Total Orders
+        _buildOverviewCard(
+          icon: Icons.shopping_bag_rounded,
+          label: 'Total Orders',
+          value: stats.totalOrdersCount.toString(),
+          color: AppTheme.accentTeal,
         ),
       ],
     );
   }
 
-  Widget _buildBusinessOverviewSkeleton() {
-    return Column(
-      children: [
-        // First Row Skeleton
-        Row(
-          children: [
-            Expanded(child: _buildStatCardSkeleton()),
-            const SizedBox(width: 12),
-            Expanded(child: _buildStatCardSkeleton()),
-          ],
-        ),
-        const SizedBox(height: 12),
-        // Second Row Skeleton
-        Row(
-          children: [
-            Expanded(child: _buildStatCardSkeleton()),
-            const SizedBox(width: 12),
-            Expanded(child: _buildStatCardSkeleton()),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatCardSkeleton() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppTheme.borderColor,
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppTheme.borderColor,
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            height: 18,
-            width: 60,
-            decoration: BoxDecoration(
-              color: AppTheme.borderColor,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Container(
-            height: 12,
-            width: 80,
-            decoration: BoxDecoration(
-              color: AppTheme.borderColor,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBusinessOverviewError() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.errorColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppTheme.errorColor.withOpacity(0.2),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        children: [
-          const Icon(
-            Icons.error_outline_rounded,
-            color: AppTheme.errorColor,
-            size: 32,
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Failed to load dashboard data',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.errorColor,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Tap refresh to try again',
-            style: TextStyle(
-              fontSize: 12,
-              color: AppTheme.errorColor.withOpacity(0.8),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: () {
-              ref.read(dashboardStatsProvider.notifier).refreshStats();
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppTheme.errorColor,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'Refresh',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard({
+  Widget _buildOverviewCard({
     required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required Color backgroundColor,
+    required String label,
+    required String value,
+    required Color color,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: backgroundColor,
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: iconColor.withOpacity(0.2),
+          color: color.withOpacity(0.2),
           width: 1,
         ),
       ),
@@ -641,108 +467,156 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.2),
+              color: color.withOpacity(0.2),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               icon,
-              color: iconColor,
+              color: color,
               size: 20,
             ),
           ),
           const SizedBox(height: 12),
           Text(
-            title,
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimaryColor,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
               color: AppTheme.textPrimaryColor,
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppTheme.textSecondaryColor,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildNewBookingAlert() {
+  Widget _buildNewBookingAlert(Booking? booking) {
+    if (booking == null) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.borderColor),
+        ),
+        child: const Center(
+          child: Text(
+            'No new bookings right now.',
+            style: TextStyle(
+              fontSize: 16,
+              color: AppTheme.textSecondaryColor,
+            ),
+          ),
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: AppTheme.primaryGradient,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [AppTheme.elevatedShadow],
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [AppTheme.cardShadow],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'New Wedding Booking',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Sat, April 20 - 6:00 PM',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
+              Text(
+                booking.serviceTitle,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(
-                  '12:40 Left',
+                  'NEW', // Placeholder for timer
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
                     color: Colors.white,
-                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 4),
+          Text(
+            DateFormat('E, MMM d - h:mm a').format(booking.bookingDate),
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.white.withOpacity(0.8),
+            ),
+          ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                '₹ 20,000',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
+              Text(
+                '₹${booking.totalAmount.toStringAsFixed(0)}',
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
                   color: Colors.white,
+                  letterSpacing: 1.2,
                 ),
               ),
               Row(
                 children: [
-                  _buildActionButton('Accept', Colors.white, AppTheme.primaryColor),
+                  // Accept Button
+                  ElevatedButton(
+                    onPressed: () {
+                      // TODO: Implement accept booking functionality
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppTheme.primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                    ),
+                    child: const Text('Accept',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                  ),
                   const SizedBox(width: 8),
-                  _buildActionButton('View', Colors.white.withOpacity(0.2), Colors.white),
+                  // View Button
+                  OutlinedButton(
+                    onPressed: () {
+                      // TODO: Implement view booking details functionality
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: const BorderSide(color: Colors.white, width: 1.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                    ),
+                    child: const Text('View',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                  ),
                 ],
               ),
             ],
@@ -955,24 +829,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButton(String text, Color backgroundColor, Color textColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: textColor,
         ),
       ),
     );

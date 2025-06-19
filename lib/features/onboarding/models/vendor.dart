@@ -5,10 +5,13 @@ part 'vendor.g.dart';
 
 @freezed
 class Vendor with _$Vendor {
+  const Vendor._();
+
   const factory Vendor({
     required String id,
+    String? phone,
+    String? email,
     @JsonKey(name: 'vendor_id') String? vendorId,
-    @JsonKey(name: 'mobile_number') required String mobileNumber,
     @JsonKey(name: 'full_name') required String fullName,
     @JsonKey(name: 'service_area') String? serviceArea,
     String? pincode,
@@ -17,8 +20,8 @@ class Vendor with _$Vendor {
     @JsonKey(name: 'aadhaar_front_image') String? aadhaarFrontImage,
     @JsonKey(name: 'aadhaar_back_image') String? aadhaarBackImage,
     @JsonKey(name: 'pan_card_image') String? panCardImage,
-    @JsonKey(name: 'is_verified') @Default(false) bool? isVerified,
-    @JsonKey(name: 'is_onboarding_complete') @Default(false) bool? isOnboardingComplete,
+    @JsonKey(name: 'verification_status') @Default('pending') String verificationStatus,
+    @JsonKey(name: 'is_onboarding_complete') @Default(false) bool isOnboardingComplete,
     @JsonKey(name: 'created_at') DateTime? createdAt,
     @JsonKey(name: 'updated_at') DateTime? updatedAt,
     @JsonKey(name: 'auth_user_id') String? authUserId,
@@ -31,4 +34,7 @@ class Vendor with _$Vendor {
   }) = _Vendor;
 
   factory Vendor.fromJson(Map<String, dynamic> json) => _$VendorFromJson(json);
+
+  @override
+  bool get isVerified => verificationStatus == 'verified';
 } 

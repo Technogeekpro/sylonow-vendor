@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:sylonow_vendor/features/orders/models/order.dart';
+import 'package:sylonow_vendor/features/orders/providers/order_provider.dart';
+import 'package:sylonow_vendor/features/orders/service/order_service.dart';
 
 class OrdersScreen extends ConsumerStatefulWidget {
   const OrdersScreen({super.key});
@@ -82,11 +86,25 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
           
           // Orders List
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: 10, // Prototype data
-              itemBuilder: (context, index) {
-                return _buildOrderCard(index);
+            child: Consumer(
+              builder: (context, ref, child) {
+                final ordersAsync = ref.watch(ordersProvider(_selectedFilter));
+                return ordersAsync.when(
+                  data: (orders) {
+                    if (orders.isEmpty) {
+                      return const Center(child: Text('No orders found.'));
+                    }
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: orders.length,
+                      itemBuilder: (context, index) {
+                        return _buildOrderCard(orders[index]);
+                      },
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (err, stack) => Center(child: Text('Error: $err')),
+                );
               },
             ),
           ),
@@ -95,15 +113,14 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
     );
   }
 
-  Widget _buildOrderCard(int index) {
-    final statuses = ['Pending', 'Confirmed', 'Completed', 'Cancelled'];
-    final status = statuses[index % statuses.length];
+  Widget _buildOrderCard(Order order) {
     final colors = {
-      'Pending': Colors.orange,
-      'Confirmed': Colors.blue,
-      'Completed': Colors.green,
-      'Cancelled': Colors.red,
+      'pending': Colors.orange,
+      'confirmed': Colors.blue,
+      'completed': Colors.green,
+      'cancelled': Colors.red,
     };
+    final statusColor = colors[order.status.toLowerCase()] ?? Colors.grey;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -127,7 +144,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Order #${1000 + index}',
+                'Order #${order.id.substring(0, 8)}',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -137,15 +154,15 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: colors[status]!.withOpacity(0.1),
+                  color: statusColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  status,
+                  toBeginningOfSentenceCase(order.status) ?? order.status,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: colors[status],
+                    color: statusColor,
                   ),
                 ),
               ),
@@ -173,9 +190,9 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Wedding Photography',
-                      style: TextStyle(
+                    Text(
+                      order.serviceTitle,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: Colors.black87,
@@ -183,7 +200,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Sat, April 20 - 6:00 PM',
+                      DateFormat('E, MMM d - h:mm a').format(order.bookingDate),
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
@@ -191,7 +208,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '📍 Bandra, Mumbai',
+                      '📍 Mumbai', // Placeholder location
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
@@ -209,7 +226,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '₹ ${(5000 + index * 500)}',
+                '₹${order.totalAmount.toStringAsFixed(0)}',
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -218,12 +235,22 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
               ),
               Row(
                 children: [
-                  if (status == 'Pending') ...[
-                    _buildActionButton('Accept', Colors.green, Colors.white),
+                  if (order.status == 'pending') ...[
+                    _buildActionButton('Accept', Colors.green, Colors.white, () {
+                      _updateOrderStatus(order.id, 'confirmed');
+                    }),
                     const SizedBox(width: 8),
-                    _buildActionButton('Reject', Colors.red, Colors.white),
+                    _buildActionButton('Reject', Colors.red, Colors.white, () {
+                      _updateOrderStatus(order.id, 'cancelled');
+                    }),
+                  ] else if (order.status == 'confirmed') ...[
+                    _buildActionButton('Mark as Completed', Colors.blue, Colors.white, () {
+                      _updateOrderStatus(order.id, 'completed');
+                    }),
                   ] else ...[
-                    _buildActionButton('View Details', Colors.pink, Colors.white),
+                    _buildActionButton('View Details', Colors.pink, Colors.white, () {
+                      // TODO: Implement view details
+                    }),
                   ],
                 ],
               ),
@@ -234,21 +261,38 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
     );
   }
 
-  Widget _buildActionButton(String text, Color backgroundColor, Color textColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: textColor,
+  Widget _buildActionButton(String text, Color backgroundColor, Color textColor, VoidCallback onPressed) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: textColor,
+          ),
         ),
       ),
     );
+  }
+
+  void _updateOrderStatus(String orderId, String status) async {
+    try {
+      await ref.read(orderServiceProvider).updateBookingStatus(
+            bookingId: orderId,
+            status: status,
+          );
+      ref.invalidate(ordersProvider);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update order status: $e')),
+      );
+    }
   }
 } 

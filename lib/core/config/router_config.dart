@@ -10,6 +10,7 @@ import 'package:sylonow_vendor/features/onboarding/screens/cookies_policy_screen
 import 'package:sylonow_vendor/features/onboarding/screens/terms_conditions_screen.dart';
 import 'package:sylonow_vendor/features/onboarding/screens/revenue_policy_screen.dart';
 import 'package:sylonow_vendor/features/onboarding/screens/privacy_policy_screen.dart';
+import 'package:sylonow_vendor/features/onboarding/screens/debug_google_auth_screen.dart';
 import 'package:sylonow_vendor/features/orders/screens/orders_screen.dart';
 import 'package:sylonow_vendor/features/profile/screens/profile_screen.dart';
 import 'package:sylonow_vendor/features/support/screens/support_screen.dart';
@@ -51,35 +52,59 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   final refreshStream = GoRouterRefreshStream(ref);
   
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: '/splash',
     debugLogDiagnostics: true,
     refreshListenable: refreshStream,
     redirect: (context, state) {
-      final isAuthenticated = ref.read(isAuthenticatedProvider);
-      final vendorState = ref.read(vendorProvider);
-      
-      print('🔵 Router redirect - Location: ${state.matchedLocation}, Auth: $isAuthenticated');
-      
-      // Handle splash screen - always allow
-      if (state.matchedLocation == '/' || state.matchedLocation == '/splash') {
-        print('🔵 Router: Allowing access to splash screen');
-        return null;
+      final authState = ref.watch(authStateProvider);
+      final vendorState = ref.watch(vendorProvider);
+      final isAuthenticated = authState.valueOrNull?.session != null;
+
+      final isGoingToSplash = state.matchedLocation == '/splash';
+      final publicRoutes = ['/welcome', '/phone', '/verify-otp', '/cookies-policy', '/terms-conditions', '/revenue-policy', '/privacy-policy', '/debug-google'];
+      final isGoingToPublicRoute = publicRoutes.contains(state.matchedLocation);
+
+      // While providers are loading, stay on splash screen
+      if (authState.isLoading || (isAuthenticated && vendorState.isLoading && !vendorState.hasValue)) {
+        return isGoingToSplash ? null : '/splash';
       }
-      
-      // Allow access to public routes when not authenticated
+
+      // If user is not authenticated
       if (!isAuthenticated) {
-        print('🔵 Router: User not authenticated, checking route');
-        if (['/welcome', '/phone', '/verify-otp', '/cookies-policy', '/terms-conditions', '/revenue-policy', '/privacy-policy'].contains(state.matchedLocation)) {
-          print('🔵 Router: Allowing access to public route');
-          return null;
+        // Allow access to public routes, otherwise redirect to welcome
+        return isGoingToPublicRoute ? null : '/welcome';
+      }
+
+      // From here, user is authenticated.
+
+      // If there was an error loading vendor data, redirect to welcome
+      if (vendorState.hasError) {
+        return '/welcome';
+      }
+
+      // If we have vendor data, decide where to go
+      if (vendorState.hasValue) {
+        final vendor = vendorState.value;
+        final isOnboardingComplete = vendor?.isOnboardingComplete ?? false;
+        final isVerified = vendor?.isVerified ?? false;
+
+        // If onboarding is not complete, redirect to onboarding screen
+        if (!isOnboardingComplete) {
+          return state.matchedLocation == '/vendor-onboarding' ? null : '/vendor-onboarding';
         }
-        print('🔵 Router: Redirecting to splash for auth check');
-        return '/splash';
+
+        // If onboarding is complete but not verified, redirect to pending screen
+        if (!isVerified) {
+          return state.matchedLocation == '/pending-verification' ? null : '/pending-verification';
+        }
+
+        // If user is fully onboarded and verified, but tries to access splash/auth/onboarding routes, redirect to home
+        if (isGoingToSplash || isGoingToPublicRoute || state.matchedLocation == '/vendor-onboarding' || state.matchedLocation == '/pending-verification') {
+          return '/home';
+        }
       }
       
-      // User is authenticated - let them access protected routes
-      // The splash screen handles the initial routing logic
-      print('🔵 Router: User authenticated, allowing access to: ${state.matchedLocation}');
+      // In all other cases, allow navigation
       return null;
     },
     routes: [
@@ -112,6 +137,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/privacy-policy',
         builder: (_, __) => const PrivacyPolicyScreen(),
+      ),
+      GoRoute(
+        path: '/debug-google',
+        builder: (_, __) => const DebugGoogleAuthScreen(),
       ),
       GoRoute(
         path: '/phone', 
