@@ -23,24 +23,12 @@ class NotificationNotifier extends _$NotificationNotifier {
     }
   }
 
-  // Get FCM token
-  String? get fcmToken => _notificationService.fcmToken;
-
   // Send test notification
   Future<void> sendTestNotification() async {
     try {
       await _notificationService.sendTestNotification();
     } catch (e) {
       print('Error sending test notification: $e'); // Debug log
-    }
-  }
-
-  // Clear FCM token (for logout)
-  Future<void> clearFCMToken() async {
-    try {
-      await _notificationService.clearFCMToken();
-    } catch (e) {
-      print('Error clearing FCM token: $e'); // Debug log
     }
   }
 } 

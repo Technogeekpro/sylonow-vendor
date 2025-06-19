@@ -10,7 +10,7 @@ class AppConstants {
   
 
   
-  // Firebase Collections
+  // Supabase Tables
   static const String usersCollection = 'users';
   static const String bookingsCollection = 'bookings';
   static const String servicesCollection = 'services';

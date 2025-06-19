@@ -7,8 +7,8 @@ class SupabaseConfig {
     try {
       print('Initializing Supabase...'); // Debug log
       await Supabase.initialize(
-        url: 'https://bsxkxgtwxtggicjocqvp.supabase.co',
-        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzeGt4Z3R3eHRnZ2ljam9jcXZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwOTg3NzEsImV4cCI6MjA2MzY3NDc3MX0.tF41-kL97cw1EjRGaKLrR-c265Bsw5a-q7IurnVB6ok',
+        url: 'https://txgszrxjyanazlrupaty.supabase.co',
+        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR4Z3N6cnhqeWFuYXpscnVwYXR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyNzU4MjcsImV4cCI6MjA2NTg1MTgyN30.7MDiDGMCEa-E8c3HgIGxSpkOsH9kClD5i5LNSjzFul4',
         authOptions: const FlutterAuthClientOptions(
           authFlowType: AuthFlowType.pkce, // Use PKCE flow instead of implicit for better Google integration
         ),

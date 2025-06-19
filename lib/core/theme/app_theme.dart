@@ -69,11 +69,13 @@ class AppTheme {
         secondaryContainer: const Color(0xFFE3F2FD),
         tertiary: accentPink,
         surface: surfaceColor,
+        // ignore: deprecated_member_use
         background: backgroundColor,
         error: errorColor,
         onPrimary: textOnPrimary,
         onSecondary: Colors.white,
         onSurface: textOnSurface,
+        // ignore: deprecated_member_use
         onBackground: textPrimaryColor,
         onError: Colors.white,
       ),
@@ -184,7 +186,7 @@ class AppTheme {
       ),
       
       // Card Theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2,
         shadowColor: elevationShadow,
         shape: RoundedRectangleBorder(
@@ -267,6 +269,7 @@ class AppTheme {
         }),
         trackColor: WidgetStateProperty.resolveWith<Color>((states) {
           if (states.contains(WidgetState.selected)) {
+            // ignore: deprecated_member_use
             return primaryLight.withOpacity(0.5);
           }
           return Colors.grey.shade300;
@@ -301,8 +304,10 @@ class AppTheme {
       // Slider Theme
       sliderTheme: SliderThemeData(
         activeTrackColor: primaryColor,
+        // ignore: deprecated_member_use
         inactiveTrackColor: primaryLight.withOpacity(0.3),
         thumbColor: primaryColor,
+        // ignore: deprecated_member_use
         overlayColor: primaryLight.withOpacity(0.2),
         valueIndicatorColor: primaryColor,
         valueIndicatorTextStyle: const TextStyle(
@@ -347,6 +352,7 @@ class AppTheme {
   );
   
   static BoxShadow get elevatedShadow => BoxShadow(
+    // ignore: deprecated_member_use
     color: primaryColor.withOpacity(0.3),
     blurRadius: 20,
     offset: const Offset(0, 8),

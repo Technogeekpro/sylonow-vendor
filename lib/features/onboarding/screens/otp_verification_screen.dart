@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pinput/pinput.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 import '../controllers/otp_controller.dart';
 import '../helpers/otp_helper.dart';
 import '../../../core/config/supabase_config.dart';
@@ -233,66 +233,51 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
   }
 
   Widget _buildOtpInput(OtpState otpState) {
-    final defaultPinTheme = PinTheme(
-      width: 56,
-      height: 60,
-      textStyle: const TextStyle(
-        fontSize: 22,
-        fontWeight: FontWeight.w700,
-        color: Colors.black87,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.grey.shade300,
-          width: 2,
+    return SizedBox(
+      width: double.infinity,
+      child: PinCodeTextField(
+        appContext: context,
+        length: 6,
+        animationType: AnimationType.fade,
+        pinTheme: PinTheme(
+          shape: PinCodeFieldShape.box,
+          borderRadius: BorderRadius.circular(16),
+          fieldHeight: 60,
+          fieldWidth: 50,
+          borderWidth: 2,
+          activeColor: const Color(0xFFE91E63),
+          inactiveColor: Colors.grey.shade300,
+          selectedColor: const Color(0xFFE91E63),
+          activeFillColor: Colors.white,
+          inactiveFillColor: Colors.white,
+          selectedFillColor: const Color(0xFFE91E63).withOpacity(0.1),
         ),
-        boxShadow: [
+        textStyle: const TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w700,
+          color: Colors.black87,
+        ),
+        animationDuration: const Duration(milliseconds: 300),
+        backgroundColor: Colors.transparent,
+        enableActiveFill: true,
+        cursorColor: const Color(0xFFE91E63),
+        keyboardType: TextInputType.number,
+        boxShadows: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
+        onChanged: (value) {
+          ref.read(otpControllerProvider.notifier).updateOtp(value);
+        },
+        onCompleted: (pin) => _verifyOtp(),
+        beforeTextPaste: (text) {
+          // Allow pasting numeric values only
+          return text?.replaceAll(RegExp(r'[^0-9]'), '').length == 6;
+        },
       ),
-    );
-
-    final focusedPinTheme = defaultPinTheme.copyDecorationWith(
-      border: Border.all(
-        color: const Color(0xFFE91E63),
-        width: 2,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: const Color(0xFFE91E63).withOpacity(0.2),
-          blurRadius: 12,
-          offset: const Offset(0, 4),
-        ),
-      ],
-    );
-
-    final submittedPinTheme = defaultPinTheme.copyWith(
-      decoration: defaultPinTheme.decoration?.copyWith(
-        color: const Color(0xFFE91E63).withOpacity(0.1),
-        border: Border.all(
-          color: const Color(0xFFE91E63),
-          width: 2,
-        ),
-      ),
-    );
-
-    return Pinput(
-      length: 6,
-      defaultPinTheme: defaultPinTheme,
-      focusedPinTheme: focusedPinTheme,
-      submittedPinTheme: submittedPinTheme,
-      showCursor: true,
-      onChanged: (value) {
-        ref.read(otpControllerProvider.notifier).updateOtp(value);
-      },
-      onCompleted: (pin) => _verifyOtp(),
-      separatorBuilder: (index) => const SizedBox(width: 12),
     );
   }
 

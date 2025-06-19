@@ -1,18 +1,3 @@
-plugins {
-    id("dev.flutter.flutter-gradle-plugin") version "1.0.0" apply false
-    id("com.google.gms.google-services") version "4.4.2" apply false
-}
-
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        // Removed Firebase classpath - using Supabase instead
-    }
-}
-
 allprojects {
     repositories {
         google()
