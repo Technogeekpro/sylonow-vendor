@@ -10,6 +10,8 @@ import '../widgets/image_upload_widget.dart';
 import '../widgets/custom_text_field.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 class VendorOnboardingScreen extends ConsumerStatefulWidget {
   const VendorOnboardingScreen({super.key});
@@ -579,17 +581,42 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
   }
 
   Future<void> _pickProfileImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 800,
-      maxHeight: 800,
-      imageQuality: 80,
-    );
-    
-    if (image != null) {
-      ref.read(vendorOnboardingControllerProvider.notifier)
-          .setProfileImage(File(image.path));
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 80,
+      );
+      
+      if (image != null) {
+        // Copy file to a permanent location to prevent cleanup
+        final Directory appDir = await getApplicationDocumentsDirectory();
+        final String fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}${path.extension(image.path)}';
+        final String permanentPath = path.join(appDir.path, 'temp_images', fileName);
+        
+        // Create directory if it doesn't exist
+        await Directory(path.dirname(permanentPath)).create(recursive: true);
+        
+        // Copy the file to permanent location
+        final File permanentFile = await File(image.path).copy(permanentPath);
+        
+        print('📸 Profile image copied to permanent location: $permanentPath');
+        
+        ref.read(vendorOnboardingControllerProvider.notifier)
+            .setProfileImage(permanentFile);
+      }
+    } catch (e) {
+      print('📸 Error picking profile image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to select image: $e'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
     }
   }
 
@@ -650,7 +677,13 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
           : _gstNumberController.text.trim(),
     );
 
-    if (success && mounted) {
+    // Check if widget is still mounted before proceeding
+    if (!mounted) {
+      print('⚠️ Widget unmounted after submission, skipping UI updates');
+      return;
+    }
+
+    if (success) {
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -674,22 +707,50 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 3),
         ),
       );
 
-      // Wait a moment then refresh vendor state and navigate
-      await Future.delayed(const Duration(milliseconds: 2200));
+      // Wait for success message to be visible
+      await Future.delayed(const Duration(milliseconds: 1000));
       
-      if (mounted) {
-        // Refresh the vendor provider to get the updated vendor status
+      // Check mounted again before continuing
+      if (!mounted) {
+        print('⚠️ Widget unmounted during success message delay, skipping navigation');
+        return;
+      }
+      
+      try {
+        // Force refresh the vendor provider and wait for it to complete
+        print('🔄 Refreshing vendor state after successful submission...');
         await ref.read(vendorProvider.notifier).refreshVendor();
         
-        // Now let the router handle navigation based on updated vendor state
-        // It will automatically redirect to pending verification or home
-        context.go('/');
+        // Check mounted again after async operation
+        if (!mounted) {
+          print('⚠️ Widget unmounted after vendor refresh, skipping navigation');
+          return;
+        }
+        
+        // Wait a bit more to ensure state propagation
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        // Final mounted check before navigation
+        if (!mounted) {
+          print('⚠️ Widget unmounted before navigation, skipping');
+          return;
+        }
+        
+        // Navigate to pending verification directly instead of letting router decide
+        print('🚀 Navigating to pending verification...');
+        context.go('/pending-verification');
+      } catch (e) {
+        print('🔴 Error during post-submission processing: $e');
+        // If there's an error, still try to navigate if mounted
+        if (mounted) {
+          context.go('/pending-verification');
+        }
       }
-    } else if (mounted) {
+    } else {
       // Show error message if submission failed
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

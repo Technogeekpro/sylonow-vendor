@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 class ImageUploadWidget extends StatefulWidget {
   final String title;
@@ -266,12 +268,25 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
           return;
         }
         
+        // Copy file to a permanent location to prevent cleanup
+        final Directory appDir = await getApplicationDocumentsDirectory();
+        final String fileName = 'img_${DateTime.now().millisecondsSinceEpoch}${path.extension(pickedFile.path)}';
+        final String permanentPath = path.join(appDir.path, 'temp_images', fileName);
+        
+        // Create directory if it doesn't exist
+        await Directory(path.dirname(permanentPath)).create(recursive: true);
+        
+        // Copy the file to permanent location
+        final File permanentFile = await imageFile.copy(permanentPath);
+        
+        print('📸 Image copied to permanent location: $permanentPath');
+        
         setState(() {
           _isLoading = false;
           _errorMessage = null;
         });
         
-        widget.onImageSelected(imageFile);
+        widget.onImageSelected(permanentFile);
         print('📸 Image successfully selected and validated');
       } else {
         setState(() {

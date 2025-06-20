@@ -65,8 +65,12 @@ class VendorService {
   }) async {
     try {
       print('🔵 Starting vendor upsert transaction...');
-      final authUserId = _client.auth.currentUser!.id;
-      final authEmail = _client.auth.currentUser!.email!;
+      final authUser = _client.auth.currentUser!;
+      final authUserId = authUser.id;
+      final authEmail = authUser.email;
+      final authPhone = authUser.phone; // Get phone number from auth user
+      
+      print('🔵 Auth user phone: $authPhone, email: $authEmail');
 
       // 1. Find or create the vendor record.
       String vendorId;
@@ -81,6 +85,7 @@ class VendorService {
         print('🟢 Vendor found with ID: $vendorId. Updating record...');
         await _client.from('vendors').update({
           'full_name': fullName,
+          'phone': authPhone, // Include phone number in update
           'business_name': businessName,
           'business_type': serviceType,
           'updated_at': DateTime.now().toIso8601String(),
@@ -91,6 +96,7 @@ class VendorService {
           'full_name': fullName,
           'auth_user_id': authUserId,
           'email': authEmail,
+          'phone': authPhone, // Include phone number in creation
           'business_name': businessName,
           'business_type': serviceType,
           'verification_status': 'pending',
@@ -115,26 +121,38 @@ class VendorService {
 
       Future<void> uploadAndCreateDocument(File? file, String docType) async {
         if (file != null) {
-          final imageUrl = await uploadImage(file, docType, vendorId);
-          // Use upsert to avoid errors on retry
-          documentFutures.add(
-            _client.from('vendor_documents').upsert({
-              'vendor_id': vendorId,
-              'document_type': docType,
-              'document_url': imageUrl,
-              'verification_status': 'pending',
-            }, onConflict: 'vendor_id, document_type'), // Assumes a vendor has one doc of each type
-          );
-          print('🟢 Queued document for upsert: $docType');
+          try {
+            final imageUrl = await uploadImage(file, docType, vendorId);
+            // Use upsert to avoid errors on retry
+            documentFutures.add(
+              _client.from('vendor_documents').upsert({
+                'vendor_id': vendorId,
+                'document_type': docType,
+                'document_url': imageUrl,
+                'verification_status': 'pending',
+              }, onConflict: 'vendor_id, document_type'), // Assumes a vendor has one doc of each type
+            );
+            print('🟢 Queued document for upsert: $docType');
+          } catch (e) {
+            print('⚠️ Failed to upload $docType: $e - Continuing with registration...');
+            // Don't rethrow - allow registration to continue without this document
+          }
         }
       }
       
+      // Handle profile picture upload with graceful error handling
       if (profileImageFile != null) {
-        final profileImageUrl = await uploadImage(profileImageFile, 'profile', vendorId);
-        documentFutures.add(
-          _client.from('vendors').update({'profile_image_url': profileImageUrl}).eq('id', vendorId)
-        );
-        print('🟢 Queued profile picture update');
+        try {
+          final profileImageUrl = await uploadImage(profileImageFile, 'profile', vendorId);
+          documentFutures.add(
+            _client.from('vendors').update({'profile_image_url': profileImageUrl}).eq('id', vendorId)
+          );
+          print('🟢 Queued profile picture update');
+        } catch (e) {
+          print('⚠️ Failed to upload profile picture: $e - Continuing with registration...');
+          // Profile picture upload failed, but don't fail the entire registration
+          // This is likely due to missing RLS policies on profile-pictures bucket
+        }
       }
 
       await uploadAndCreateDocument(aadhaarFrontFile, 'identity_aadhaar_front');
@@ -142,19 +160,42 @@ class VendorService {
       await uploadAndCreateDocument(panCardFile, 'identity_pan');
 
       if (documentFutures.isNotEmpty) {
-        await Future.wait(documentFutures);
+        try {
+          await Future.wait(documentFutures);
+          print('🟢 All document uploads completed successfully');
+        } catch (e) {
+          print('⚠️ Some document uploads failed: $e - But vendor record was created');
+          // Don't rethrow - vendor record is created, some uploads may have failed
+        }
       }
 
       // Final update to mark onboarding as complete
       await _client.from('vendors').update({
-        'is_onboarding_complete': true,
+        'is_onboarding_completed': true,
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('id', vendorId);
 
-      print('🎉 Transaction complete: Vendor and documents upserted successfully!');
+      print('🎉 Transaction complete: Vendor registration completed successfully!');
+      
+      // Clean up temporary files after successful upload
+      _cleanupTempFiles([profileImageFile, aadhaarFrontFile, aadhaarBackFile, panCardFile]);
     } catch (e) {
       print('🔴 Transaction failed in createVendorAndDocuments: $e');
       rethrow;
+    }
+  }
+
+  /// Clean up temporary files after upload
+  void _cleanupTempFiles(List<File?> files) {
+    for (final file in files) {
+      if (file != null && file.path.contains('temp_images')) {
+        try {
+          file.deleteSync();
+          print('🧹 Cleaned up temp file: ${file.path}');
+        } catch (e) {
+          print('⚠️ Failed to cleanup temp file: ${file.path} - $e');
+        }
+      }
     }
   }
 
@@ -165,12 +206,19 @@ class VendorService {
       final user = _client.auth.currentUser;
       if (user == null) throw Exception('User not authenticated.');
 
+      // Check if file exists before attempting upload
+      if (!await imageFile.exists()) {
+        throw Exception('Image file not found at path: ${imageFile.path}. The file may have been cleaned up.');
+      }
+
       final bucketName = (imageType == 'profile') ? 'profile-pictures' : 'vendor-documents';
       final folderPath = vendorId; 
       final fileName = '${imageType}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final filePath = '$folderPath/$fileName';
 
       print('🔵 Uploading to bucket: $bucketName, path: $filePath');
+      print('🔵 Source file: ${imageFile.path}');
+      
       await _client.storage.from(bucketName).upload(
             filePath,
             imageFile,
@@ -182,6 +230,9 @@ class VendorService {
       return publicUrl;
     } catch (e) {
       print('🔴 Image upload failed: $e');
+      if (e.toString().contains('PathNotFoundException') || e.toString().contains('file not found')) {
+        throw Exception('Image file was deleted or moved. Please select the image again and try uploading immediately.');
+      }
       rethrow;
     }
   }

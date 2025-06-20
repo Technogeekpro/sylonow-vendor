@@ -18,184 +18,206 @@ class ProfileScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       extendBodyBehindAppBar: true,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Header with Profile Info
-            _buildProfileHeader(context, vendorAsync, currentUser),
-            
-            // Profile Options
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  
-                  // Profile Options Container
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceColor,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [AppTheme.cardShadow],
-                    ),
-                    child: Column(
-                      children: [
-                        _buildProfileOption(
-                          icon: Icons.person_outline,
-                          title: 'Edit Profile',
-                          subtitle: 'Update your personal information',
-                          onTap: () {
-                            context.push('/edit-profile');
-                          },
-                        ),
-                        _buildDivider(),
-                        _buildProfileOption(
-                          icon: Icons.business_outlined,
-                          title: 'Business Details',
-                          subtitle: 'Manage your business information',
-                          onTap: () {
-                            context.push('/business-details');
-                          },
-                        ),
-                        _buildDivider(),
-                        _buildProfileOption(
-                          icon: Icons.account_balance_wallet_outlined,
-                          title: 'Payment Settings',
-                          subtitle: 'Manage payment methods',
-                          onTap: () {
-                            context.push('/payment-settings');
-                          },
-                        ),
-                        _buildDivider(),
-                        _buildProfileOption(
-                          icon: Icons.help_outline,
-                          title: 'Help & Support',
-                          subtitle: 'Get help and contact support',
-                          onTap: () {
-                            context.push('/support');
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Legal Documents Section
-                  _buildSectionHeader('Legal Documents'),
-                  const SizedBox(height: 12),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceColor,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [AppTheme.cardShadow],
-                    ),
-                    child: Column(
-                      children: [
-                        _buildProfileOption(
-                          icon: Icons.privacy_tip_outlined,
-                          title: 'Privacy Policy',
-                          subtitle: 'Read our privacy policy',
-                          onTap: () {
-                            context.push('/privacy-policy');
-                          },
-                        ),
-                        _buildDivider(),
-                        _buildProfileOption(
-                          icon: Icons.description_outlined,
-                          title: 'Terms & Conditions',
-                          subtitle: 'View terms and conditions',
-                          onTap: () {
-                            context.push('/terms-conditions');
-                          },
-                        ),
-                        _buildDivider(),
-                        _buildProfileOption(
-                          icon: Icons.monetization_on_outlined,
-                          title: 'Revenue Policy',
-                          subtitle: 'Commission and payment policy',
-                          onTap: () {
-                            context.push('/revenue-policy');
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  
-                  // Logout Button
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceColor,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [AppTheme.cardShadow],
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
+      body: RefreshIndicator(
+        onRefresh: () => _handleRefresh(ref),
+        color: AppTheme.primaryColor,
+        backgroundColor: AppTheme.surfaceColor,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              // Header with Profile Info
+              _buildProfileHeader(context, vendorAsync, currentUser),
+              
+              // Profile Options
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    
+                    // Profile Options Container
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceColor,
                         borderRadius: BorderRadius.circular(16),
-                        onTap: () => _showLogoutDialog(context, ref),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: AppTheme.errorColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
+                        boxShadow: [AppTheme.cardShadow],
+                      ),
+                      child: Column(
+                        children: [
+                          _buildProfileOption(
+                            icon: Icons.person_outline,
+                            title: 'Edit Profile',
+                            subtitle: 'Update your personal information',
+                            onTap: () {
+                              context.push('/edit-profile');
+                            },
+                          ),
+                          _buildDivider(),
+                          _buildProfileOption(
+                            icon: Icons.business_outlined,
+                            title: 'Business Details',
+                            subtitle: 'Manage your business information',
+                            onTap: () {
+                              context.push('/business-details');
+                            },
+                          ),
+                          _buildDivider(),
+                          _buildProfileOption(
+                            icon: Icons.account_balance_wallet_outlined,
+                            title: 'Payment Settings',
+                            subtitle: 'Manage payment methods',
+                            onTap: () {
+                              context.push('/payment-settings');
+                            },
+                          ),
+                          _buildDivider(),
+                          _buildProfileOption(
+                            icon: Icons.help_outline,
+                            title: 'Help & Support',
+                            subtitle: 'Get help and contact support',
+                            onTap: () {
+                              context.push('/support');
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Legal Documents Section
+                    _buildSectionHeader('Legal Documents'),
+                    const SizedBox(height: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceColor,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [AppTheme.cardShadow],
+                      ),
+                      child: Column(
+                        children: [
+                          _buildProfileOption(
+                            icon: Icons.privacy_tip_outlined,
+                            title: 'Privacy Policy',
+                            subtitle: 'Read our privacy policy',
+                            onTap: () {
+                              context.push('/privacy-policy');
+                            },
+                          ),
+                          _buildDivider(),
+                          _buildProfileOption(
+                            icon: Icons.description_outlined,
+                            title: 'Terms & Conditions',
+                            subtitle: 'View terms and conditions',
+                            onTap: () {
+                              context.push('/terms-conditions');
+                            },
+                          ),
+                          _buildDivider(),
+                          _buildProfileOption(
+                            icon: Icons.monetization_on_outlined,
+                            title: 'Revenue Policy',
+                            subtitle: 'Commission and payment policy',
+                            onTap: () {
+                              context.push('/revenue-policy');
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    // Logout Button
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceColor,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [AppTheme.cardShadow],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () => _showLogoutDialog(context, ref),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.errorColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.logout,
+                                    color: AppTheme.errorColor,
+                                    size: 20,
+                                  ),
                                 ),
-                                child: const Icon(
-                                  Icons.logout,
+                                const SizedBox(width: 16),
+                                const Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Logout',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppTheme.errorColor,
+                                        ),
+                                      ),
+                                      SizedBox(height: 2),
+                                      Text(
+                                        'Sign out of your account',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AppTheme.textSecondaryColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 16,
                                   color: AppTheme.errorColor,
-                                  size: 20,
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              const Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Logout',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                        color: AppTheme.errorColor,
-                                      ),
-                                    ),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      'Sign out of your account',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: AppTheme.textSecondaryColor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Icon(
-                                Icons.arrow_forward_ios,
-                                size: 16,
-                                color: AppTheme.errorColor,
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 40),
-                ],
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Future<void> _handleRefresh(WidgetRef ref) async {
+    try {
+      print('🔄 Refreshing profile screen data...');
+      
+      // Show haptic feedback
+      HapticFeedback.lightImpact();
+      
+      // Refresh vendor data
+      await ref.read(vendorProvider.notifier).refreshVendor();
+      
+      print('🟢 Profile screen refresh completed');
+    } catch (e) {
+      print('🔴 Profile screen refresh failed: $e');
+    }
   }
 
   Widget _buildProfileHeader(BuildContext context, AsyncValue vendorAsync, currentUser) {
@@ -257,42 +279,7 @@ class ProfileScreen extends ConsumerWidget {
                     boxShadow: [AppTheme.cardShadow],
                   ),
                   child: ClipOval(
-                    child: vendor?.profilePicture != null && vendor!.profilePicture!.isNotEmpty
-                        ? Image.network(
-                            vendor.profilePicture!,
-                            fit: BoxFit.cover,
-                            width: 100,
-                            height: 100,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Container(
-                                width: 100,
-                                height: 100,
-                                alignment: Alignment.center,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: AppTheme.primaryColor,
-                                  value: loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              print('Profile picture loading error: $error');
-                              return const Icon(
-                                Icons.person_rounded,
-                                color: AppTheme.primaryColor,
-                                size: 50,
-                              );
-                            },
-                          )
-                        : const Icon(
-                            Icons.person_rounded,
-                            color: AppTheme.primaryColor,
-                            size: 50,
-                          ),
+                    child: _buildProfileImage(vendor),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -741,5 +728,84 @@ class ProfileScreen extends ConsumerWidget {
     }
   }
 
+  Widget _buildProfileImage(vendor) {
+    // Debug information
+    print('🔍 Profile Image Debug:');
+    print('🔍 Vendor ID: ${vendor?.id}');
+    print('🔍 Profile Picture URL: ${vendor?.profilePicture}');
+    print('🔍 Profile Picture null? ${vendor?.profilePicture == null}');
+    print('🔍 Profile Picture empty? ${vendor?.profilePicture?.isEmpty ?? true}');
 
+    if (vendor?.profilePicture != null && vendor!.profilePicture!.isNotEmpty) {
+      return Image.network(
+        vendor.profilePicture!,
+        fit: BoxFit.cover,
+        width: 100,
+        height: 100,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            width: 100,
+            height: 100,
+            alignment: Alignment.center,
+            child: CircularProgressIndicator(
+              strokeWidth: 3,
+              color: AppTheme.primaryColor,
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded /
+                      loadingProgress.expectedTotalBytes!
+                  : null,
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          print('🔴 Profile picture loading error: $error');
+          print('🔴 Image URL: ${vendor.profilePicture}');
+          print('🔴 Stack trace: $stackTrace');
+          return Container(
+            width: 100,
+            height: 100,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.person_rounded,
+                  color: AppTheme.primaryColor,
+                  size: 40,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Image Error',
+                  style: TextStyle(
+                    fontSize: 8,
+                    color: AppTheme.primaryColor.withOpacity(0.7),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    } else {
+      return Container(
+        width: 100,
+        height: 100,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppTheme.primaryColor.withOpacity(0.1),
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(
+          Icons.person_rounded,
+          color: AppTheme.primaryColor,
+          size: 50,
+        ),
+      );
+    }
+  }
 } 

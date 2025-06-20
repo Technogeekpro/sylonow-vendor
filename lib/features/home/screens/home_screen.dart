@@ -8,6 +8,7 @@ import 'package:sylonow_vendor/features/dashboard/models/dashboard_data.dart';
 import 'package:sylonow_vendor/features/dashboard/models/dashboard_stats.dart';
 import 'package:sylonow_vendor/features/dashboard/models/activity_item.dart';
 import 'package:sylonow_vendor/features/dashboard/providers/dashboard_provider.dart';
+import 'package:sylonow_vendor/features/onboarding/models/vendor.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../onboarding/providers/vendor_provider.dart';
 
@@ -95,30 +96,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 // Minimalistic Header
                 _buildHeader(vendorAsync),
                 
-                // Main Content - Flexible and Scrollable
+                // Main Content - Flexible and Scrollable with Pull-to-Refresh
                 Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Business Overview - Four Cards
-                        _buildBusinessOverview(dashboardData.stats),
-                        
-                        const SizedBox(height: 20),
-                        
-                        // New Booking Alert
-                        _buildNewBookingAlert(dashboardData.latestPendingBooking),
-                        
-                        const SizedBox(height: 20),
-                        
-                        // Recent Activity
-                        _buildRecentActivity(dashboardData.recentActivities),
-                        
-                        // Bottom padding for navigation bar
-                        SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
-                      ],
+                  child: RefreshIndicator(
+                    onRefresh: _handleRefresh,
+                    color: AppTheme.primaryColor,
+                    backgroundColor: AppTheme.surfaceColor,
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Business Overview - Four Cards
+                          _buildBusinessOverview(dashboardData.stats),
+                          
+                          const SizedBox(height: 20),
+                          
+                          // New Booking Alert
+                          _buildNewBookingAlert(dashboardData.latestPendingBooking),
+                          
+                          const SizedBox(height: 20),
+                          
+                          // Recent Activity
+                          _buildRecentActivity(dashboardData.recentActivities),
+                          
+                          // Bottom padding for navigation bar
+                          SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -143,6 +151,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       floatingActionButton: _buildFloatingActionButton(),
       bottomNavigationBar: _buildBottomNavigation(),
     );
+  }
+
+  Future<void> _handleRefresh() async {
+    try {
+      print('🔄 Refreshing home screen data...');
+      
+      // Show haptic feedback
+      HapticFeedback.lightImpact();
+      
+      // Refresh both vendor data and dashboard data
+      await Future.wait([
+        ref.read(vendorProvider.notifier).refreshVendor(),
+        Future(() => ref.invalidate(dashboardDataProvider)),
+      ]);
+      
+      print('🟢 Home screen refresh completed');
+    } catch (e) {
+      print('🔴 Home screen refresh failed: $e');
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to refresh: ${e.toString()}'),
+            backgroundColor: AppTheme.errorColor,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildHeader(AsyncValue vendorAsync) {
@@ -170,42 +207,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     boxShadow: [AppTheme.cardShadow],
                   ),
                   child: ClipOval(
-                    child: vendor?.profilePicture != null && vendor!.profilePicture!.isNotEmpty
-                        ? Image.network(
-                            vendor.profilePicture!,
-                            fit: BoxFit.cover,
-                            width: 56,
-                            height: 56,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Container(
-                                width: 56,
-                                height: 56,
-                                alignment: Alignment.center,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: AppTheme.primaryColor,
-                                  value: loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              print('Profile picture loading error: $error');
-                              return const Icon(
-                                Icons.person_rounded,
-                                color: AppTheme.primaryColor,
-                                size: 28,
-                              );
-                            },
-                          )
-                        : const Icon(
-                            Icons.person_rounded,
-                            color: AppTheme.primaryColor,
-                            size: 28,
-                          ),
+                    child: _buildHeaderProfileImage(vendor),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -411,6 +413,86 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ),
       ],
     );
+  }
+
+  Widget _buildHeaderProfileImage(Vendor vendor) {
+    // Debug information for home screen
+    print('🔍 Home Header Profile Image Debug:');
+    print('🔍 Vendor ID: ${vendor.id}');
+    print('🔍 Profile Picture URL: ${vendor.profilePicture}');
+    print('🔍 Profile Picture null? ${vendor.profilePicture == null}');
+    print('🔍 Profile Picture empty? ${vendor.profilePicture?.isEmpty ?? true}');
+
+    if (vendor.profilePicture != null && vendor.profilePicture!.isNotEmpty) {
+      return Image.network(
+        vendor.profilePicture!,
+        fit: BoxFit.cover,
+        width: 56,
+        height: 56,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            width: 56,
+            height: 56,
+            alignment: Alignment.center,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Colors.white.withOpacity(0.8),
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded /
+                      loadingProgress.expectedTotalBytes!
+                  : null,
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          print('🔴 Home header profile picture loading error: $error');
+          print('🔴 Image URL: ${vendor.profilePicture}');
+          print('🔴 Stack trace: $stackTrace');
+          return Container(
+            width: 56,
+            height: 56,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.person_rounded,
+                  color: AppTheme.primaryColor,
+                  size: 24,
+                ),
+                Text(
+                  'Error',
+                  style: TextStyle(
+                    fontSize: 6,
+                    color: AppTheme.primaryColor.withOpacity(0.7),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    } else {
+      return Container(
+        width: 56,
+        height: 56,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppTheme.primaryColor.withOpacity(0.2),
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(
+          Icons.person_rounded,
+          color: AppTheme.primaryColor,
+          size: 28,
+        ),
+      );
+    }
   }
 
   Widget _buildBusinessOverview(DashboardStats stats) {
@@ -860,8 +942,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
     );
   }
-
-
 
   Widget _buildFloatingActionButton() {
     return Container(

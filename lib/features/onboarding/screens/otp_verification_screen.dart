@@ -29,7 +29,12 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
   void initState() {
     super.initState();
     _setupAnimations();
-    _sendInitialOtp();
+    // Defer the initial OTP sending to avoid provider modification during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _sendInitialOtp();
+      }
+    });
   }
 
   void _setupAnimations() {

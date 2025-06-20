@@ -18,7 +18,9 @@ class _ServiceListingsScreenState extends ConsumerState<ServiceListingsScreen> {
     super.initState();
     // Automatically refresh when screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(serviceListingsProvider.notifier).refresh();
+      if (mounted) {
+        ref.read(serviceListingsProvider.notifier).refresh();
+      }
     });
   }
 

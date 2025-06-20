@@ -45,9 +45,27 @@ class VendorNotifier extends AsyncNotifier<Vendor?> {
     state = const AsyncLoading();
     
     try {
-      final vendor = await build();
-      state = AsyncData(vendor);
-      print('🟢 VendorNotifier: Manual refresh completed');
+      final authState = ref.watch(authStateProvider);
+      final user = authState.valueOrNull?.session?.user;
+      
+      if (user == null) {
+        print('🟡 VendorNotifier: No authenticated user found during refresh');
+        state = const AsyncData(null);
+        return;
+      }
+
+      print('🔵 VendorNotifier: Refreshing vendor data for user: ${user.id.substring(0, 8)}...');
+      
+      final vendorService = ref.read(vendorServiceProvider);
+      final vendor = await vendorService.getVendorByUserId(user.id);
+      
+      if (vendor != null) {
+        print('🟢 VendorNotifier: Vendor refreshed - ID: ${vendor.id.substring(0, 8)}, Onboarding: ${vendor.isOnboardingComplete}, Verified: ${vendor.isVerified}');
+        state = AsyncData(vendor);
+      } else {
+        print('🟡 VendorNotifier: No vendor data found during refresh');
+        state = const AsyncData(null);
+      }
     } catch (e) {
       print('🔴 VendorNotifier: Manual refresh failed: $e');
       state = AsyncError(e, StackTrace.current);

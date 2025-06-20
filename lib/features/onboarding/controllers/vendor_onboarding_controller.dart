@@ -50,19 +50,55 @@ class VendorOnboardingController extends StateNotifier<VendorOnboardingState> {
   VendorOnboardingController(this.ref) : super(const VendorOnboardingState());
 
   void setProfileImage(File image) {
+    // Clear any previous image first
+    if (state.profileImage != null && state.profileImage!.path.contains('temp_images')) {
+      try {
+        state.profileImage!.deleteSync();
+      } catch (e) {
+        print('⚠️ Failed to delete old profile image: $e');
+      }
+    }
     state = state.copyWith(profileImage: image);
+    print('📸 Profile image set: ${image.path}');
   }
 
   void setAadhaarFrontImage(File image) {
+    // Clear any previous image first
+    if (state.aadhaarFrontImage != null && state.aadhaarFrontImage!.path.contains('temp_images')) {
+      try {
+        state.aadhaarFrontImage!.deleteSync();
+      } catch (e) {
+        print('⚠️ Failed to delete old aadhaar front image: $e');
+      }
+    }
     state = state.copyWith(aadhaarFrontImage: image);
+    print('📸 Aadhaar front image set: ${image.path}');
   }
 
   void setAadhaarBackImage(File image) {
+    // Clear any previous image first
+    if (state.aadhaarBackImage != null && state.aadhaarBackImage!.path.contains('temp_images')) {
+      try {
+        state.aadhaarBackImage!.deleteSync();
+      } catch (e) {
+        print('⚠️ Failed to delete old aadhaar back image: $e');
+      }
+    }
     state = state.copyWith(aadhaarBackImage: image);
+    print('📸 Aadhaar back image set: ${image.path}');
   }
 
   void setPanCardImage(File image) {
+    // Clear any previous image first
+    if (state.panCardImage != null && state.panCardImage!.path.contains('temp_images')) {
+      try {
+        state.panCardImage!.deleteSync();
+      } catch (e) {
+        print('⚠️ Failed to delete old pan card image: $e');
+      }
+    }
     state = state.copyWith(panCardImage: image);
+    print('📸 PAN card image set: ${image.path}');
   }
 
   void clearError() {
@@ -89,6 +125,25 @@ class VendorOnboardingController extends StateNotifier<VendorOnboardingState> {
       }
       
       print('🔵 Starting vendor application submission for user: ${user.id}');
+      
+      // Validate files exist before proceeding
+      final filesToCheck = [
+        ('profile', state.profileImage),
+        ('aadhaar_front', state.aadhaarFrontImage),
+        ('aadhaar_back', state.aadhaarBackImage),
+        ('pan_card', state.panCardImage),
+      ];
+      
+      for (final (type, file) in filesToCheck) {
+        if (file != null) {
+          print('🔵 Checking $type file: ${file.path}');
+          if (!await file.exists()) {
+            throw Exception('$type file not found at path: ${file.path}. Please re-select the image.');
+          }
+          print('🟢 $type file verified: ${file.path}');
+        }
+      }
+      
       final vendorService = ref.read(vendorServiceProvider);
 
       // Call the new transactional method in the service
