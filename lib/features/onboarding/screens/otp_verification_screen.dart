@@ -5,6 +5,7 @@ import '../controllers/otp_controller.dart';
 import '../helpers/otp_helper.dart';
 import '../../../core/config/supabase_config.dart';
 import 'package:go_router/go_router.dart';
+import '../providers/vendor_provider.dart';
 
 class OtpVerificationScreen extends ConsumerStatefulWidget {
   final String phoneNumber;
@@ -81,6 +82,16 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
       
       if (user != null) {
         OtpHelper.showSuccessSnackBar(context, 'OTP verified successfully!');
+        
+        // Force refresh vendor data after successful login
+        print('🔄 OTP Success: Refreshing vendor data...');
+        try {
+          await ref.read(vendorProvider.notifier).refreshVendor();
+          print('🟢 OTP Success: Vendor data refreshed');
+        } catch (e) {
+          print('⚠️ OTP Success: Failed to refresh vendor data: $e');
+        }
+        
         // Force navigation to trigger router redirect logic
         await Future.delayed(const Duration(milliseconds: 1000));
         if (mounted) {

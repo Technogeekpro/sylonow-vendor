@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -404,24 +403,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                   ),
                 ),
 
-                // Debug Button (only in debug mode)
-                if (kDebugMode)
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: TextButton(
-                        onPressed: () => context.go('/debug-google'),
-                        child: Text(
-                          '🛠️ Debug Google OAuth',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+
 
                 const SizedBox(height: 24),
               ],

@@ -42,15 +42,15 @@ class VendorNotifier extends AsyncNotifier<Vendor?> {
 
   Future<void> refreshVendor() async {
     print('🔵 VendorNotifier: Manual refresh requested');
-    state = const AsyncLoading();
     
+    // Don't set state to loading during refresh to avoid router triggers
+    // Instead, fetch data in background and only update state with new data
     try {
       final authState = ref.watch(authStateProvider);
       final user = authState.valueOrNull?.session?.user;
       
       if (user == null) {
         print('🟡 VendorNotifier: No authenticated user found during refresh');
-        state = const AsyncData(null);
         return;
       }
 
@@ -61,19 +61,31 @@ class VendorNotifier extends AsyncNotifier<Vendor?> {
       
       if (vendor != null) {
         print('🟢 VendorNotifier: Vendor refreshed - ID: ${vendor.id.substring(0, 8)}, Onboarding: ${vendor.isOnboardingComplete}, Verified: ${vendor.isVerified}');
+        // Only update state if we got valid data
         state = AsyncData(vendor);
       } else {
         print('🟡 VendorNotifier: No vendor data found during refresh');
-        state = const AsyncData(null);
+        // Only update to null if we currently have data (don't overwrite loading states)
+        if (state.hasValue) {
+          state = const AsyncData(null);
+        }
       }
     } catch (e) {
       print('🔴 VendorNotifier: Manual refresh failed: $e');
-      state = AsyncError(e, StackTrace.current);
+      // Don't set error state during refresh, keep existing data
+      // Only log the error for debugging
     }
   }
 
   void clearVendorData() {
     print('🔵 VendorNotifier: Clearing vendor data');
     state = const AsyncData(null);
+  }
+
+  /// Alternative refresh method using Riverpod's built-in invalidation
+  /// This is safer as it uses the normal provider lifecycle
+  Future<void> invalidateAndRefresh() async {
+    print('🔵 VendorNotifier: Invalidating and refreshing...');
+    ref.invalidateSelf();
   }
 }

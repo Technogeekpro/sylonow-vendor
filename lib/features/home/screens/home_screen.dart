@@ -160,11 +160,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       // Show haptic feedback
       HapticFeedback.lightImpact();
       
-      // Refresh both vendor data and dashboard data
-      await Future.wait([
-        ref.read(vendorProvider.notifier).refreshVendor(),
-        Future(() => ref.invalidate(dashboardDataProvider)),
-      ]);
+      // Use safer refresh approach that doesn't trigger router
+      ref.read(vendorProvider.notifier).invalidateAndRefresh();
+      ref.invalidate(dashboardDataProvider);
+      
+      // Small delay to allow UI to update
+      await Future.delayed(const Duration(milliseconds: 300));
       
       print('🟢 Home screen refresh completed');
     } catch (e) {

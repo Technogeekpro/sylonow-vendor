@@ -211,8 +211,11 @@ class ProfileScreen extends ConsumerWidget {
       // Show haptic feedback
       HapticFeedback.lightImpact();
       
-      // Refresh vendor data
-      await ref.read(vendorProvider.notifier).refreshVendor();
+      // Use safer refresh approach that doesn't trigger router
+      ref.read(vendorProvider.notifier).invalidateAndRefresh();
+      
+      // Small delay to allow UI to update
+      await Future.delayed(const Duration(milliseconds: 300));
       
       print('🟢 Profile screen refresh completed');
     } catch (e) {

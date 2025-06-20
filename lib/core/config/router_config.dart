@@ -66,12 +66,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final isAuthenticated = authState.valueOrNull?.session != null;
 
       final isGoingToSplash = state.matchedLocation == '/splash' || state.matchedLocation == '/';
-      final publicRoutes = ['/welcome', '/phone', '/verify-otp', '/cookies-policy', '/terms-conditions', '/revenue-policy', '/privacy-policy', '/debug-google'];
+      final publicRoutes = ['/welcome', '/phone', '/verify-otp', '/cookies-policy', '/terms-conditions', '/revenue-policy', '/privacy-policy'];
       final isGoingToPublicRoute = publicRoutes.contains(state.matchedLocation);
 
       // Debug logging (essential only)
       if (kDebugMode && state.matchedLocation != '/splash' && state.matchedLocation != '/') {
         print('🔍 Router: ${state.matchedLocation} | Auth: ${isAuthenticated ? 'OK' : 'NO'} | Vendor: ${vendorState.hasValue ? 'OK' : (vendorState.isLoading ? 'LOADING' : 'NO')}');
+        if (vendorState.hasValue && vendorState.value != null) {
+          final vendor = vendorState.value!;
+          print('🔍 Router: Vendor details - Onboarding: ${vendor.isOnboardingComplete}, Verified: ${vendor.isVerified}');
+        }
       }
       
       // ALWAYS stay on splash if auth is loading
@@ -158,10 +162,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/privacy-policy',
         builder: (_, __) => const PrivacyPolicyScreen(),
       ),
-      GoRoute(
-        path: '/debug-google',
-        builder: (_, __) => const DebugGoogleAuthScreen(),
-      ),
+
       GoRoute(
         path: '/phone', 
         builder: (_, __) => const PhoneScreen(),
