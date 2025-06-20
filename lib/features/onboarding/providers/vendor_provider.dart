@@ -13,29 +13,28 @@ final vendorProvider = AsyncNotifierProvider<VendorNotifier, Vendor?>(
 
 class VendorNotifier extends AsyncNotifier<Vendor?> {
   @override
-  FutureOr<Vendor?> build() async {
-    // Watch auth state changes to auto-refresh vendor data
-    final currentUser = ref.watch(currentUserProvider);
-    
-    // If no user is authenticated, return null immediately
-    if (currentUser == null) {
-      return null;
-    }
-
-    print('🔵 VendorNotifier: Loading vendor data for user: ${currentUser.id}');
-    
+  Future<Vendor?> build() async {
     try {
-      final service = ref.read(vendorServiceProvider);
-      final vendor = await service.getVendorByUserId(currentUser.id);
+      final authState = ref.watch(authStateProvider);
+      final user = authState.valueOrNull?.session?.user;
+      
+      if (user == null) {
+        return null;
+      }
+
+      print('🔵 VendorNotifier: Loading vendor data for user: ${user.id.substring(0, 8)}...');
+      
+      final vendorService = ref.read(vendorServiceProvider);
+      final vendor = await vendorService.getVendorByUserId(user.id);
       
       if (vendor != null) {
-        print('🟢 VendorNotifier: Vendor data loaded successfully');
+        print('🟢 VendorNotifier: Vendor loaded - Onboarding: ${vendor.isOnboardingComplete}, Verified: ${vendor.isVerified}');
       } else {
         print('🟡 VendorNotifier: No vendor data found for user');
       }
       
       return vendor;
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('🔴 VendorNotifier: Error loading vendor data: $e');
       rethrow;
     }

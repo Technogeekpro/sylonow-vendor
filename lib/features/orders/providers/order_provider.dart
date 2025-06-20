@@ -9,11 +9,21 @@ final ordersProvider = FutureProvider.family<List<Order>, String>((ref, status) 
     throw Exception('User not authenticated');
   }
 
-  final orderService = ref.watch(orderServiceProvider);
+  print('🔵 OrderProvider: Fetching orders for status: $status');
   
-  final filterStatus = status == 'All' ? null : status.toLowerCase();
+  try {
+    final orderService = ref.watch(orderServiceProvider);
+    
+    final filterStatus = status == 'All' ? null : status.toLowerCase();
+    print('🔵 OrderProvider: Filter status: $filterStatus');
 
-  return orderService.getVendorOrders(
-    status: filterStatus,
-  );
+    final orders = await orderService.getVendorOrders(status: filterStatus);
+    print('🟢 OrderProvider: Retrieved ${orders.length} orders');
+    
+    return orders;
+  } catch (e, stackTrace) {
+    print('🔴 OrderProvider: Error fetching orders: $e');
+    print('🔴 OrderProvider: Stack trace: $stackTrace');
+    rethrow;
+  }
 }); 

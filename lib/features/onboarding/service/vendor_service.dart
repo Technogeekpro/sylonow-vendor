@@ -13,7 +13,7 @@ class VendorService {
   //get vendor by user id
   Future<Vendor?> getVendorByUserId(String userId) async {
     try {
-      print('🔵 VendorService: Getting vendor for user ID: $userId');
+      print('🔵 VendorService: Getting vendor for user ID: ${userId.substring(0, 8)}...');
       
       final response = await _client
           .from('vendors')
@@ -21,27 +21,19 @@ class VendorService {
           .eq('auth_user_id', userId)
           .maybeSingle();
       
-      print('🔵 VendorService: Database response received');
-      print('🔵 VendorService: Response data: ${response != null ? 'Found vendor data' : 'No vendor data'}');
-      
       if (response == null) {
-        print('🟡 VendorService: No vendor found for user: $userId');
+        print('🟡 VendorService: No vendor found');
         return null;
       }
       
       final vendor = Vendor.fromJson(response);
-      print('🟢 VendorService: Vendor parsed successfully');
-      print('🟢 VendorService: Vendor name: ${vendor.fullName}');
-      print('🟢 VendorService: Onboarding complete: ${vendor.isOnboardingComplete}');
-      print('🟢 VendorService: Is verified: ${vendor.isVerified}');
+      print('🟢 VendorService: Vendor found - ${vendor.fullName} (${vendor.isOnboardingComplete ? 'Complete' : 'Incomplete'}, ${vendor.isVerified ? 'Verified' : 'Unverified'})');
       
       return vendor;
     } catch (e) {
       print('🔴 VendorService: Error getting vendor: $e');
-      print('🔴 VendorService: Error type: ${e.runtimeType}');
       if (e is PostgrestException) {
-        print('🔴 VendorService: Postgrest error details: ${e.details}');
-        print('🔴 VendorService: Postgrest error message: ${e.message}');
+        print('🔴 VendorService: Postgrest error: ${e.message}');
       }
       return null;
     }

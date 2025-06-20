@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SupportScreen extends ConsumerWidget {
   const SupportScreen({super.key});
@@ -73,6 +74,7 @@ class SupportScreen extends ConsumerWidget {
                   ElevatedButton(
                     onPressed: () {
                       // Contact support
+                      _contactSupport(context);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
@@ -105,32 +107,16 @@ class SupportScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             
-            Row(
-              children: [
-                Expanded(
-                  child: _buildQuickHelpCard(
-                    icon: Icons.phone,
-                    title: 'Call Us',
-                    subtitle: '+91 98765 43210',
-                    color: Colors.green,
-                    onTap: () {
-                      // Make phone call
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildQuickHelpCard(
-                    icon: Icons.chat,
-                    title: 'Live Chat',
-                    subtitle: 'Chat with us',
-                    color: Colors.blue,
-                    onTap: () {
-                      // Open live chat
-                    },
-                  ),
-                ),
-              ],
+            // Only Call Us option, no Live Chat
+            _buildQuickHelpCard(
+              icon: Icons.phone,
+              title: 'Call Us',
+              subtitle: '+91 98765 43210',
+              color: Colors.green,
+              onTap: () {
+                // Make phone call
+                _makePhoneCall('+919876543210');
+              },
             ),
             const SizedBox(height: 32),
             
@@ -166,6 +152,7 @@ class SupportScreen extends ConsumerWidget {
                     subtitle: 'Manage your account settings',
                     onTap: () {
                       // Navigate to account help
+                      _showAccountHelpDialog(context);
                     },
                   ),
                   _buildDivider(),
@@ -175,6 +162,7 @@ class SupportScreen extends ConsumerWidget {
                     subtitle: 'Help with orders and bookings',
                     onTap: () {
                       // Navigate to orders help
+                      _showOrdersHelpDialog(context);
                     },
                   ),
                   _buildDivider(),
@@ -184,6 +172,7 @@ class SupportScreen extends ConsumerWidget {
                     subtitle: 'Payment and wallet related queries',
                     onTap: () {
                       // Navigate to payment help
+                      _showPaymentHelpDialog(context);
                     },
                   ),
                   _buildDivider(),
@@ -193,6 +182,7 @@ class SupportScreen extends ConsumerWidget {
                     subtitle: 'Document verification help',
                     onTap: () {
                       // Navigate to verification help
+                      _showVerificationHelpDialog(context);
                     },
                   ),
                   _buildDivider(),
@@ -202,6 +192,7 @@ class SupportScreen extends ConsumerWidget {
                     subtitle: 'Report technical or service issues',
                     onTap: () {
                       // Navigate to report issue
+                      _showReportIssueDialog(context);
                     },
                   ),
                 ],
@@ -272,6 +263,7 @@ class SupportScreen extends ConsumerWidget {
     required VoidCallback onTap,
   }) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -290,11 +282,11 @@ class SupportScreen extends ConsumerWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: onTap,
-          child: Column(
+          child: Row(
             children: [
               Container(
-                width: 50,
-                height: 50,
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
                   shape: BoxShape.circle,
@@ -302,26 +294,37 @@ class SupportScreen extends ConsumerWidget {
                 child: Icon(
                   icon,
                   color: color,
-                  size: 24,
+                  size: 28,
                 ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                ),
-                textAlign: TextAlign.center,
+              Icon(
+                Icons.arrow_forward_ios,
+                color: color,
+                size: 20,
               ),
             ],
           ),
@@ -430,6 +433,219 @@ class SupportScreen extends ConsumerWidget {
       child: Divider(
         height: 1,
         color: Colors.grey.shade200,
+      ),
+    );
+  }
+
+  void _makePhoneCall(String phoneNumber) {
+    // Implement the logic to make a phone call
+    launchUrl(Uri.parse('tel:$phoneNumber'));
+  }
+
+  void _contactSupport(BuildContext context) {
+    // Implement the logic to contact support
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Contact Support'),
+        content: const Text('Choose how you\'d like to contact our support team:'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _makePhoneCall('+919876543210');
+            },
+            child: const Text('Call Us'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              launchUrl(Uri.parse('mailto:support@sylonow.com?subject=Vendor Support Request'));
+            },
+            child: const Text('Email Us'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAccountHelpDialog(BuildContext context) {
+    // Implement the logic to show account help dialog
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Account & Profile Help'),
+        content: const SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('• How to update your profile information'),
+              SizedBox(height: 8),
+              Text('• Managing your account settings'),
+              SizedBox(height: 8),
+              Text('• Changing your password'),
+              SizedBox(height: 8),
+              Text('• Account verification process'),
+              SizedBox(height: 8),
+              Text('• Deactivating your account'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showOrdersHelpDialog(BuildContext context) {
+    // Implement the logic to show orders help dialog
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Orders & Bookings Help'),
+        content: const SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('• Managing incoming booking requests'),
+              SizedBox(height: 8),
+              Text('• Accepting or declining orders'),
+              SizedBox(height: 8),
+              Text('• Updating order status'),
+              SizedBox(height: 8),
+              Text('• Communicating with customers'),
+              SizedBox(height: 8),
+              Text('• Handling cancellations and refunds'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPaymentHelpDialog(BuildContext context) {
+    // Implement the logic to show payment help dialog
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Payments & Wallet Help'),
+        content: const SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('• Understanding your wallet balance'),
+              SizedBox(height: 8),
+              Text('• Withdrawing funds to your bank account'),
+              SizedBox(height: 8),
+              Text('• Payment processing and fees'),
+              SizedBox(height: 8),
+              Text('• Transaction history and receipts'),
+              SizedBox(height: 8),
+              Text('• Resolving payment disputes'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showVerificationHelpDialog(BuildContext context) {
+    // Implement the logic to show verification help dialog
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Verification Help'),
+        content: const SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('• Required documents for verification'),
+              SizedBox(height: 8),
+              Text('• Photo quality requirements'),
+              SizedBox(height: 8),
+              Text('• Verification timeline and process'),
+              SizedBox(height: 8),
+              Text('• What to do if verification is rejected'),
+              SizedBox(height: 8),
+              Text('• Updating verified documents'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showReportIssueDialog(BuildContext context) {
+    // Implement the logic to show report issue dialog
+    final TextEditingController issueController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Report an Issue'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Please describe the issue you\'re experiencing:'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: issueController,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                hintText: 'Describe your issue here...',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // Here you would typically send the issue to your backend
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Issue reported successfully! We\'ll get back to you soon.'),
+                ),
+              );
+            },
+            child: const Text('Submit'),
+          ),
+        ],
       ),
     );
   }

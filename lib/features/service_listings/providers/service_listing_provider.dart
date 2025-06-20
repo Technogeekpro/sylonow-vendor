@@ -22,13 +22,13 @@ class ServiceListingsNotifier extends AsyncNotifier<List<ServiceListing>> {
       print('🔵 ServiceListingsNotifier: Loading listings...');
       
       final vendor = await ref.read(vendorProvider.future);
-      if (vendor?.authUserId == null) {
+      if (vendor?.id == null) {
         print('🔴 ServiceListingsNotifier: No vendor ID found');
         throw Exception('Vendor not found');
       }
 
-      print('🔵 ServiceListingsNotifier: Vendor ID: ${vendor!.authUserId}');
-      final listings = await _serviceListingService.getVendorListings(vendor.authUserId!);
+      print('🔵 ServiceListingsNotifier: Vendor ID: ${vendor!.id}');
+      final listings = await _serviceListingService.getVendorListings(vendor.id);
       
       print('🟢 ServiceListingsNotifier: Loaded ${listings.length} listings');
       return listings;

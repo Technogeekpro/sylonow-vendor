@@ -45,7 +45,7 @@ class ProfileScreen extends ConsumerWidget {
                           title: 'Edit Profile',
                           subtitle: 'Update your personal information',
                           onTap: () {
-                            // Navigate to edit profile
+                            context.push('/edit-profile');
                           },
                         ),
                         _buildDivider(),
@@ -54,7 +54,7 @@ class ProfileScreen extends ConsumerWidget {
                           title: 'Business Details',
                           subtitle: 'Manage your business information',
                           onTap: () {
-                            // Navigate to business details
+                            context.push('/business-details');
                           },
                         ),
                         _buildDivider(),
@@ -63,16 +63,7 @@ class ProfileScreen extends ConsumerWidget {
                           title: 'Payment Settings',
                           subtitle: 'Manage payment methods',
                           onTap: () {
-                            // Navigate to payment settings
-                          },
-                        ),
-                        _buildDivider(),
-                        _buildProfileOption(
-                          icon: Icons.notifications_outlined,
-                          title: 'Notifications',
-                          subtitle: 'Manage notification preferences',
-                          onTap: () {
-                            // Navigate to notifications
+                            context.push('/payment-settings');
                           },
                         ),
                         _buildDivider(),
@@ -357,7 +348,11 @@ class ProfileScreen extends ConsumerWidget {
                 
                 // Email or Phone
                 Text(
-                  currentUser?.email ?? vendor?.mobileNumber ?? 'Contact Info',
+                  vendor?.phone?.isNotEmpty == true 
+                      ? vendor!.phone!
+                      : vendor?.email?.isNotEmpty == true 
+                      ? vendor!.email!
+                      : currentUser?.email ?? 'No contact info',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.white.withOpacity(0.8),
@@ -371,8 +366,10 @@ class ProfileScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: vendor?.isVerified == true 
+                    color: vendor?.verificationStatus == 'verified' 
                         ? AppTheme.successColor 
+                        : vendor?.verificationStatus == 'rejected'
+                        ? AppTheme.errorColor
                         : AppTheme.warningColor,
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -380,16 +377,20 @@ class ProfileScreen extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        vendor?.isVerified == true 
+                        vendor?.verificationStatus == 'verified' 
                             ? Icons.verified 
+                            : vendor?.verificationStatus == 'rejected'
+                            ? Icons.cancel
                             : Icons.pending,
                         color: Colors.white,
                         size: 16,
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        vendor?.isVerified == true 
+                        vendor?.verificationStatus == 'verified' 
                             ? 'Verified Vendor' 
+                            : vendor?.verificationStatus == 'rejected'
+                            ? 'Verification Rejected'
                             : 'Pending Verification',
                         style: const TextStyle(
                           fontSize: 12,
@@ -475,7 +476,7 @@ class ProfileScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
         const Text(
-          'Vendor Name',
+          'Unable to load profile',
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w700,
@@ -484,11 +485,38 @@ class ProfileScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          currentUser?.email ?? 'Contact Info',
+          currentUser?.email ?? 'No contact info',
           style: TextStyle(
             fontSize: 16,
             color: Colors.white.withOpacity(0.8),
             fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppTheme.errorColor,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.error_outline,
+                color: Colors.white,
+                size: 16,
+              ),
+              SizedBox(width: 6),
+              Text(
+                'Failed to load data',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -712,4 +740,6 @@ class ProfileScreen extends ConsumerWidget {
       }
     }
   }
+
+
 } 

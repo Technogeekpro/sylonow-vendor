@@ -92,18 +92,113 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                 return ordersAsync.when(
                   data: (orders) {
                     if (orders.isEmpty) {
-                      return const Center(child: Text('No orders found.'));
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.receipt_long_outlined,
+                              size: 64,
+                              color: Colors.grey.shade400,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No ${_selectedFilter.toLowerCase()} orders found',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _selectedFilter == 'All' 
+                                  ? 'Orders from customers will appear here'
+                                  : 'No orders with ${_selectedFilter.toLowerCase()} status',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 24),
+                            if (_selectedFilter != 'All')
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _selectedFilter = 'All';
+                                  });
+                                },
+                                child: const Text('View All Orders'),
+                              ),
+                          ],
+                        ),
+                      );
                     }
-                    return ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: orders.length,
-                      itemBuilder: (context, index) {
-                        return _buildOrderCard(orders[index]);
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        ref.invalidate(ordersProvider);
                       },
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: orders.length,
+                        itemBuilder: (context, index) {
+                          return _buildOrderCard(orders[index]);
+                        },
+                      ),
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (err, stack) => Center(child: Text('Error: $err')),
+                  loading: () => const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 16),
+                        Text('Loading orders...'),
+                      ],
+                    ),
+                  ),
+                  error: (err, stack) => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red.shade400,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Failed to load orders',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.red.shade600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: Text(
+                            err.toString(),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            ref.invalidate(ordersProvider);
+                          },
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               },
             ),
@@ -237,16 +332,28 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                 children: [
                   if (order.status == 'pending') ...[
                     _buildActionButton('Accept', Colors.green, Colors.white, () {
-                      _updateOrderStatus(order.id, 'confirmed');
+                      _showStatusUpdateDialog(order.id, 'confirmed', 'Accept this order?', 
+                        'The order will be confirmed and the customer will be notified.');
                     }),
                     const SizedBox(width: 8),
                     _buildActionButton('Reject', Colors.red, Colors.white, () {
-                      _updateOrderStatus(order.id, 'cancelled');
+                      _showStatusUpdateDialog(order.id, 'cancelled', 'Reject this order?', 
+                        'The order will be cancelled and the customer will be notified.');
                     }),
                   ] else if (order.status == 'confirmed') ...[
-                    _buildActionButton('Mark as Completed', Colors.blue, Colors.white, () {
-                      _updateOrderStatus(order.id, 'completed');
+                    _buildActionButton('Mark Complete', Colors.blue, Colors.white, () {
+                      _showStatusUpdateDialog(order.id, 'completed', 'Mark order as completed?', 
+                        'This action cannot be undone. Make sure the service has been delivered.');
                     }),
+                    const SizedBox(width: 8),
+                    _buildActionButton('Cancel', Colors.grey.shade600, Colors.white, () {
+                      _showStatusUpdateDialog(order.id, 'cancelled', 'Cancel this order?', 
+                        'The order will be cancelled and the customer will be notified.');
+                    }),
+                  ] else if (order.status == 'completed') ...[
+                    _buildActionButton('Completed ✓', Colors.green.shade300, Colors.white, null, isDisabled: true),
+                  ] else if (order.status == 'cancelled') ...[
+                    _buildActionButton('Cancelled', Colors.red.shade300, Colors.white, null, isDisabled: true),
                   ] else ...[
                     _buildActionButton('View Details', Colors.pink, Colors.white, () {
                       // TODO: Implement view details
@@ -261,9 +368,9 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
     );
   }
 
-  Widget _buildActionButton(String text, Color backgroundColor, Color textColor, VoidCallback onPressed) {
+  Widget _buildActionButton(String text, Color backgroundColor, Color textColor, VoidCallback? onPressed, {bool isDisabled = false}) {
     return GestureDetector(
-      onTap: onPressed,
+      onTap: isDisabled ? null : onPressed,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
@@ -282,17 +389,87 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
     );
   }
 
+  void _showStatusUpdateDialog(String orderId, String status, String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _updateOrderStatus(orderId, status);
+              },
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _updateOrderStatus(String orderId, String status) async {
     try {
-      await ref.read(orderServiceProvider).updateBookingStatus(
-            bookingId: orderId,
-            status: status,
-          );
-      ref.invalidate(ordersProvider);
-    } catch (e) {
+      // Show loading indicator
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update order status: $e')),
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              ),
+              SizedBox(width: 12),
+              Text('Updating order status...'),
+            ],
+          ),
+          duration: Duration(seconds: 2),
+        ),
       );
+
+      await ref.read(orderServiceProvider).updateBookingStatus(
+        bookingId: orderId,
+        status: status,
+      );
+      
+      // Refresh the orders list
+      ref.invalidate(ordersProvider);
+      
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Order ${status.toLowerCase()} successfully!'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      // Clear loading snackbar and show error
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update order: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: Colors.white,
+              onPressed: () => _updateOrderStatus(orderId, status),
+            ),
+          ),
+        );
+      }
     }
   }
 } 

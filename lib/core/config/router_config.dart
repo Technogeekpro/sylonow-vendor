@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sylonow_vendor/core/config/supabase_config.dart';
 import 'package:sylonow_vendor/features/onboarding/providers/vendor_provider.dart';
 import 'package:sylonow_vendor/features/onboarding/screens/otp_verification_screen.dart';
 import 'package:sylonow_vendor/features/onboarding/screens/phone_screen.dart';
@@ -15,9 +18,13 @@ import 'package:sylonow_vendor/features/orders/screens/orders_screen.dart';
 import 'package:sylonow_vendor/features/profile/screens/profile_screen.dart';
 import 'package:sylonow_vendor/features/support/screens/support_screen.dart';
 import 'package:sylonow_vendor/features/wallet/screens/wallet_screen.dart';
+import 'package:sylonow_vendor/features/wallet/screens/withdrawal_screen.dart';
 import 'package:sylonow_vendor/features/service_listings/screens/add_service_screen.dart';
 import 'package:sylonow_vendor/features/service_listings/screens/service_listings_screen.dart';
-import 'package:sylonow_vendor/splash/splash_screen.dart';
+import 'package:sylonow_vendor/features/profile/screens/edit_profile_screen.dart';
+import 'package:sylonow_vendor/features/profile/screens/business_details_screen.dart';
+import 'package:sylonow_vendor/features/profile/screens/payment_settings_screen.dart';
+import 'package:sylonow_vendor/features/splash/splash_screen.dart';
 import '../../features/onboarding/screens/welcome_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,7 +37,6 @@ class GoRouterRefreshStream extends ChangeNotifier {
     _ref.listen(
       authStateProvider,
       (previous, next) {
-        print('🔵 Router: Auth state changed, notifying listeners');
         notifyListeners();
       },
     );
@@ -39,7 +45,6 @@ class GoRouterRefreshStream extends ChangeNotifier {
     _ref.listen(
       vendorProvider,
       (previous, next) {
-        print('🔵 Router: Vendor state changed, notifying listeners');
         notifyListeners();
       },
     );
@@ -52,7 +57,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   final refreshStream = GoRouterRefreshStream(ref);
   
   return GoRouter(
-    initialLocation: '/splash',
+    initialLocation: '/',
     debugLogDiagnostics: true,
     refreshListenable: refreshStream,
     redirect: (context, state) {
@@ -60,52 +65,67 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final vendorState = ref.watch(vendorProvider);
       final isAuthenticated = authState.valueOrNull?.session != null;
 
-      final isGoingToSplash = state.matchedLocation == '/splash';
+      final isGoingToSplash = state.matchedLocation == '/splash' || state.matchedLocation == '/';
       final publicRoutes = ['/welcome', '/phone', '/verify-otp', '/cookies-policy', '/terms-conditions', '/revenue-policy', '/privacy-policy', '/debug-google'];
       final isGoingToPublicRoute = publicRoutes.contains(state.matchedLocation);
 
-      // While providers are loading, stay on splash screen
-      if (authState.isLoading || (isAuthenticated && vendorState.isLoading && !vendorState.hasValue)) {
+      // Debug logging (essential only)
+      if (kDebugMode && state.matchedLocation != '/splash' && state.matchedLocation != '/') {
+        print('🔍 Router: ${state.matchedLocation} | Auth: ${isAuthenticated ? 'OK' : 'NO'} | Vendor: ${vendorState.hasValue ? 'OK' : (vendorState.isLoading ? 'LOADING' : 'NO')}');
+      }
+      
+      // ALWAYS stay on splash if auth is loading
+      if (authState.isLoading) {
         return isGoingToSplash ? null : '/splash';
       }
 
-      // If user is not authenticated
+      // If user is not authenticated, allow public routes or redirect to welcome
       if (!isAuthenticated) {
-        // Allow access to public routes, otherwise redirect to welcome
         return isGoingToPublicRoute ? null : '/welcome';
       }
 
-      // From here, user is authenticated.
+      // User is authenticated - now check vendor data
+      
+      // CRITICAL: Stay on splash if vendor data is still loading OR if we don't have vendor data yet
+      // This prevents the brief flash of vendor onboarding screen during hot restart
+      if (vendorState.isLoading || (!vendorState.hasValue && !vendorState.hasError)) {
+        return isGoingToSplash ? null : '/splash';
+      }
 
-      // If there was an error loading vendor data, redirect to welcome
+      // If vendor data failed to load, sign out and go to welcome
       if (vendorState.hasError) {
+        unawaited(SupabaseConfig.client.auth.signOut());
         return '/welcome';
       }
 
-      // If we have vendor data, decide where to go
-      if (vendorState.hasValue) {
-        final vendor = vendorState.value;
-        final isOnboardingComplete = vendor?.isOnboardingComplete ?? false;
-        final isVerified = vendor?.isVerified ?? false;
+      // At this point, we definitely have vendor data (or confirmed there is none)
+      if (vendorState.hasValue && vendorState.value != null) {
+        final vendor = vendorState.value!;
+        final isOnboardingComplete = vendor.isOnboardingComplete;
+        final isVerified = vendor.isVerified;
 
-        // If onboarding is not complete, redirect to onboarding screen
+        // Redirect based on vendor status
         if (!isOnboardingComplete) {
           return state.matchedLocation == '/vendor-onboarding' ? null : '/vendor-onboarding';
         }
-
-        // If onboarding is complete but not verified, redirect to pending screen
+        
         if (!isVerified) {
           return state.matchedLocation == '/pending-verification' ? null : '/pending-verification';
         }
 
-        // If user is fully onboarded and verified, but tries to access splash/auth/onboarding routes, redirect to home
-        if (isGoingToSplash || isGoingToPublicRoute || state.matchedLocation == '/vendor-onboarding' || state.matchedLocation == '/pending-verification') {
+        // User is fully verified - redirect away from auth/splash screens to home
+        if (isGoingToSplash || isGoingToPublicRoute || 
+            state.matchedLocation == '/vendor-onboarding' || 
+            state.matchedLocation == '/pending-verification') {
           return '/home';
         }
+
+        // Allow navigation to other protected routes
+        return null;
       }
-      
-      // In all other cases, allow navigation
-      return null;
+
+      // No vendor data available (confirmed) - redirect to onboarding
+      return state.matchedLocation == '/vendor-onboarding' ? null : '/vendor-onboarding';
     },
     routes: [
       GoRoute(
@@ -178,12 +198,28 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const WalletScreen(),
       ),
       GoRoute(
+        path: '/wallet/withdraw',
+        builder: (_, __) => const WithdrawalScreen(),
+      ),
+      GoRoute(
         path: '/support',
         builder: (_, __) =>const SupportScreen()
       ),
       GoRoute(
         path: '/profile',
         builder: (_, __) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/edit-profile',
+        builder: (_, __) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: '/business-details',
+        builder: (_, __) => const BusinessDetailsScreen(),
+      ),
+      GoRoute(
+        path: '/payment-settings',
+        builder: (_, __) => const PaymentSettingsScreen(),
       ),
       GoRoute(
         path: '/add-service',

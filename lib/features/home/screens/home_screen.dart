@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:sylonow_vendor/features/dashboard/models/booking.dart';
 import 'package:sylonow_vendor/features/dashboard/models/dashboard_data.dart';
 import 'package:sylonow_vendor/features/dashboard/models/dashboard_stats.dart';
+import 'package:sylonow_vendor/features/dashboard/models/activity_item.dart';
 import 'package:sylonow_vendor/features/dashboard/providers/dashboard_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../onboarding/providers/vendor_provider.dart';
@@ -62,6 +63,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.dispose();
   }
 
+  String _getRelativeTime(DateTime timestamp) {
+    final now = DateTime.now();
+    final difference = now.difference(timestamp);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'just now';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final vendorAsync = ref.watch(vendorProvider);
@@ -74,46 +90,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         data: (dashboardData) {
           return FadeTransition(
             opacity: _fadeAnimation,
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Minimalistic Header
-                  _buildHeader(vendorAsync),
-                  
-                  // Main Content
-                  Padding(
-                    padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                // Minimalistic Header
+                _buildHeader(vendorAsync),
+                
+                // Main Content - Flexible and Scrollable
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 20),
-                        
                         // Business Overview - Four Cards
                         _buildBusinessOverview(dashboardData.stats),
                         
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 20),
                         
                         // New Booking Alert
                         _buildNewBookingAlert(dashboardData.latestPendingBooking),
                         
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 20),
                         
                         // Recent Activity
-                        _buildRecentActivity(),
+                        _buildRecentActivity(dashboardData.recentActivities),
                         
-                        const SizedBox(height: 24),
-                        
-                        // Quick Actions
-                        _buildQuickActions(),
-                        
-                        const SizedBox(height: 100), // Space for bottom navigation
+                        // Bottom padding for navigation bar
+                        SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
                       ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         },
@@ -138,7 +147,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   Widget _buildHeader(AsyncValue vendorAsync) {
     return Container(
-      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 20, 20, 24),
+      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 15, 20, 16),
       decoration: BoxDecoration(
         gradient: AppTheme.primaryGradient,
         borderRadius: const BorderRadius.only(
@@ -409,8 +418,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       crossAxisCount: 2,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      childAspectRatio: 1.1,
       children: [
         // Gross Sales
         _buildOverviewCard(
@@ -450,51 +460,84 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     required String value,
     required Color color,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withOpacity(0.2),
-          width: 1,
+    bool isServiceListings = label == 'Service Listings';
+    
+    return GestureDetector(
+      onTap: isServiceListings ? () {
+        context.push('/service-listings');
+      } : null,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: color.withOpacity(0.1),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.08),
+              spreadRadius: 0,
+              blurRadius: 15,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: color,
+                size: 20,
+              ),
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 20,
+            const SizedBox(height: 8),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.textSecondaryColor,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimaryColor,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.textPrimaryColor,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimaryColor,
-            ),
-          ),
-        ],
+            if (isServiceListings)
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 14,
+                color: color,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -626,7 +669,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  Widget _buildRecentActivity() {
+  Widget _buildRecentActivity(List<dynamic> recentActivities) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -640,21 +683,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ),
         const SizedBox(height: 16),
         
-        _buildActivityItem(
-          icon: Icons.event_rounded,
-          iconColor: AppTheme.successColor,
-          title: 'Birthday Party Setup',
-          subtitle: 'Tomorrow - 4:00 PM',
-          status: 'Confirmed',
-        ),
-        const SizedBox(height: 12),
-        _buildActivityItem(
-          icon: Icons.pending_rounded,
-          iconColor: AppTheme.warningColor,
-          title: 'Wedding Decoration',
-          subtitle: 'April 25 - 10:00 AM',
-          status: 'Pending',
-        ),
+        if (recentActivities.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.borderColor),
+            ),
+            child: const Center(
+              child: Text(
+                'No recent activity found.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppTheme.textSecondaryColor,
+                ),
+              ),
+            ),
+          )
+        else
+          ...recentActivities.take(3).map((activity) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildDynamicActivityItem(activity),
+              )),
       ],
     );
   }
@@ -735,104 +786,82 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  Widget _buildQuickActions() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Quick Actions',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimaryColor,
-          ),
+  Widget _buildDynamicActivityItem(ActivityItem activity) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppTheme.borderColor,
+          width: 1,
         ),
-        const SizedBox(height: 16),
-        
-        Row(
-          children: [
-            Expanded(
-              child: _buildQuickActionCard(
-                icon: Icons.account_balance_wallet_rounded,
-                iconColor: AppTheme.accentBlue,
-                title: 'Wallet',
-                subtitle: '₹ 12,000',
-                onTap: () => context.push('/wallet'),
-              ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: activity.iconColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildQuickActionCard(
-                icon: Icons.support_agent_rounded,
-                iconColor: AppTheme.accentTeal,
-                title: 'Support',
-                subtitle: 'Get Help',
-                onTap: () => context.push('/support'),
-              ),
+            child: Icon(
+              activity.icon,
+              color: activity.iconColor,
+              size: 20,
             ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildQuickActionCard({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppTheme.borderColor,
-            width: 1,
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  activity.title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimaryColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${activity.subtitle} • ${_getRelativeTime(activity.timestamp)}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textSecondaryColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          if (activity.status != null)
             Container(
-              width: 36,
-              height: 36,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
+                color: activity.iconColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 20,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textPrimaryColor,
+              child: Text(
+                activity.displayStatus,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: activity.iconColor,
+                ),
               ),
             ),
-            const SizedBox(height: 2),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppTheme.textSecondaryColor,
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
+
+
 
   Widget _buildFloatingActionButton() {
     return Container(

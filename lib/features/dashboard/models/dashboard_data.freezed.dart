@@ -23,6 +23,8 @@ mixin _$DashboardData {
   DashboardStats get stats => throw _privateConstructorUsedError;
   @JsonKey(name: 'latest_pending_booking')
   Booking? get latestPendingBooking => throw _privateConstructorUsedError;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  List<ActivityItem> get recentActivities => throw _privateConstructorUsedError;
 
   /// Serializes this DashboardData to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -42,7 +44,9 @@ abstract class $DashboardDataCopyWith<$Res> {
   @useResult
   $Res call(
       {DashboardStats stats,
-      @JsonKey(name: 'latest_pending_booking') Booking? latestPendingBooking});
+      @JsonKey(name: 'latest_pending_booking') Booking? latestPendingBooking,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      List<ActivityItem> recentActivities});
 
   $DashboardStatsCopyWith<$Res> get stats;
   $BookingCopyWith<$Res>? get latestPendingBooking;
@@ -65,6 +69,7 @@ class _$DashboardDataCopyWithImpl<$Res, $Val extends DashboardData>
   $Res call({
     Object? stats = null,
     Object? latestPendingBooking = freezed,
+    Object? recentActivities = null,
   }) {
     return _then(_value.copyWith(
       stats: null == stats
@@ -75,6 +80,10 @@ class _$DashboardDataCopyWithImpl<$Res, $Val extends DashboardData>
           ? _value.latestPendingBooking
           : latestPendingBooking // ignore: cast_nullable_to_non_nullable
               as Booking?,
+      recentActivities: null == recentActivities
+          ? _value.recentActivities
+          : recentActivities // ignore: cast_nullable_to_non_nullable
+              as List<ActivityItem>,
     ) as $Val);
   }
 
@@ -113,7 +122,9 @@ abstract class _$$DashboardDataImplCopyWith<$Res>
   @useResult
   $Res call(
       {DashboardStats stats,
-      @JsonKey(name: 'latest_pending_booking') Booking? latestPendingBooking});
+      @JsonKey(name: 'latest_pending_booking') Booking? latestPendingBooking,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      List<ActivityItem> recentActivities});
 
   @override
   $DashboardStatsCopyWith<$Res> get stats;
@@ -136,6 +147,7 @@ class __$$DashboardDataImplCopyWithImpl<$Res>
   $Res call({
     Object? stats = null,
     Object? latestPendingBooking = freezed,
+    Object? recentActivities = null,
   }) {
     return _then(_$DashboardDataImpl(
       stats: null == stats
@@ -146,6 +158,10 @@ class __$$DashboardDataImplCopyWithImpl<$Res>
           ? _value.latestPendingBooking
           : latestPendingBooking // ignore: cast_nullable_to_non_nullable
               as Booking?,
+      recentActivities: null == recentActivities
+          ? _value._recentActivities
+          : recentActivities // ignore: cast_nullable_to_non_nullable
+              as List<ActivityItem>,
     ));
   }
 }
@@ -155,7 +171,10 @@ class __$$DashboardDataImplCopyWithImpl<$Res>
 class _$DashboardDataImpl implements _DashboardData {
   const _$DashboardDataImpl(
       {required this.stats,
-      @JsonKey(name: 'latest_pending_booking') this.latestPendingBooking});
+      @JsonKey(name: 'latest_pending_booking') this.latestPendingBooking,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      final List<ActivityItem> recentActivities = const []})
+      : _recentActivities = recentActivities;
 
   factory _$DashboardDataImpl.fromJson(Map<String, dynamic> json) =>
       _$$DashboardDataImplFromJson(json);
@@ -165,10 +184,19 @@ class _$DashboardDataImpl implements _DashboardData {
   @override
   @JsonKey(name: 'latest_pending_booking')
   final Booking? latestPendingBooking;
+  final List<ActivityItem> _recentActivities;
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  List<ActivityItem> get recentActivities {
+    if (_recentActivities is EqualUnmodifiableListView)
+      return _recentActivities;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_recentActivities);
+  }
 
   @override
   String toString() {
-    return 'DashboardData(stats: $stats, latestPendingBooking: $latestPendingBooking)';
+    return 'DashboardData(stats: $stats, latestPendingBooking: $latestPendingBooking, recentActivities: $recentActivities)';
   }
 
   @override
@@ -178,12 +206,15 @@ class _$DashboardDataImpl implements _DashboardData {
             other is _$DashboardDataImpl &&
             (identical(other.stats, stats) || other.stats == stats) &&
             (identical(other.latestPendingBooking, latestPendingBooking) ||
-                other.latestPendingBooking == latestPendingBooking));
+                other.latestPendingBooking == latestPendingBooking) &&
+            const DeepCollectionEquality()
+                .equals(other._recentActivities, _recentActivities));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, stats, latestPendingBooking);
+  int get hashCode => Object.hash(runtimeType, stats, latestPendingBooking,
+      const DeepCollectionEquality().hash(_recentActivities));
 
   /// Create a copy of DashboardData
   /// with the given fields replaced by the non-null parameter values.
@@ -205,7 +236,9 @@ abstract class _DashboardData implements DashboardData {
   const factory _DashboardData(
       {required final DashboardStats stats,
       @JsonKey(name: 'latest_pending_booking')
-      final Booking? latestPendingBooking}) = _$DashboardDataImpl;
+      final Booking? latestPendingBooking,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      final List<ActivityItem> recentActivities}) = _$DashboardDataImpl;
 
   factory _DashboardData.fromJson(Map<String, dynamic> json) =
       _$DashboardDataImpl.fromJson;
@@ -215,6 +248,9 @@ abstract class _DashboardData implements DashboardData {
   @override
   @JsonKey(name: 'latest_pending_booking')
   Booking? get latestPendingBooking;
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  List<ActivityItem> get recentActivities;
 
   /// Create a copy of DashboardData
   /// with the given fields replaced by the non-null parameter values.

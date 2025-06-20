@@ -47,7 +47,7 @@ class ServiceListingService {
       print('🔵 ServiceListingService: Creating new listing for vendor ID: $vendorId and auth user id ${currentUser.id}');
       
       final listingData = listing.toJson()
-        ..['vendor_id'] = currentUser.id; // Ensure vendor_id is set correctly
+        ..['vendor_id'] = vendorId; // Use the passed vendor ID, not auth user ID
 
       // Remove fields that should not be sent on creation
       listingData.remove('id');

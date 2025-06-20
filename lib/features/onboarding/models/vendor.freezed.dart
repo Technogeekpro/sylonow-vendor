@@ -32,7 +32,7 @@ mixin _$Vendor {
   String? get pincode => throw _privateConstructorUsedError;
   @JsonKey(name: 'service_type')
   String? get serviceType => throw _privateConstructorUsedError;
-  @JsonKey(name: 'profile_picture')
+  @JsonKey(name: 'profile_image_url')
   String? get profilePicture => throw _privateConstructorUsedError;
   @JsonKey(name: 'aadhaar_front_image')
   String? get aadhaarFrontImage => throw _privateConstructorUsedError;
@@ -42,7 +42,7 @@ mixin _$Vendor {
   String? get panCardImage => throw _privateConstructorUsedError;
   @JsonKey(name: 'verification_status')
   String get verificationStatus => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_onboarding_complete')
+  @JsonKey(name: 'is_onboarding_completed')
   bool get isOnboardingComplete => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
   DateTime? get createdAt => throw _privateConstructorUsedError;
@@ -86,12 +86,12 @@ abstract class $VendorCopyWith<$Res> {
       @JsonKey(name: 'service_area') String? serviceArea,
       String? pincode,
       @JsonKey(name: 'service_type') String? serviceType,
-      @JsonKey(name: 'profile_picture') String? profilePicture,
+      @JsonKey(name: 'profile_image_url') String? profilePicture,
       @JsonKey(name: 'aadhaar_front_image') String? aadhaarFrontImage,
       @JsonKey(name: 'aadhaar_back_image') String? aadhaarBackImage,
       @JsonKey(name: 'pan_card_image') String? panCardImage,
       @JsonKey(name: 'verification_status') String verificationStatus,
-      @JsonKey(name: 'is_onboarding_complete') bool isOnboardingComplete,
+      @JsonKey(name: 'is_onboarding_completed') bool isOnboardingComplete,
       @JsonKey(name: 'created_at') DateTime? createdAt,
       @JsonKey(name: 'updated_at') DateTime? updatedAt,
       @JsonKey(name: 'auth_user_id') String? authUserId,
@@ -255,12 +255,12 @@ abstract class _$$VendorImplCopyWith<$Res> implements $VendorCopyWith<$Res> {
       @JsonKey(name: 'service_area') String? serviceArea,
       String? pincode,
       @JsonKey(name: 'service_type') String? serviceType,
-      @JsonKey(name: 'profile_picture') String? profilePicture,
+      @JsonKey(name: 'profile_image_url') String? profilePicture,
       @JsonKey(name: 'aadhaar_front_image') String? aadhaarFrontImage,
       @JsonKey(name: 'aadhaar_back_image') String? aadhaarBackImage,
       @JsonKey(name: 'pan_card_image') String? panCardImage,
       @JsonKey(name: 'verification_status') String verificationStatus,
-      @JsonKey(name: 'is_onboarding_complete') bool isOnboardingComplete,
+      @JsonKey(name: 'is_onboarding_completed') bool isOnboardingComplete,
       @JsonKey(name: 'created_at') DateTime? createdAt,
       @JsonKey(name: 'updated_at') DateTime? updatedAt,
       @JsonKey(name: 'auth_user_id') String? authUserId,
@@ -418,12 +418,12 @@ class _$VendorImpl extends _Vendor {
       @JsonKey(name: 'service_area') this.serviceArea,
       this.pincode,
       @JsonKey(name: 'service_type') this.serviceType,
-      @JsonKey(name: 'profile_picture') this.profilePicture,
+      @JsonKey(name: 'profile_image_url') this.profilePicture,
       @JsonKey(name: 'aadhaar_front_image') this.aadhaarFrontImage,
       @JsonKey(name: 'aadhaar_back_image') this.aadhaarBackImage,
       @JsonKey(name: 'pan_card_image') this.panCardImage,
       @JsonKey(name: 'verification_status') this.verificationStatus = 'pending',
-      @JsonKey(name: 'is_onboarding_complete')
+      @JsonKey(name: 'is_onboarding_completed')
       this.isOnboardingComplete = false,
       @JsonKey(name: 'created_at') this.createdAt,
       @JsonKey(name: 'updated_at') this.updatedAt,
@@ -460,7 +460,7 @@ class _$VendorImpl extends _Vendor {
   @JsonKey(name: 'service_type')
   final String? serviceType;
   @override
-  @JsonKey(name: 'profile_picture')
+  @JsonKey(name: 'profile_image_url')
   final String? profilePicture;
   @override
   @JsonKey(name: 'aadhaar_front_image')
@@ -475,7 +475,7 @@ class _$VendorImpl extends _Vendor {
   @JsonKey(name: 'verification_status')
   final String verificationStatus;
   @override
-  @JsonKey(name: 'is_onboarding_complete')
+  @JsonKey(name: 'is_onboarding_completed')
   final bool isOnboardingComplete;
   @override
   @JsonKey(name: 'created_at')
@@ -614,12 +614,12 @@ abstract class _Vendor extends Vendor {
       @JsonKey(name: 'service_area') final String? serviceArea,
       final String? pincode,
       @JsonKey(name: 'service_type') final String? serviceType,
-      @JsonKey(name: 'profile_picture') final String? profilePicture,
+      @JsonKey(name: 'profile_image_url') final String? profilePicture,
       @JsonKey(name: 'aadhaar_front_image') final String? aadhaarFrontImage,
       @JsonKey(name: 'aadhaar_back_image') final String? aadhaarBackImage,
       @JsonKey(name: 'pan_card_image') final String? panCardImage,
       @JsonKey(name: 'verification_status') final String verificationStatus,
-      @JsonKey(name: 'is_onboarding_complete') final bool isOnboardingComplete,
+      @JsonKey(name: 'is_onboarding_completed') final bool isOnboardingComplete,
       @JsonKey(name: 'created_at') final DateTime? createdAt,
       @JsonKey(name: 'updated_at') final DateTime? updatedAt,
       @JsonKey(name: 'auth_user_id') final String? authUserId,
@@ -654,7 +654,7 @@ abstract class _Vendor extends Vendor {
   @JsonKey(name: 'service_type')
   String? get serviceType;
   @override
-  @JsonKey(name: 'profile_picture')
+  @JsonKey(name: 'profile_image_url')
   String? get profilePicture;
   @override
   @JsonKey(name: 'aadhaar_front_image')
@@ -669,7 +669,7 @@ abstract class _Vendor extends Vendor {
   @JsonKey(name: 'verification_status')
   String get verificationStatus;
   @override
-  @JsonKey(name: 'is_onboarding_complete')
+  @JsonKey(name: 'is_onboarding_completed')
   bool get isOnboardingComplete;
   @override
   @JsonKey(name: 'created_at')

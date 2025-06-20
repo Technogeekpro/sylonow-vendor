@@ -14,6 +14,15 @@ class ServiceListingsScreen extends ConsumerStatefulWidget {
 
 class _ServiceListingsScreenState extends ConsumerState<ServiceListingsScreen> {
   @override
+  void initState() {
+    super.initState();
+    // Automatically refresh when screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(serviceListingsProvider.notifier).refresh();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final serviceListingsAsync = ref.watch(serviceListingsProvider);
 
