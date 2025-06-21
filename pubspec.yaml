@@ -78,22 +78,18 @@ flutter:
 
 flutter_launcher_icons:
   android: "ic_launcher"
-  ios: true
+  ios: false
   image_path: "assets/images/app_logo_new.png"
   min_sdk_android: 23 # android min sdk min:16, default 21
-  remove_alpha_ios: true
   web:
     generate: true
     image_path: "assets/images/app_logo_new.png"
-    background_color: "#FF0080"
-    theme_color: "#FF0080"
+    background_color: "#667eea"
+    theme_color: "#667eea"
   windows:
-    generate: true
-    image_path: "assets/images/app_logo_new.png"
-    icon_size: 48 # min:48, max:256, default: 48
+    generate: false
   macos:
-    generate: true
-    image_path: "assets/images/app_logo_new.png"
+    generate: false
 
 flutter_native_splash:
   color: "#FF0080"

@@ -11,6 +11,7 @@ import 'package:sylonow_vendor/features/dashboard/providers/dashboard_provider.d
 import 'package:sylonow_vendor/features/onboarding/models/vendor.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../onboarding/providers/vendor_provider.dart';
+import '../../onboarding/providers/service_area_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -83,6 +84,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget build(BuildContext context) {
     final vendorAsync = ref.watch(vendorProvider);
     final dashboardDataAsync = ref.watch(dashboardDataProvider);
+    final primaryServiceAreaAsync = ref.watch(primaryServiceAreaProvider);
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
@@ -94,7 +96,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             child: Column(
               children: [
                 // Minimalistic Header
-                _buildHeader(vendorAsync),
+                _buildHeader(vendorAsync, primaryServiceAreaAsync),
                 
                 // Main Content - Flexible and Scrollable with Pull-to-Refresh
                 Expanded(
@@ -163,6 +165,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       // Use safer refresh approach that doesn't trigger router
       ref.read(vendorProvider.notifier).invalidateAndRefresh();
       ref.invalidate(dashboardDataProvider);
+      ref.invalidate(primaryServiceAreaProvider);
       
       // Small delay to allow UI to update
       await Future.delayed(const Duration(milliseconds: 300));
@@ -183,7 +186,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     }
   }
 
-  Widget _buildHeader(AsyncValue vendorAsync) {
+  Widget _buildHeader(AsyncValue vendorAsync, AsyncValue primaryServiceAreaAsync) {
     return Container(
       padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 15, 20, 16),
       decoration: BoxDecoration(
@@ -322,12 +325,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   size: 16,
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  vendor?.serviceArea ?? 'Service Area',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white.withOpacity(0.8),
-                    fontWeight: FontWeight.w500,
+                primaryServiceAreaAsync.when(
+                  data: (serviceArea) => Text(
+                    serviceArea?.areaName ?? 'Service Area',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.8),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  loading: () => Text(
+                    'Loading...',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.6),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  error: (error, stack) => Text(
+                    'Service Area',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.8),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ],

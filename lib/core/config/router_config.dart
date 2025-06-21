@@ -13,7 +13,7 @@ import 'package:sylonow_vendor/features/onboarding/screens/cookies_policy_screen
 import 'package:sylonow_vendor/features/onboarding/screens/terms_conditions_screen.dart';
 import 'package:sylonow_vendor/features/onboarding/screens/revenue_policy_screen.dart';
 import 'package:sylonow_vendor/features/onboarding/screens/privacy_policy_screen.dart';
-import 'package:sylonow_vendor/features/onboarding/screens/debug_google_auth_screen.dart';
+
 import 'package:sylonow_vendor/features/orders/screens/orders_screen.dart';
 import 'package:sylonow_vendor/features/profile/screens/profile_screen.dart';
 import 'package:sylonow_vendor/features/support/screens/support_screen.dart';

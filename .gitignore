@@ -46,3 +46,22 @@ app.*.map.json
 
 # YoYo AI version control directory
 .yoyo/
+
+# Release signing and sensitive configuration
+android/key.properties
+android/keystore/
+*.jks
+*.keystore
+
+# Google Services (not needed for Supabase OAuth)
+# We don't use google-services.json since we use Supabase for authentication
+
+# Environment variables and secrets
+.env
+.env.local
+.env.production
+.env.staging
+
+# Temporary files
+*.tmp
+*.temp

@@ -740,7 +740,7 @@ class ProfileScreen extends ConsumerWidget {
     print('🔍 Profile Picture empty? ${vendor?.profilePicture?.isEmpty ?? true}');
 
     if (vendor?.profilePicture != null && vendor!.profilePicture!.isNotEmpty) {
-      return Image.network(
+              return Image.network(
         vendor.profilePicture!,
         fit: BoxFit.cover,
         width: 100,

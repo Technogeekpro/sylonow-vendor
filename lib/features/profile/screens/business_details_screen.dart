@@ -15,9 +15,7 @@ class BusinessDetailsScreen extends ConsumerStatefulWidget {
 class _BusinessDetailsScreenState extends ConsumerState<BusinessDetailsScreen> {
   final _formKey = GlobalKey<FormState>();
   final _businessNameController = TextEditingController();
-  final _serviceAreaController = TextEditingController();
-  final _pincodeController = TextEditingController();
-  final _serviceTypeController = TextEditingController();
+  final _businessTypeController = TextEditingController();
   
   bool _isLoading = false;
   bool _isInitialized = false;
@@ -40,9 +38,7 @@ class _BusinessDetailsScreenState extends ConsumerState<BusinessDetailsScreen> {
     final vendor = ref.read(vendorProvider).value;
     if (vendor != null) {
       _businessNameController.text = vendor.businessName ?? '';
-      _serviceAreaController.text = vendor.serviceArea ?? '';
-      _pincodeController.text = vendor.pincode ?? '';
-      _serviceTypeController.text = vendor.serviceType ?? '';
+      _businessTypeController.text = vendor.businessType ?? '';
       _isInitialized = true;
     }
   }
@@ -50,9 +46,7 @@ class _BusinessDetailsScreenState extends ConsumerState<BusinessDetailsScreen> {
   @override
   void dispose() {
     _businessNameController.dispose();
-    _serviceAreaController.dispose();
-    _pincodeController.dispose();
-    _serviceTypeController.dispose();
+    _businessTypeController.dispose();
     super.dispose();
   }
 
@@ -72,9 +66,7 @@ class _BusinessDetailsScreenState extends ConsumerState<BusinessDetailsScreen> {
       // Create updated vendor object
       final updatedVendor = vendor.copyWith(
         businessName: _businessNameController.text.trim(),
-        serviceArea: _serviceAreaController.text.trim(),
-        pincode: _pincodeController.text.trim(),
-        serviceType: _serviceTypeController.text.trim(),
+        businessType: _businessTypeController.text.trim(),
       );
 
       // Use vendor service to update the business details
@@ -278,46 +270,6 @@ class _BusinessDetailsScreenState extends ConsumerState<BusinessDetailsScreen> {
               return null;
             },
           ),
-          const SizedBox(height: 20),
-          
-          // Service Area
-          TextFormField(
-            controller: _serviceAreaController,
-            decoration: const InputDecoration(
-              labelText: 'Service Area',
-              prefixIcon: Icon(Icons.location_on_outlined),
-              border: OutlineInputBorder(),
-              hintText: 'e.g., Mumbai, Delhi',
-            ),
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Please enter your service area';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 20),
-          
-          // Pincode
-          TextFormField(
-            controller: _pincodeController,
-            decoration: const InputDecoration(
-              labelText: 'Pincode',
-              prefixIcon: Icon(Icons.pin_drop_outlined),
-              border: OutlineInputBorder(),
-            ),
-            keyboardType: TextInputType.number,
-            maxLength: 6,
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Please enter your pincode';
-              }
-              if (value.trim().length != 6) {
-                return 'Please enter a valid 6-digit pincode';
-              }
-              return null;
-            },
-          ),
         ],
       ),
     );
@@ -333,18 +285,18 @@ class _BusinessDetailsScreenState extends ConsumerState<BusinessDetailsScreen> {
       ),
       child: Column(
         children: [
-          // Service Type
+          // Business Type
           TextFormField(
-            controller: _serviceTypeController,
+            controller: _businessTypeController,
             decoration: const InputDecoration(
-              labelText: 'Service Type',
-              prefixIcon: Icon(Icons.work_outline),
+              labelText: 'Business Type',
+              prefixIcon: Icon(Icons.category_outlined),
               border: OutlineInputBorder(),
               hintText: 'e.g., Event Planning, Photography',
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
-                return 'Please enter your service type';
+                return 'Please enter your business type';
               }
               return null;
             },

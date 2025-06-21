@@ -289,11 +289,29 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                         checkColor: const Color(0xFF667eea),
                       ),
                       Expanded(
-                        child: Text(
-                          'I accept the Terms and Conditions',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 14,
+                        child: GestureDetector(
+                          onTap: () {
+                            context.push('/terms-conditions');
+                          },
+                          child: RichText(
+                            text: TextSpan(
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 14,
+                              ),
+                              children: [
+                                const TextSpan(text: 'I accept the '),
+                                TextSpan(
+                                  text: 'Terms and Conditions',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: Colors.white.withOpacity(0.7),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -393,17 +411,78 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                 // Footer
                 FadeTransition(
                   opacity: _fadeAnimation,
-                  child: Text(
-                    'By continuing, you agree to our Terms of Service\nand Privacy Policy',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withOpacity(0.7),
-                    ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'By continuing, you agree to our',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withOpacity(0.7),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          GestureDetector(
+                            onTap: () => context.push('/terms-conditions'),
+                            child: Text(
+                              'Terms & Conditions',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Colors.white.withOpacity(0.7),
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '•',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white.withOpacity(0.7),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () => context.push('/privacy-policy'),
+                            child: Text(
+                              'Privacy Policy',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Colors.white.withOpacity(0.7),
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '•',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white.withOpacity(0.7),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () => context.push('/revenue-policy'),
+                            child: Text(
+                              'Revenue Policy',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Colors.white.withOpacity(0.7),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-
-
 
                 const SizedBox(height: 24),
               ],

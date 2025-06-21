@@ -21,47 +21,47 @@ Vendor _$VendorFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$Vendor {
   String get id => throw _privateConstructorUsedError;
+  String get email => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
-  String? get email => throw _privateConstructorUsedError;
-  @JsonKey(name: 'vendor_id')
-  String? get vendorId => throw _privateConstructorUsedError;
   @JsonKey(name: 'full_name')
-  String get fullName => throw _privateConstructorUsedError;
-  @JsonKey(name: 'service_area')
-  String? get serviceArea => throw _privateConstructorUsedError;
-  String? get pincode => throw _privateConstructorUsedError;
-  @JsonKey(name: 'service_type')
-  String? get serviceType => throw _privateConstructorUsedError;
+  String? get fullName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'business_name')
+  String? get businessName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'business_type')
+  String? get businessType => throw _privateConstructorUsedError;
+  @JsonKey(name: 'experience_years')
+  int? get experienceYears => throw _privateConstructorUsedError;
+  @JsonKey(name: 'location')
+  Map<String, dynamic>? get location => throw _privateConstructorUsedError;
   @JsonKey(name: 'profile_image_url')
   String? get profilePicture => throw _privateConstructorUsedError;
-  @JsonKey(name: 'aadhaar_front_image')
-  String? get aadhaarFrontImage => throw _privateConstructorUsedError;
-  @JsonKey(name: 'aadhaar_back_image')
-  String? get aadhaarBackImage => throw _privateConstructorUsedError;
-  @JsonKey(name: 'pan_card_image')
-  String? get panCardImage => throw _privateConstructorUsedError;
+  @JsonKey(name: 'business_license_url')
+  String? get businessLicenseUrl => throw _privateConstructorUsedError;
+  @JsonKey(name: 'identity_verification_url')
+  String? get identityVerificationUrl => throw _privateConstructorUsedError;
+  @JsonKey(name: 'portfolio_images')
+  List<String>? get portfolioImages => throw _privateConstructorUsedError;
+  String? get bio => throw _privateConstructorUsedError;
+  @JsonKey(name: 'availability_schedule')
+  Map<String, dynamic>? get availabilitySchedule =>
+      throw _privateConstructorUsedError;
+  double get rating => throw _privateConstructorUsedError;
+  @JsonKey(name: 'total_reviews')
+  int get totalReviews => throw _privateConstructorUsedError;
+  @JsonKey(name: 'total_jobs_completed')
+  int get totalJobsCompleted => throw _privateConstructorUsedError;
   @JsonKey(name: 'verification_status')
   String get verificationStatus => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_onboarding_completed')
-  bool get isOnboardingComplete => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_active')
+  bool get isActive => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
   DateTime? get createdAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'updated_at')
   DateTime? get updatedAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'auth_user_id')
   String? get authUserId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'fcm_token')
-  String? get fcmToken => throw _privateConstructorUsedError;
-  @JsonKey(name: 'business_name')
-  String? get businessName => throw _privateConstructorUsedError;
-  @JsonKey(name: 'aadhaar_number')
-  String? get aadhaarNumber => throw _privateConstructorUsedError;
-  @JsonKey(name: 'bank_account_number')
-  String? get bankAccountNumber => throw _privateConstructorUsedError;
-  @JsonKey(name: 'bank_ifsc_code')
-  String? get bankIfscCode => throw _privateConstructorUsedError;
-  @JsonKey(name: 'gst_number')
-  String? get gstNumber => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_onboarding_completed')
+  bool get isOnboardingComplete => throw _privateConstructorUsedError;
 
   /// Serializes this Vendor to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -79,28 +79,30 @@ abstract class $VendorCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
+      String email,
       String? phone,
-      String? email,
-      @JsonKey(name: 'vendor_id') String? vendorId,
-      @JsonKey(name: 'full_name') String fullName,
-      @JsonKey(name: 'service_area') String? serviceArea,
-      String? pincode,
-      @JsonKey(name: 'service_type') String? serviceType,
+      @JsonKey(name: 'full_name') String? fullName,
+      @JsonKey(name: 'business_name') String? businessName,
+      @JsonKey(name: 'business_type') String? businessType,
+      @JsonKey(name: 'experience_years') int? experienceYears,
+      @JsonKey(name: 'location') Map<String, dynamic>? location,
       @JsonKey(name: 'profile_image_url') String? profilePicture,
-      @JsonKey(name: 'aadhaar_front_image') String? aadhaarFrontImage,
-      @JsonKey(name: 'aadhaar_back_image') String? aadhaarBackImage,
-      @JsonKey(name: 'pan_card_image') String? panCardImage,
+      @JsonKey(name: 'business_license_url') String? businessLicenseUrl,
+      @JsonKey(name: 'identity_verification_url')
+      String? identityVerificationUrl,
+      @JsonKey(name: 'portfolio_images') List<String>? portfolioImages,
+      String? bio,
+      @JsonKey(name: 'availability_schedule')
+      Map<String, dynamic>? availabilitySchedule,
+      double rating,
+      @JsonKey(name: 'total_reviews') int totalReviews,
+      @JsonKey(name: 'total_jobs_completed') int totalJobsCompleted,
       @JsonKey(name: 'verification_status') String verificationStatus,
-      @JsonKey(name: 'is_onboarding_completed') bool isOnboardingComplete,
+      @JsonKey(name: 'is_active') bool isActive,
       @JsonKey(name: 'created_at') DateTime? createdAt,
       @JsonKey(name: 'updated_at') DateTime? updatedAt,
       @JsonKey(name: 'auth_user_id') String? authUserId,
-      @JsonKey(name: 'fcm_token') String? fcmToken,
-      @JsonKey(name: 'business_name') String? businessName,
-      @JsonKey(name: 'aadhaar_number') String? aadhaarNumber,
-      @JsonKey(name: 'bank_account_number') String? bankAccountNumber,
-      @JsonKey(name: 'bank_ifsc_code') String? bankIfscCode,
-      @JsonKey(name: 'gst_number') String? gstNumber});
+      @JsonKey(name: 'is_onboarding_completed') bool isOnboardingComplete});
 }
 
 /// @nodoc
@@ -119,85 +121,105 @@ class _$VendorCopyWithImpl<$Res, $Val extends Vendor>
   @override
   $Res call({
     Object? id = null,
+    Object? email = null,
     Object? phone = freezed,
-    Object? email = freezed,
-    Object? vendorId = freezed,
-    Object? fullName = null,
-    Object? serviceArea = freezed,
-    Object? pincode = freezed,
-    Object? serviceType = freezed,
+    Object? fullName = freezed,
+    Object? businessName = freezed,
+    Object? businessType = freezed,
+    Object? experienceYears = freezed,
+    Object? location = freezed,
     Object? profilePicture = freezed,
-    Object? aadhaarFrontImage = freezed,
-    Object? aadhaarBackImage = freezed,
-    Object? panCardImage = freezed,
+    Object? businessLicenseUrl = freezed,
+    Object? identityVerificationUrl = freezed,
+    Object? portfolioImages = freezed,
+    Object? bio = freezed,
+    Object? availabilitySchedule = freezed,
+    Object? rating = null,
+    Object? totalReviews = null,
+    Object? totalJobsCompleted = null,
     Object? verificationStatus = null,
-    Object? isOnboardingComplete = null,
+    Object? isActive = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? authUserId = freezed,
-    Object? fcmToken = freezed,
-    Object? businessName = freezed,
-    Object? aadhaarNumber = freezed,
-    Object? bankAccountNumber = freezed,
-    Object? bankIfscCode = freezed,
-    Object? gstNumber = freezed,
+    Object? isOnboardingComplete = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
+      email: null == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String,
       phone: freezed == phone
           ? _value.phone
           : phone // ignore: cast_nullable_to_non_nullable
               as String?,
-      email: freezed == email
-          ? _value.email
-          : email // ignore: cast_nullable_to_non_nullable
-              as String?,
-      vendorId: freezed == vendorId
-          ? _value.vendorId
-          : vendorId // ignore: cast_nullable_to_non_nullable
-              as String?,
-      fullName: null == fullName
+      fullName: freezed == fullName
           ? _value.fullName
           : fullName // ignore: cast_nullable_to_non_nullable
-              as String,
-      serviceArea: freezed == serviceArea
-          ? _value.serviceArea
-          : serviceArea // ignore: cast_nullable_to_non_nullable
               as String?,
-      pincode: freezed == pincode
-          ? _value.pincode
-          : pincode // ignore: cast_nullable_to_non_nullable
+      businessName: freezed == businessName
+          ? _value.businessName
+          : businessName // ignore: cast_nullable_to_non_nullable
               as String?,
-      serviceType: freezed == serviceType
-          ? _value.serviceType
-          : serviceType // ignore: cast_nullable_to_non_nullable
+      businessType: freezed == businessType
+          ? _value.businessType
+          : businessType // ignore: cast_nullable_to_non_nullable
               as String?,
+      experienceYears: freezed == experienceYears
+          ? _value.experienceYears
+          : experienceYears // ignore: cast_nullable_to_non_nullable
+              as int?,
+      location: freezed == location
+          ? _value.location
+          : location // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
       profilePicture: freezed == profilePicture
           ? _value.profilePicture
           : profilePicture // ignore: cast_nullable_to_non_nullable
               as String?,
-      aadhaarFrontImage: freezed == aadhaarFrontImage
-          ? _value.aadhaarFrontImage
-          : aadhaarFrontImage // ignore: cast_nullable_to_non_nullable
+      businessLicenseUrl: freezed == businessLicenseUrl
+          ? _value.businessLicenseUrl
+          : businessLicenseUrl // ignore: cast_nullable_to_non_nullable
               as String?,
-      aadhaarBackImage: freezed == aadhaarBackImage
-          ? _value.aadhaarBackImage
-          : aadhaarBackImage // ignore: cast_nullable_to_non_nullable
+      identityVerificationUrl: freezed == identityVerificationUrl
+          ? _value.identityVerificationUrl
+          : identityVerificationUrl // ignore: cast_nullable_to_non_nullable
               as String?,
-      panCardImage: freezed == panCardImage
-          ? _value.panCardImage
-          : panCardImage // ignore: cast_nullable_to_non_nullable
+      portfolioImages: freezed == portfolioImages
+          ? _value.portfolioImages
+          : portfolioImages // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+      bio: freezed == bio
+          ? _value.bio
+          : bio // ignore: cast_nullable_to_non_nullable
               as String?,
+      availabilitySchedule: freezed == availabilitySchedule
+          ? _value.availabilitySchedule
+          : availabilitySchedule // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      rating: null == rating
+          ? _value.rating
+          : rating // ignore: cast_nullable_to_non_nullable
+              as double,
+      totalReviews: null == totalReviews
+          ? _value.totalReviews
+          : totalReviews // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalJobsCompleted: null == totalJobsCompleted
+          ? _value.totalJobsCompleted
+          : totalJobsCompleted // ignore: cast_nullable_to_non_nullable
+              as int,
       verificationStatus: null == verificationStatus
           ? _value.verificationStatus
           : verificationStatus // ignore: cast_nullable_to_non_nullable
               as String,
-      isOnboardingComplete: null == isOnboardingComplete
-          ? _value.isOnboardingComplete
-          : isOnboardingComplete // ignore: cast_nullable_to_non_nullable
+      isActive: null == isActive
+          ? _value.isActive
+          : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
       createdAt: freezed == createdAt
           ? _value.createdAt
@@ -211,30 +233,10 @@ class _$VendorCopyWithImpl<$Res, $Val extends Vendor>
           ? _value.authUserId
           : authUserId // ignore: cast_nullable_to_non_nullable
               as String?,
-      fcmToken: freezed == fcmToken
-          ? _value.fcmToken
-          : fcmToken // ignore: cast_nullable_to_non_nullable
-              as String?,
-      businessName: freezed == businessName
-          ? _value.businessName
-          : businessName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      aadhaarNumber: freezed == aadhaarNumber
-          ? _value.aadhaarNumber
-          : aadhaarNumber // ignore: cast_nullable_to_non_nullable
-              as String?,
-      bankAccountNumber: freezed == bankAccountNumber
-          ? _value.bankAccountNumber
-          : bankAccountNumber // ignore: cast_nullable_to_non_nullable
-              as String?,
-      bankIfscCode: freezed == bankIfscCode
-          ? _value.bankIfscCode
-          : bankIfscCode // ignore: cast_nullable_to_non_nullable
-              as String?,
-      gstNumber: freezed == gstNumber
-          ? _value.gstNumber
-          : gstNumber // ignore: cast_nullable_to_non_nullable
-              as String?,
+      isOnboardingComplete: null == isOnboardingComplete
+          ? _value.isOnboardingComplete
+          : isOnboardingComplete // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -248,28 +250,30 @@ abstract class _$$VendorImplCopyWith<$Res> implements $VendorCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
+      String email,
       String? phone,
-      String? email,
-      @JsonKey(name: 'vendor_id') String? vendorId,
-      @JsonKey(name: 'full_name') String fullName,
-      @JsonKey(name: 'service_area') String? serviceArea,
-      String? pincode,
-      @JsonKey(name: 'service_type') String? serviceType,
+      @JsonKey(name: 'full_name') String? fullName,
+      @JsonKey(name: 'business_name') String? businessName,
+      @JsonKey(name: 'business_type') String? businessType,
+      @JsonKey(name: 'experience_years') int? experienceYears,
+      @JsonKey(name: 'location') Map<String, dynamic>? location,
       @JsonKey(name: 'profile_image_url') String? profilePicture,
-      @JsonKey(name: 'aadhaar_front_image') String? aadhaarFrontImage,
-      @JsonKey(name: 'aadhaar_back_image') String? aadhaarBackImage,
-      @JsonKey(name: 'pan_card_image') String? panCardImage,
+      @JsonKey(name: 'business_license_url') String? businessLicenseUrl,
+      @JsonKey(name: 'identity_verification_url')
+      String? identityVerificationUrl,
+      @JsonKey(name: 'portfolio_images') List<String>? portfolioImages,
+      String? bio,
+      @JsonKey(name: 'availability_schedule')
+      Map<String, dynamic>? availabilitySchedule,
+      double rating,
+      @JsonKey(name: 'total_reviews') int totalReviews,
+      @JsonKey(name: 'total_jobs_completed') int totalJobsCompleted,
       @JsonKey(name: 'verification_status') String verificationStatus,
-      @JsonKey(name: 'is_onboarding_completed') bool isOnboardingComplete,
+      @JsonKey(name: 'is_active') bool isActive,
       @JsonKey(name: 'created_at') DateTime? createdAt,
       @JsonKey(name: 'updated_at') DateTime? updatedAt,
       @JsonKey(name: 'auth_user_id') String? authUserId,
-      @JsonKey(name: 'fcm_token') String? fcmToken,
-      @JsonKey(name: 'business_name') String? businessName,
-      @JsonKey(name: 'aadhaar_number') String? aadhaarNumber,
-      @JsonKey(name: 'bank_account_number') String? bankAccountNumber,
-      @JsonKey(name: 'bank_ifsc_code') String? bankIfscCode,
-      @JsonKey(name: 'gst_number') String? gstNumber});
+      @JsonKey(name: 'is_onboarding_completed') bool isOnboardingComplete});
 }
 
 /// @nodoc
@@ -286,85 +290,105 @@ class __$$VendorImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
+    Object? email = null,
     Object? phone = freezed,
-    Object? email = freezed,
-    Object? vendorId = freezed,
-    Object? fullName = null,
-    Object? serviceArea = freezed,
-    Object? pincode = freezed,
-    Object? serviceType = freezed,
+    Object? fullName = freezed,
+    Object? businessName = freezed,
+    Object? businessType = freezed,
+    Object? experienceYears = freezed,
+    Object? location = freezed,
     Object? profilePicture = freezed,
-    Object? aadhaarFrontImage = freezed,
-    Object? aadhaarBackImage = freezed,
-    Object? panCardImage = freezed,
+    Object? businessLicenseUrl = freezed,
+    Object? identityVerificationUrl = freezed,
+    Object? portfolioImages = freezed,
+    Object? bio = freezed,
+    Object? availabilitySchedule = freezed,
+    Object? rating = null,
+    Object? totalReviews = null,
+    Object? totalJobsCompleted = null,
     Object? verificationStatus = null,
-    Object? isOnboardingComplete = null,
+    Object? isActive = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? authUserId = freezed,
-    Object? fcmToken = freezed,
-    Object? businessName = freezed,
-    Object? aadhaarNumber = freezed,
-    Object? bankAccountNumber = freezed,
-    Object? bankIfscCode = freezed,
-    Object? gstNumber = freezed,
+    Object? isOnboardingComplete = null,
   }) {
     return _then(_$VendorImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
+      email: null == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String,
       phone: freezed == phone
           ? _value.phone
           : phone // ignore: cast_nullable_to_non_nullable
               as String?,
-      email: freezed == email
-          ? _value.email
-          : email // ignore: cast_nullable_to_non_nullable
-              as String?,
-      vendorId: freezed == vendorId
-          ? _value.vendorId
-          : vendorId // ignore: cast_nullable_to_non_nullable
-              as String?,
-      fullName: null == fullName
+      fullName: freezed == fullName
           ? _value.fullName
           : fullName // ignore: cast_nullable_to_non_nullable
-              as String,
-      serviceArea: freezed == serviceArea
-          ? _value.serviceArea
-          : serviceArea // ignore: cast_nullable_to_non_nullable
               as String?,
-      pincode: freezed == pincode
-          ? _value.pincode
-          : pincode // ignore: cast_nullable_to_non_nullable
+      businessName: freezed == businessName
+          ? _value.businessName
+          : businessName // ignore: cast_nullable_to_non_nullable
               as String?,
-      serviceType: freezed == serviceType
-          ? _value.serviceType
-          : serviceType // ignore: cast_nullable_to_non_nullable
+      businessType: freezed == businessType
+          ? _value.businessType
+          : businessType // ignore: cast_nullable_to_non_nullable
               as String?,
+      experienceYears: freezed == experienceYears
+          ? _value.experienceYears
+          : experienceYears // ignore: cast_nullable_to_non_nullable
+              as int?,
+      location: freezed == location
+          ? _value._location
+          : location // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
       profilePicture: freezed == profilePicture
           ? _value.profilePicture
           : profilePicture // ignore: cast_nullable_to_non_nullable
               as String?,
-      aadhaarFrontImage: freezed == aadhaarFrontImage
-          ? _value.aadhaarFrontImage
-          : aadhaarFrontImage // ignore: cast_nullable_to_non_nullable
+      businessLicenseUrl: freezed == businessLicenseUrl
+          ? _value.businessLicenseUrl
+          : businessLicenseUrl // ignore: cast_nullable_to_non_nullable
               as String?,
-      aadhaarBackImage: freezed == aadhaarBackImage
-          ? _value.aadhaarBackImage
-          : aadhaarBackImage // ignore: cast_nullable_to_non_nullable
+      identityVerificationUrl: freezed == identityVerificationUrl
+          ? _value.identityVerificationUrl
+          : identityVerificationUrl // ignore: cast_nullable_to_non_nullable
               as String?,
-      panCardImage: freezed == panCardImage
-          ? _value.panCardImage
-          : panCardImage // ignore: cast_nullable_to_non_nullable
+      portfolioImages: freezed == portfolioImages
+          ? _value._portfolioImages
+          : portfolioImages // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+      bio: freezed == bio
+          ? _value.bio
+          : bio // ignore: cast_nullable_to_non_nullable
               as String?,
+      availabilitySchedule: freezed == availabilitySchedule
+          ? _value._availabilitySchedule
+          : availabilitySchedule // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      rating: null == rating
+          ? _value.rating
+          : rating // ignore: cast_nullable_to_non_nullable
+              as double,
+      totalReviews: null == totalReviews
+          ? _value.totalReviews
+          : totalReviews // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalJobsCompleted: null == totalJobsCompleted
+          ? _value.totalJobsCompleted
+          : totalJobsCompleted // ignore: cast_nullable_to_non_nullable
+              as int,
       verificationStatus: null == verificationStatus
           ? _value.verificationStatus
           : verificationStatus // ignore: cast_nullable_to_non_nullable
               as String,
-      isOnboardingComplete: null == isOnboardingComplete
-          ? _value.isOnboardingComplete
-          : isOnboardingComplete // ignore: cast_nullable_to_non_nullable
+      isActive: null == isActive
+          ? _value.isActive
+          : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
       createdAt: freezed == createdAt
           ? _value.createdAt
@@ -378,30 +402,10 @@ class __$$VendorImplCopyWithImpl<$Res>
           ? _value.authUserId
           : authUserId // ignore: cast_nullable_to_non_nullable
               as String?,
-      fcmToken: freezed == fcmToken
-          ? _value.fcmToken
-          : fcmToken // ignore: cast_nullable_to_non_nullable
-              as String?,
-      businessName: freezed == businessName
-          ? _value.businessName
-          : businessName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      aadhaarNumber: freezed == aadhaarNumber
-          ? _value.aadhaarNumber
-          : aadhaarNumber // ignore: cast_nullable_to_non_nullable
-              as String?,
-      bankAccountNumber: freezed == bankAccountNumber
-          ? _value.bankAccountNumber
-          : bankAccountNumber // ignore: cast_nullable_to_non_nullable
-              as String?,
-      bankIfscCode: freezed == bankIfscCode
-          ? _value.bankIfscCode
-          : bankIfscCode // ignore: cast_nullable_to_non_nullable
-              as String?,
-      gstNumber: freezed == gstNumber
-          ? _value.gstNumber
-          : gstNumber // ignore: cast_nullable_to_non_nullable
-              as String?,
+      isOnboardingComplete: null == isOnboardingComplete
+          ? _value.isOnboardingComplete
+          : isOnboardingComplete // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -411,30 +415,34 @@ class __$$VendorImplCopyWithImpl<$Res>
 class _$VendorImpl extends _Vendor {
   const _$VendorImpl(
       {required this.id,
+      required this.email,
       this.phone,
-      this.email,
-      @JsonKey(name: 'vendor_id') this.vendorId,
-      @JsonKey(name: 'full_name') required this.fullName,
-      @JsonKey(name: 'service_area') this.serviceArea,
-      this.pincode,
-      @JsonKey(name: 'service_type') this.serviceType,
+      @JsonKey(name: 'full_name') this.fullName,
+      @JsonKey(name: 'business_name') this.businessName,
+      @JsonKey(name: 'business_type') this.businessType,
+      @JsonKey(name: 'experience_years') this.experienceYears,
+      @JsonKey(name: 'location') final Map<String, dynamic>? location,
       @JsonKey(name: 'profile_image_url') this.profilePicture,
-      @JsonKey(name: 'aadhaar_front_image') this.aadhaarFrontImage,
-      @JsonKey(name: 'aadhaar_back_image') this.aadhaarBackImage,
-      @JsonKey(name: 'pan_card_image') this.panCardImage,
+      @JsonKey(name: 'business_license_url') this.businessLicenseUrl,
+      @JsonKey(name: 'identity_verification_url') this.identityVerificationUrl,
+      @JsonKey(name: 'portfolio_images') final List<String>? portfolioImages,
+      this.bio,
+      @JsonKey(name: 'availability_schedule')
+      final Map<String, dynamic>? availabilitySchedule,
+      this.rating = 0.0,
+      @JsonKey(name: 'total_reviews') this.totalReviews = 0,
+      @JsonKey(name: 'total_jobs_completed') this.totalJobsCompleted = 0,
       @JsonKey(name: 'verification_status') this.verificationStatus = 'pending',
-      @JsonKey(name: 'is_onboarding_completed')
-      this.isOnboardingComplete = false,
+      @JsonKey(name: 'is_active') this.isActive = true,
       @JsonKey(name: 'created_at') this.createdAt,
       @JsonKey(name: 'updated_at') this.updatedAt,
       @JsonKey(name: 'auth_user_id') this.authUserId,
-      @JsonKey(name: 'fcm_token') this.fcmToken,
-      @JsonKey(name: 'business_name') this.businessName,
-      @JsonKey(name: 'aadhaar_number') this.aadhaarNumber,
-      @JsonKey(name: 'bank_account_number') this.bankAccountNumber,
-      @JsonKey(name: 'bank_ifsc_code') this.bankIfscCode,
-      @JsonKey(name: 'gst_number') this.gstNumber})
-      : super._();
+      @JsonKey(name: 'is_onboarding_completed')
+      this.isOnboardingComplete = false})
+      : _location = location,
+        _portfolioImages = portfolioImages,
+        _availabilitySchedule = availabilitySchedule,
+        super._();
 
   factory _$VendorImpl.fromJson(Map<String, dynamic> json) =>
       _$$VendorImplFromJson(json);
@@ -442,41 +450,81 @@ class _$VendorImpl extends _Vendor {
   @override
   final String id;
   @override
+  final String email;
+  @override
   final String? phone;
   @override
-  final String? email;
-  @override
-  @JsonKey(name: 'vendor_id')
-  final String? vendorId;
-  @override
   @JsonKey(name: 'full_name')
-  final String fullName;
+  final String? fullName;
   @override
-  @JsonKey(name: 'service_area')
-  final String? serviceArea;
+  @JsonKey(name: 'business_name')
+  final String? businessName;
   @override
-  final String? pincode;
+  @JsonKey(name: 'business_type')
+  final String? businessType;
   @override
-  @JsonKey(name: 'service_type')
-  final String? serviceType;
+  @JsonKey(name: 'experience_years')
+  final int? experienceYears;
+  final Map<String, dynamic>? _location;
+  @override
+  @JsonKey(name: 'location')
+  Map<String, dynamic>? get location {
+    final value = _location;
+    if (value == null) return null;
+    if (_location is EqualUnmodifiableMapView) return _location;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
   @override
   @JsonKey(name: 'profile_image_url')
   final String? profilePicture;
   @override
-  @JsonKey(name: 'aadhaar_front_image')
-  final String? aadhaarFrontImage;
+  @JsonKey(name: 'business_license_url')
+  final String? businessLicenseUrl;
   @override
-  @JsonKey(name: 'aadhaar_back_image')
-  final String? aadhaarBackImage;
+  @JsonKey(name: 'identity_verification_url')
+  final String? identityVerificationUrl;
+  final List<String>? _portfolioImages;
   @override
-  @JsonKey(name: 'pan_card_image')
-  final String? panCardImage;
+  @JsonKey(name: 'portfolio_images')
+  List<String>? get portfolioImages {
+    final value = _portfolioImages;
+    if (value == null) return null;
+    if (_portfolioImages is EqualUnmodifiableListView) return _portfolioImages;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  @override
+  final String? bio;
+  final Map<String, dynamic>? _availabilitySchedule;
+  @override
+  @JsonKey(name: 'availability_schedule')
+  Map<String, dynamic>? get availabilitySchedule {
+    final value = _availabilitySchedule;
+    if (value == null) return null;
+    if (_availabilitySchedule is EqualUnmodifiableMapView)
+      return _availabilitySchedule;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
+  @override
+  @JsonKey()
+  final double rating;
+  @override
+  @JsonKey(name: 'total_reviews')
+  final int totalReviews;
+  @override
+  @JsonKey(name: 'total_jobs_completed')
+  final int totalJobsCompleted;
   @override
   @JsonKey(name: 'verification_status')
   final String verificationStatus;
   @override
-  @JsonKey(name: 'is_onboarding_completed')
-  final bool isOnboardingComplete;
+  @JsonKey(name: 'is_active')
+  final bool isActive;
   @override
   @JsonKey(name: 'created_at')
   final DateTime? createdAt;
@@ -487,27 +535,12 @@ class _$VendorImpl extends _Vendor {
   @JsonKey(name: 'auth_user_id')
   final String? authUserId;
   @override
-  @JsonKey(name: 'fcm_token')
-  final String? fcmToken;
-  @override
-  @JsonKey(name: 'business_name')
-  final String? businessName;
-  @override
-  @JsonKey(name: 'aadhaar_number')
-  final String? aadhaarNumber;
-  @override
-  @JsonKey(name: 'bank_account_number')
-  final String? bankAccountNumber;
-  @override
-  @JsonKey(name: 'bank_ifsc_code')
-  final String? bankIfscCode;
-  @override
-  @JsonKey(name: 'gst_number')
-  final String? gstNumber;
+  @JsonKey(name: 'is_onboarding_completed')
+  final bool isOnboardingComplete;
 
   @override
   String toString() {
-    return 'Vendor(id: $id, phone: $phone, email: $email, vendorId: $vendorId, fullName: $fullName, serviceArea: $serviceArea, pincode: $pincode, serviceType: $serviceType, profilePicture: $profilePicture, aadhaarFrontImage: $aadhaarFrontImage, aadhaarBackImage: $aadhaarBackImage, panCardImage: $panCardImage, verificationStatus: $verificationStatus, isOnboardingComplete: $isOnboardingComplete, createdAt: $createdAt, updatedAt: $updatedAt, authUserId: $authUserId, fcmToken: $fcmToken, businessName: $businessName, aadhaarNumber: $aadhaarNumber, bankAccountNumber: $bankAccountNumber, bankIfscCode: $bankIfscCode, gstNumber: $gstNumber)';
+    return 'Vendor(id: $id, email: $email, phone: $phone, fullName: $fullName, businessName: $businessName, businessType: $businessType, experienceYears: $experienceYears, location: $location, profilePicture: $profilePicture, businessLicenseUrl: $businessLicenseUrl, identityVerificationUrl: $identityVerificationUrl, portfolioImages: $portfolioImages, bio: $bio, availabilitySchedule: $availabilitySchedule, rating: $rating, totalReviews: $totalReviews, totalJobsCompleted: $totalJobsCompleted, verificationStatus: $verificationStatus, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt, authUserId: $authUserId, isOnboardingComplete: $isOnboardingComplete)';
   }
 
   @override
@@ -516,47 +549,46 @@ class _$VendorImpl extends _Vendor {
         (other.runtimeType == runtimeType &&
             other is _$VendorImpl &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.phone, phone) || other.phone == phone) &&
             (identical(other.email, email) || other.email == email) &&
-            (identical(other.vendorId, vendorId) ||
-                other.vendorId == vendorId) &&
+            (identical(other.phone, phone) || other.phone == phone) &&
             (identical(other.fullName, fullName) ||
                 other.fullName == fullName) &&
-            (identical(other.serviceArea, serviceArea) ||
-                other.serviceArea == serviceArea) &&
-            (identical(other.pincode, pincode) || other.pincode == pincode) &&
-            (identical(other.serviceType, serviceType) ||
-                other.serviceType == serviceType) &&
+            (identical(other.businessName, businessName) ||
+                other.businessName == businessName) &&
+            (identical(other.businessType, businessType) ||
+                other.businessType == businessType) &&
+            (identical(other.experienceYears, experienceYears) ||
+                other.experienceYears == experienceYears) &&
+            const DeepCollectionEquality().equals(other._location, _location) &&
             (identical(other.profilePicture, profilePicture) ||
                 other.profilePicture == profilePicture) &&
-            (identical(other.aadhaarFrontImage, aadhaarFrontImage) ||
-                other.aadhaarFrontImage == aadhaarFrontImage) &&
-            (identical(other.aadhaarBackImage, aadhaarBackImage) ||
-                other.aadhaarBackImage == aadhaarBackImage) &&
-            (identical(other.panCardImage, panCardImage) ||
-                other.panCardImage == panCardImage) &&
+            (identical(other.businessLicenseUrl, businessLicenseUrl) ||
+                other.businessLicenseUrl == businessLicenseUrl) &&
+            (identical(
+                    other.identityVerificationUrl, identityVerificationUrl) ||
+                other.identityVerificationUrl == identityVerificationUrl) &&
+            const DeepCollectionEquality()
+                .equals(other._portfolioImages, _portfolioImages) &&
+            (identical(other.bio, bio) || other.bio == bio) &&
+            const DeepCollectionEquality()
+                .equals(other._availabilitySchedule, _availabilitySchedule) &&
+            (identical(other.rating, rating) || other.rating == rating) &&
+            (identical(other.totalReviews, totalReviews) ||
+                other.totalReviews == totalReviews) &&
+            (identical(other.totalJobsCompleted, totalJobsCompleted) ||
+                other.totalJobsCompleted == totalJobsCompleted) &&
             (identical(other.verificationStatus, verificationStatus) ||
                 other.verificationStatus == verificationStatus) &&
-            (identical(other.isOnboardingComplete, isOnboardingComplete) ||
-                other.isOnboardingComplete == isOnboardingComplete) &&
+            (identical(other.isActive, isActive) ||
+                other.isActive == isActive) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
             (identical(other.authUserId, authUserId) ||
                 other.authUserId == authUserId) &&
-            (identical(other.fcmToken, fcmToken) ||
-                other.fcmToken == fcmToken) &&
-            (identical(other.businessName, businessName) ||
-                other.businessName == businessName) &&
-            (identical(other.aadhaarNumber, aadhaarNumber) ||
-                other.aadhaarNumber == aadhaarNumber) &&
-            (identical(other.bankAccountNumber, bankAccountNumber) ||
-                other.bankAccountNumber == bankAccountNumber) &&
-            (identical(other.bankIfscCode, bankIfscCode) ||
-                other.bankIfscCode == bankIfscCode) &&
-            (identical(other.gstNumber, gstNumber) ||
-                other.gstNumber == gstNumber));
+            (identical(other.isOnboardingComplete, isOnboardingComplete) ||
+                other.isOnboardingComplete == isOnboardingComplete));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -564,28 +596,28 @@ class _$VendorImpl extends _Vendor {
   int get hashCode => Object.hashAll([
         runtimeType,
         id,
-        phone,
         email,
-        vendorId,
+        phone,
         fullName,
-        serviceArea,
-        pincode,
-        serviceType,
+        businessName,
+        businessType,
+        experienceYears,
+        const DeepCollectionEquality().hash(_location),
         profilePicture,
-        aadhaarFrontImage,
-        aadhaarBackImage,
-        panCardImage,
+        businessLicenseUrl,
+        identityVerificationUrl,
+        const DeepCollectionEquality().hash(_portfolioImages),
+        bio,
+        const DeepCollectionEquality().hash(_availabilitySchedule),
+        rating,
+        totalReviews,
+        totalJobsCompleted,
         verificationStatus,
-        isOnboardingComplete,
+        isActive,
         createdAt,
         updatedAt,
         authUserId,
-        fcmToken,
-        businessName,
-        aadhaarNumber,
-        bankAccountNumber,
-        bankIfscCode,
-        gstNumber
+        isOnboardingComplete
       ]);
 
   /// Create a copy of Vendor
@@ -607,28 +639,31 @@ class _$VendorImpl extends _Vendor {
 abstract class _Vendor extends Vendor {
   const factory _Vendor(
       {required final String id,
+      required final String email,
       final String? phone,
-      final String? email,
-      @JsonKey(name: 'vendor_id') final String? vendorId,
-      @JsonKey(name: 'full_name') required final String fullName,
-      @JsonKey(name: 'service_area') final String? serviceArea,
-      final String? pincode,
-      @JsonKey(name: 'service_type') final String? serviceType,
+      @JsonKey(name: 'full_name') final String? fullName,
+      @JsonKey(name: 'business_name') final String? businessName,
+      @JsonKey(name: 'business_type') final String? businessType,
+      @JsonKey(name: 'experience_years') final int? experienceYears,
+      @JsonKey(name: 'location') final Map<String, dynamic>? location,
       @JsonKey(name: 'profile_image_url') final String? profilePicture,
-      @JsonKey(name: 'aadhaar_front_image') final String? aadhaarFrontImage,
-      @JsonKey(name: 'aadhaar_back_image') final String? aadhaarBackImage,
-      @JsonKey(name: 'pan_card_image') final String? panCardImage,
+      @JsonKey(name: 'business_license_url') final String? businessLicenseUrl,
+      @JsonKey(name: 'identity_verification_url')
+      final String? identityVerificationUrl,
+      @JsonKey(name: 'portfolio_images') final List<String>? portfolioImages,
+      final String? bio,
+      @JsonKey(name: 'availability_schedule')
+      final Map<String, dynamic>? availabilitySchedule,
+      final double rating,
+      @JsonKey(name: 'total_reviews') final int totalReviews,
+      @JsonKey(name: 'total_jobs_completed') final int totalJobsCompleted,
       @JsonKey(name: 'verification_status') final String verificationStatus,
-      @JsonKey(name: 'is_onboarding_completed') final bool isOnboardingComplete,
+      @JsonKey(name: 'is_active') final bool isActive,
       @JsonKey(name: 'created_at') final DateTime? createdAt,
       @JsonKey(name: 'updated_at') final DateTime? updatedAt,
       @JsonKey(name: 'auth_user_id') final String? authUserId,
-      @JsonKey(name: 'fcm_token') final String? fcmToken,
-      @JsonKey(name: 'business_name') final String? businessName,
-      @JsonKey(name: 'aadhaar_number') final String? aadhaarNumber,
-      @JsonKey(name: 'bank_account_number') final String? bankAccountNumber,
-      @JsonKey(name: 'bank_ifsc_code') final String? bankIfscCode,
-      @JsonKey(name: 'gst_number') final String? gstNumber}) = _$VendorImpl;
+      @JsonKey(name: 'is_onboarding_completed')
+      final bool isOnboardingComplete}) = _$VendorImpl;
   const _Vendor._() : super._();
 
   factory _Vendor.fromJson(Map<String, dynamic> json) = _$VendorImpl.fromJson;
@@ -636,41 +671,55 @@ abstract class _Vendor extends Vendor {
   @override
   String get id;
   @override
+  String get email;
+  @override
   String? get phone;
   @override
-  String? get email;
-  @override
-  @JsonKey(name: 'vendor_id')
-  String? get vendorId;
-  @override
   @JsonKey(name: 'full_name')
-  String get fullName;
+  String? get fullName;
   @override
-  @JsonKey(name: 'service_area')
-  String? get serviceArea;
+  @JsonKey(name: 'business_name')
+  String? get businessName;
   @override
-  String? get pincode;
+  @JsonKey(name: 'business_type')
+  String? get businessType;
   @override
-  @JsonKey(name: 'service_type')
-  String? get serviceType;
+  @JsonKey(name: 'experience_years')
+  int? get experienceYears;
+  @override
+  @JsonKey(name: 'location')
+  Map<String, dynamic>? get location;
   @override
   @JsonKey(name: 'profile_image_url')
   String? get profilePicture;
   @override
-  @JsonKey(name: 'aadhaar_front_image')
-  String? get aadhaarFrontImage;
+  @JsonKey(name: 'business_license_url')
+  String? get businessLicenseUrl;
   @override
-  @JsonKey(name: 'aadhaar_back_image')
-  String? get aadhaarBackImage;
+  @JsonKey(name: 'identity_verification_url')
+  String? get identityVerificationUrl;
   @override
-  @JsonKey(name: 'pan_card_image')
-  String? get panCardImage;
+  @JsonKey(name: 'portfolio_images')
+  List<String>? get portfolioImages;
+  @override
+  String? get bio;
+  @override
+  @JsonKey(name: 'availability_schedule')
+  Map<String, dynamic>? get availabilitySchedule;
+  @override
+  double get rating;
+  @override
+  @JsonKey(name: 'total_reviews')
+  int get totalReviews;
+  @override
+  @JsonKey(name: 'total_jobs_completed')
+  int get totalJobsCompleted;
   @override
   @JsonKey(name: 'verification_status')
   String get verificationStatus;
   @override
-  @JsonKey(name: 'is_onboarding_completed')
-  bool get isOnboardingComplete;
+  @JsonKey(name: 'is_active')
+  bool get isActive;
   @override
   @JsonKey(name: 'created_at')
   DateTime? get createdAt;
@@ -681,23 +730,8 @@ abstract class _Vendor extends Vendor {
   @JsonKey(name: 'auth_user_id')
   String? get authUserId;
   @override
-  @JsonKey(name: 'fcm_token')
-  String? get fcmToken;
-  @override
-  @JsonKey(name: 'business_name')
-  String? get businessName;
-  @override
-  @JsonKey(name: 'aadhaar_number')
-  String? get aadhaarNumber;
-  @override
-  @JsonKey(name: 'bank_account_number')
-  String? get bankAccountNumber;
-  @override
-  @JsonKey(name: 'bank_ifsc_code')
-  String? get bankIfscCode;
-  @override
-  @JsonKey(name: 'gst_number')
-  String? get gstNumber;
+  @JsonKey(name: 'is_onboarding_completed')
+  bool get isOnboardingComplete;
 
   /// Create a copy of Vendor
   /// with the given fields replaced by the non-null parameter values.
