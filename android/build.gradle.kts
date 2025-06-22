@@ -6,7 +6,8 @@ buildscript {
 
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0")
-        // No Firebase classpath needed for pure Google OAuth
+        // Firebase Google Services classpath
+        classpath("com.google.gms:google-services:4.4.0")
     }
 }
 

@@ -3,19 +3,26 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ImageUploadWidget extends StatefulWidget {
   final String title;
   final String subtitle;
   final File? image;
-  final Function(File) onImageSelected;
+  final String? imageUrl;
+  final Function(File?) onImageSelected;
+  final Function(String)? onImageUploaded;
+  final String documentType;
 
   const ImageUploadWidget({
     super.key,
     required this.title,
     required this.subtitle,
     required this.image,
+    this.imageUrl,
     required this.onImageSelected,
+    this.onImageUploaded,
+    required this.documentType,
   });
 
   @override
@@ -25,6 +32,15 @@ class ImageUploadWidget extends StatefulWidget {
 class _ImageUploadWidgetState extends State<ImageUploadWidget> {
   bool _isLoading = false;
   String? _errorMessage;
+  String? _uploadedUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _uploadedUrl = widget.imageUrl;
+  }
+
+  bool get hasImage => widget.image != null || _uploadedUrl != null;
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +129,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
                     ],
                   ),
                 ),
-                if (widget.image != null && _errorMessage == null)
+                if (hasImage && _errorMessage == null)
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -123,9 +139,9 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
                       color: Colors.green.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Text(
-                      'Ready',
-                      style: TextStyle(
+                    child: Text(
+                      _uploadedUrl != null ? 'Uploaded' : 'Ready',
+                      style: const TextStyle(
                         fontSize: 10,
                         color: Colors.green,
                         fontWeight: FontWeight.w500,
@@ -153,17 +169,45 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
                   style: BorderStyle.solid,
                 ),
               ),
-              child: widget.image != null
+              child: hasImage
                   ? Stack(
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            widget.image!,
-                            width: double.infinity,
-                            height: 200,
-                            fit: BoxFit.cover,
-                          ),
+                          child: _uploadedUrl != null
+                              ? Image.network(
+                                  _uploadedUrl!,
+                                  width: double.infinity,
+                                  height: 200,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return Container(
+                                      width: double.infinity,
+                                      height: 200,
+                                      color: Colors.grey.shade100,
+                                      child: const Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    );
+                                  },
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      width: double.infinity,
+                                      height: 200,
+                                      color: Colors.grey.shade100,
+                                      child: const Center(
+                                        child: Icon(Icons.error, color: Colors.red),
+                                      ),
+                                    );
+                                  },
+                                )
+                              : Image.file(
+                                  widget.image!,
+                                  width: double.infinity,
+                                  height: 200,
+                                  fit: BoxFit.cover,
+                                ),
                         ),
                         Positioned(
                           top: 8,
@@ -268,26 +312,68 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
           return;
         }
         
-        // Copy file to a permanent location to prevent cleanup
-        final Directory appDir = await getApplicationDocumentsDirectory();
-        final String fileName = 'img_${DateTime.now().millisecondsSinceEpoch}${path.extension(pickedFile.path)}';
-        final String permanentPath = path.join(appDir.path, 'temp_images', fileName);
-        
-        // Create directory if it doesn't exist
-        await Directory(path.dirname(permanentPath)).create(recursive: true);
-        
-        // Copy the file to permanent location
-        final File permanentFile = await imageFile.copy(permanentPath);
-        
-        print('📸 Image copied to permanent location: $permanentPath');
-        
-        setState(() {
-          _isLoading = false;
-          _errorMessage = null;
-        });
-        
-        widget.onImageSelected(permanentFile);
-        print('📸 Image successfully selected and validated');
+        // Upload immediately to Supabase Storage
+        try {
+          print('📸 Starting immediate upload to Supabase for ${widget.documentType}...');
+          final String uploadedUrl = await _uploadToSupabase(imageFile);
+          
+          setState(() {
+            _uploadedUrl = uploadedUrl;
+            _isLoading = false;
+            _errorMessage = null;
+          });
+          
+          // Notify parent about the upload
+          print('📸 Calling onImageUploaded callback for ${widget.documentType} with URL: $uploadedUrl');
+          if (widget.onImageUploaded != null) {
+            widget.onImageUploaded!(uploadedUrl);
+            print('📸 onImageUploaded callback completed for ${widget.documentType}');
+          } else {
+            print('⚠️ onImageUploaded callback is null for ${widget.documentType}');
+          }
+          
+          // Also call the original callback with null file to indicate we're using URL
+          print('📸 Calling onImageSelected with null for ${widget.documentType} (using URL instead)');
+          widget.onImageSelected(null);
+          
+          print('📸 Image successfully uploaded to Supabase: $uploadedUrl');
+        } catch (uploadError) {
+          print('📸 Upload failed: $uploadError');
+          
+          // If upload fails, fall back to local storage as before
+          try {
+            final Directory appDir = await getApplicationDocumentsDirectory();
+            final String fileName = 'vendor_doc_${DateTime.now().millisecondsSinceEpoch}${path.extension(pickedFile.path)}';
+            final String permanentPath = path.join(appDir.path, 'vendor_uploads', fileName);
+            
+            await Directory(path.dirname(permanentPath)).create(recursive: true);
+            final File permanentFile = await imageFile.copy(permanentPath);
+            
+            if (!await permanentFile.exists()) {
+              throw Exception('Failed to save image to persistent storage');
+            }
+            
+            final persistentSize = await permanentFile.length();
+            if (persistentSize == 0) {
+              throw Exception('Image file became corrupted during save');
+            }
+            
+            print('📸 Upload failed, saved locally: $permanentPath ($persistentSize bytes)');
+            
+            setState(() {
+              _isLoading = false;
+              _errorMessage = null;
+            });
+            
+            widget.onImageSelected(permanentFile);
+            print('📸 Image fallback to local storage successful');
+          } catch (localError) {
+            setState(() {
+              _errorMessage = 'Failed to save image. Please try again.';
+              _isLoading = false;
+            });
+          }
+        }
       } else {
         setState(() {
           _isLoading = false;
@@ -300,5 +386,32 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
         _isLoading = false;
       });
     }
+  }
+
+  Future<String> _uploadToSupabase(File imageFile) async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      throw Exception('User not authenticated');
+    }
+
+    // Determine bucket and create file path
+    final bucketName = (widget.documentType == 'profile') ? 'profile-pictures' : 'vendor-documents';
+    final fileName = '${widget.documentType}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final filePath = '${user.id}/$fileName';
+
+    print('🔵 Uploading to bucket: $bucketName, path: $filePath');
+
+    // Upload to Supabase Storage
+    await Supabase.instance.client.storage
+        .from(bucketName)
+        .upload(filePath, imageFile, fileOptions: const FileOptions(upsert: true));
+
+    // Get public URL
+    final String publicUrl = Supabase.instance.client.storage
+        .from(bucketName)
+        .getPublicUrl(filePath);
+
+    print('🟢 Upload successful. URL: $publicUrl');
+    return publicUrl;
   }
 } 

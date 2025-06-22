@@ -8,10 +8,12 @@ import 'package:sylonow_vendor/features/dashboard/models/dashboard_data.dart';
 import 'package:sylonow_vendor/features/dashboard/models/dashboard_stats.dart';
 import 'package:sylonow_vendor/features/dashboard/models/activity_item.dart';
 import 'package:sylonow_vendor/features/dashboard/providers/dashboard_provider.dart';
+import 'package:sylonow_vendor/features/dashboard/services/booking_service.dart';
 import 'package:sylonow_vendor/features/onboarding/models/vendor.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../onboarding/providers/vendor_provider.dart';
 import '../../onboarding/providers/service_area_provider.dart';
+
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -25,6 +27,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   int _selectedIndex = 0;
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
+  final BookingService _bookingService = BookingService();
 
   @override
   void initState() {
@@ -124,6 +127,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           
                           // Recent Activity
                           _buildRecentActivity(dashboardData.recentActivities),
+                          
+                          const SizedBox(height: 20),
                           
                           // Bottom padding for navigation bar
                           SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
@@ -649,20 +654,82 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget _buildNewBookingAlert(Booking? booking) {
     if (booking == null) {
       return Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.borderColor),
-        ),
-        child: const Center(
-          child: Text(
-            'No new bookings right now.',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppTheme.textSecondaryColor,
-            ),
+          gradient: LinearGradient(
+            colors: [
+              Colors.grey.shade50,
+              Colors.grey.shade100,
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppTheme.borderColor.withOpacity(0.5)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.schedule_rounded,
+                color: AppTheme.primaryColor,
+                size: 30,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Looking for new bookings...',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textPrimaryColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'We\'ll notify you as soon as a customer books your service. Keep your notifications enabled!',
+              style: TextStyle(
+                fontSize: 14,
+                color: AppTheme.textSecondaryColor,
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.notifications_active,
+                    color: AppTheme.primaryColor,
+                    size: 16,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Notifications Active',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -731,9 +798,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 children: [
                   // Accept Button
                   ElevatedButton(
-                    onPressed: () {
-                      // TODO: Implement accept booking functionality
-                    },
+                    onPressed: () => _acceptBooking(booking),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: AppTheme.primaryColor,
@@ -749,9 +814,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   const SizedBox(width: 8),
                   // View Button
                   OutlinedButton(
-                    onPressed: () {
-                      // TODO: Implement view booking details functionality
-                    },
+                    onPressed: () => _viewBookingDetails(booking),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,
                       side: const BorderSide(color: Colors.white, width: 1.5),
@@ -1068,5 +1131,177 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ),
       ),
     );
+  }
+
+  // Accept booking functionality
+  Future<void> _acceptBooking(Booking booking) async {
+    try {
+      print('🔄 Accepting booking: ${booking.id}');
+      print('🔍 Full booking data: ${booking.toJson()}');
+      
+      // Show loading state
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+                SizedBox(width: 16),
+                Text('Accepting booking...'),
+              ],
+            ),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      
+      final success = await _bookingService.acceptBooking(booking.id);
+      
+      if (success) {
+        if (mounted) {
+          // Clear any existing snackbars
+          ScaffoldMessenger.of(context).clearSnackBars();
+          
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Booking Accepted Successfully! 🎉',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        Text(
+                          'Customer will be notified. Looking for next booking...',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withOpacity(0.9),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 4),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+          
+          // Refresh the dashboard data to update the UI and clear the accepted booking
+          ref.invalidate(dashboardDataProvider);
+        }
+      } else {
+        if (mounted) {
+          // Clear any existing snackbars
+          ScaffoldMessenger.of(context).clearSnackBars();
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.error, color: Colors.white),
+                  SizedBox(width: 12),
+                  Text('Failed to accept booking. Please try again.'),
+                ],
+              ),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('❌ Error accepting booking: $e');
+      if (mounted) {
+        // Clear any existing snackbars
+        ScaffoldMessenger.of(context).clearSnackBars();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text('Error accepting booking: ${e.toString().length > 50 ? '${e.toString().substring(0, 50)}...' : e}'),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  // View booking details functionality
+  void _viewBookingDetails(Booking booking) {
+    print('🔍 Navigating to booking details: ${booking.id}');
+    print('🔍 Navigation path: /booking-details/${booking.id}');
+    
+    if (booking.id.isEmpty) {
+      print('❌ Booking ID is empty, cannot navigate');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: Booking ID is missing'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
+    try {
+      // Use Uri.encodeComponent to properly encode the booking ID for URL
+      final encodedBookingId = Uri.encodeComponent(booking.id);
+      final navigationPath = '/booking-details/$encodedBookingId';
+      
+      print('🔍 Encoded navigation path: $navigationPath');
+      
+      context.push(navigationPath).then((result) {
+        // If the booking was accepted or declined, refresh the data
+        if (result == true) {
+          ref.invalidate(dashboardDataProvider);
+        }
+      }).catchError((error) {
+        print('❌ Navigation error: $error');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Navigation failed: $error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      });
+    } catch (e) {
+      print('❌ Error preparing navigation: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Navigation error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

@@ -44,8 +44,89 @@ class VendorService {
     await _client.from('vendors').upsert(vendor.toJson());
   }
 
-  /// Creates or updates a vendor and their associated documents within a single transaction.
-  Future<void> createVendorAndDocuments({
+  /// Checks if a vendor exists and their current status
+  Future<Map<String, dynamic>> checkVendorStatus(String authUserId) async {
+    try {
+      print('🔍 Checking vendor status for auth_user_id: $authUserId');
+      
+      final authUser = _client.auth.currentUser!;
+      final authEmail = authUser.email;
+      
+      // Check by auth_user_id first
+      final vendorByAuth = await _client
+          .from('vendors')
+          .select('id, email, is_onboarding_completed, verification_status, is_active')
+          .eq('auth_user_id', authUserId)
+          .maybeSingle();
+      
+      if (vendorByAuth != null) {
+        print('🟢 Vendor found by auth_user_id: ${vendorByAuth['id']}');
+        return {
+          'exists': true,
+          'vendor_id': vendorByAuth['id'],
+          'is_onboarding_completed': vendorByAuth['is_onboarding_completed'] ?? false,
+          'verification_status': vendorByAuth['verification_status'] ?? 'pending',
+          'is_ready_for_business': vendorByAuth['verification_status'] == 'verified' && vendorByAuth['is_active'] == true,
+          'found_by': 'auth_user_id'
+        };
+      }
+      
+      // Check by email if not found by auth_user_id
+      if (authEmail != null) {
+        print('🔍 Checking by email: $authEmail');
+        final vendorByEmail = await _client
+            .from('vendors')
+            .select('id, auth_user_id, email, is_onboarding_completed, verification_status, is_active')
+            .eq('email', authEmail)
+            .maybeSingle();
+        
+        if (vendorByEmail != null) {
+          final existingAuthUserId = vendorByEmail['auth_user_id'];
+          print('🟡 Vendor found by email: ${vendorByEmail['id']}, existing auth_user_id: $existingAuthUserId');
+          
+          if (existingAuthUserId != null && existingAuthUserId != authUserId) {
+            // Email exists with different auth_user_id
+            return {
+              'exists': true,
+              'vendor_id': vendorByEmail['id'],
+              'is_onboarding_completed': vendorByEmail['is_onboarding_completed'] ?? false,
+              'verification_status': vendorByEmail['verification_status'] ?? 'pending',
+              'is_ready_for_business': vendorByEmail['verification_status'] == 'verified' && vendorByEmail['is_active'] == true,
+              'found_by': 'email_different_auth',
+              'existing_auth_user_id': existingAuthUserId,
+              'conflict': true
+            };
+          } else if (existingAuthUserId == null) {
+            // Email exists but no auth_user_id - can be linked
+            return {
+              'exists': true,
+              'vendor_id': vendorByEmail['id'],
+              'is_onboarding_completed': vendorByEmail['is_onboarding_completed'] ?? false,
+              'verification_status': vendorByEmail['verification_status'] ?? 'pending',
+              'is_ready_for_business': vendorByEmail['verification_status'] == 'verified' && vendorByEmail['is_active'] == true,
+              'found_by': 'email_no_auth',
+              'can_link': true
+            };
+          }
+        }
+      }
+      
+      print('🔴 No vendor found by auth_user_id or email');
+      return {
+        'exists': false,
+      };
+    } catch (e) {
+      print('🔴 Error checking vendor status: $e');
+      return {
+        'exists': false,
+        'error': e.toString(),
+      };
+    }
+  }
+
+  /// Creates or updates a vendor and their associated documents with support for both URLs and files.
+  /// URLs take priority over files when both are provided.
+  Future<void> createVendorAndDocumentsWithUrls({
     // Vendor details
     required String fullName,
     required String authUserId,
@@ -57,46 +138,149 @@ class VendorService {
     required String bankAccountNumber,
     required String bankIfscCode,
     String? gstNumber,
-    // Image files to be uploaded
+    // Image URLs (take priority)
+    String? profileImageUrl,
+    String? aadhaarFrontImageUrl,
+    String? aadhaarBackImageUrl,
+    String? panCardImageUrl,
+    // Image files (fallback)
     File? profileImageFile,
     File? aadhaarFrontFile,
     File? aadhaarBackFile,
     File? panCardFile,
   }) async {
     try {
-      print('🔵 Starting vendor upsert transaction...');
+      print('🔵 Starting vendor creation with URL/file support...');
       final authUser = _client.auth.currentUser!;
       final authUserId = authUser.id;
-      final authEmail = authUser.email;
-      final authPhone = authUser.phone; // Get phone number from auth user
       
-      print('🔵 Auth user phone: $authPhone, email: $authEmail');
+      print('🔍 Current user auth_user_id: $authUserId');
+      print('🔍 Current user email: ${authUser.email}');
+      
+      // Check vendor status first
+      final vendorStatus = await checkVendorStatus(authUserId);
+      
+      if (vendorStatus['exists'] == true) {
+        final isOnboardingCompleted = vendorStatus['is_onboarding_completed'] == true;
+        final isReadyForBusiness = vendorStatus['is_ready_for_business'] == true;
+        final foundBy = vendorStatus['found_by'];
+        final hasConflict = vendorStatus['conflict'] == true;
+        
+        if (hasConflict) {
+          // Email exists with different auth_user_id
+          final existingAuthUserId = vendorStatus['existing_auth_user_id'];
+          print('🔴 Email conflict detected: Email is registered with auth_user_id: $existingAuthUserId, current user: $authUserId');
+          
+          if (isOnboardingCompleted && isReadyForBusiness) {
+            throw Exception('This email address is already registered with a verified vendor account. If this is your account, please contact support to link it to your current login method.');
+          } else if (isOnboardingCompleted) {
+            throw Exception('This email address is already registered with a vendor account that is pending verification. If this is your account, please contact support to link it to your current login method.');
+          } else {
+            throw Exception('This email address is already in use with another account. Please use a different email address or contact support if you believe this is an error.');
+          }
+        }
+        
+        if (isReadyForBusiness) {
+          print('🎉 Vendor is already fully verified and ready for business!');
+          throw Exception('You are already a verified vendor and ready to receive bookings! If you need to update your information, please use the profile settings.');
+        }
+        
+        if (isOnboardingCompleted) {
+          print('🟡 Vendor onboarding is complete but verification is pending');
+          throw Exception('Your vendor registration is already complete and is under review. You will be notified once verification is complete.');
+        }
+        
+        print('🟡 Vendor exists but onboarding is incomplete. Continuing with update...');
+      }
+      
+      final userAppType = await _getUserAppType(authUserId);
+      if (userAppType == 'customer') {
+        throw Exception('Access denied: Customer users cannot create vendor profiles. App type: $userAppType');
+      }
+      
+      final authEmail = authUser.email;
+      final authPhone = authUser.phone;
+      
+      if (authEmail == null) {
+        throw Exception('User email is required for vendor registration. Please ensure your account has an email address.');
+      }
+      
+      print('🔵 Auth user phone: $authPhone, email: $authEmail, app type: $userAppType');
 
-      // 1. Find or create the vendor record.
+      // 1. Find or create the vendor record
       String vendorId;
-      final existingVendor = await _client
+      
+      // First, check by auth_user_id
+      final existingVendorByAuth = await _client
           .from('vendors')
-          .select('id')
+          .select('id, email, is_onboarding_completed, verification_status')
           .eq('auth_user_id', authUserId)
           .maybeSingle();
 
-      if (existingVendor != null) {
-        vendorId = existingVendor['id'];
-        print('🟢 Vendor found with ID: $vendorId. Updating record...');
+      // Also check by email to handle cases where auth_user_id might be different
+      final existingVendorByEmail = await _client
+          .from('vendors')
+          .select('id, auth_user_id, email, is_onboarding_completed, verification_status')
+          .eq('email', authEmail)
+          .maybeSingle();
+
+      if (existingVendorByAuth != null) {
+        // Found vendor by auth_user_id - this is the normal case
+        vendorId = existingVendorByAuth['id'];
+        print('🟢 Vendor found by auth_user_id: $vendorId. Updating record...');
+        
         await _client.from('vendors').update({
           'full_name': fullName,
-          'phone': authPhone, // Include phone number in update
+          'phone': authPhone,
           'business_name': businessName,
           'business_type': serviceType,
           'updated_at': DateTime.now().toIso8601String(),
         }).eq('id', vendorId);
+        
+      } else if (existingVendorByEmail != null) {
+        // Found vendor by email but different auth_user_id
+        vendorId = existingVendorByEmail['id'];
+        final existingAuthUserId = existingVendorByEmail['auth_user_id'];
+        
+        if (existingAuthUserId == null) {
+          // Email exists but no auth_user_id - link it to current user
+          print('🟡 Vendor found by email with no auth_user_id. Linking to current user: $vendorId');
+          
+          await _client.from('vendors').update({
+            'auth_user_id': authUserId,
+            'full_name': fullName,
+            'phone': authPhone,
+            'business_name': businessName,
+            'business_type': serviceType,
+            'updated_at': DateTime.now().toIso8601String(),
+          }).eq('id', vendorId);
+          
+        } else if (existingAuthUserId != authUserId) {
+          // Email exists with different auth_user_id - this is a conflict
+          print('🔴 Email conflict: This email is already registered with a different account');
+          throw Exception('This email address is already registered with another account. Please use a different email or contact support if you believe this is an error.');
+          
+        } else {
+          // This shouldn't happen (would be caught by first check), but handle it
+          print('🟢 Vendor found by email with same auth_user_id: $vendorId. Updating record...');
+          
+          await _client.from('vendors').update({
+            'full_name': fullName,
+            'phone': authPhone,
+            'business_name': businessName,
+            'business_type': serviceType,
+            'updated_at': DateTime.now().toIso8601String(),
+          }).eq('id', vendorId);
+        }
+        
       } else {
-        print('🟡 No vendor found. Creating new record...');
+        // No existing vendor found - create new one
+        print('🟡 No vendor found by auth_user_id or email. Creating new record...');
         final newVendor = await _client.from('vendors').insert({
           'full_name': fullName,
           'auth_user_id': authUserId,
           'email': authEmail,
-          'phone': authPhone, // Include phone number in creation
+          'phone': authPhone,
           'business_name': businessName,
           'business_type': serviceType,
           'verification_status': 'pending',
@@ -106,7 +290,7 @@ class VendorService {
         print('🟢 New vendor created with ID: $vendorId');
       }
 
-      // 2. Upsert the private details.
+      // 2. Upsert the private details
       await _client.from('vendor_private_details').upsert({
         'vendor_id': vendorId,
         'aadhaar_number': aadhaarNumber,
@@ -116,56 +300,71 @@ class VendorService {
       }, onConflict: 'vendor_id');
       print('🟢 Vendor private details upserted.');
 
-      // 3. Upload images and create/update document records.
+      // 3. Handle documents with URL priority
       final List<Future> documentFutures = [];
 
-      Future<void> uploadAndCreateDocument(File? file, String docType) async {
-        if (file != null) {
+      Future<void> handleDocument(String? url, File? file, String docType) async {
+        String? finalUrl;
+        
+        if (url != null) {
+          // URL is already available, use it directly
+          finalUrl = url;
+          print('🟢 Using existing URL for $docType: $url');
+        } else if (file != null) {
+          // Upload file to get URL
           try {
-            final imageUrl = await uploadImage(file, docType, vendorId);
-            // Use upsert to avoid errors on retry
-            documentFutures.add(
-              _client.from('vendor_documents').upsert({
-                'vendor_id': vendorId,
-                'document_type': docType,
-                'document_url': imageUrl,
-                'verification_status': 'pending',
-              }, onConflict: 'vendor_id, document_type'), // Assumes a vendor has one doc of each type
-            );
-            print('🟢 Queued document for upsert: $docType');
+            finalUrl = await uploadImage(file, docType, vendorId);
+            print('🟢 Uploaded $docType to get URL: $finalUrl');
           } catch (e) {
-            print('⚠️ Failed to upload $docType: $e - Continuing with registration...');
-            // Don't rethrow - allow registration to continue without this document
+            print('⚠️ Failed to upload $docType: $e - Skipping document...');
+            return;
           }
+        } else {
+          print('ℹ️ No URL or file provided for $docType - skipping');
+          return;
         }
-      }
+        
+        // Create/update document record
+        documentFutures.add(
+          _client.from('vendor_documents').upsert({
+            'vendor_id': vendorId,
+            'document_type': docType,
+            'document_url': finalUrl,
+            'verification_status': 'pending',
+          }, onConflict: 'vendor_id, document_type'),
+        );
+        print('🟢 Queued document record for $docType');
+            }
       
-      // Handle profile picture upload with graceful error handling
-      if (profileImageFile != null) {
+      // Handle profile picture (updates vendor record directly)
+      if (profileImageUrl != null) {
+        documentFutures.add(
+          _client.from('vendors').update({'profile_image_url': profileImageUrl}).eq('id', vendorId)
+        );
+        print('🟢 Using existing profile image URL');
+      } else if (profileImageFile != null) {
         try {
-          final profileImageUrl = await uploadImage(profileImageFile, 'profile', vendorId);
+          final profileUrl = await uploadImage(profileImageFile, 'profile', vendorId);
           documentFutures.add(
-            _client.from('vendors').update({'profile_image_url': profileImageUrl}).eq('id', vendorId)
+            _client.from('vendors').update({'profile_image_url': profileUrl}).eq('id', vendorId)
           );
-          print('🟢 Queued profile picture update');
+          print('🟢 Uploaded and set profile image');
         } catch (e) {
-          print('⚠️ Failed to upload profile picture: $e - Continuing with registration...');
-          // Profile picture upload failed, but don't fail the entire registration
-          // This is likely due to missing RLS policies on profile-pictures bucket
+          print('⚠️ Failed to upload profile image: $e - Continuing without it...');
         }
       }
 
-      await uploadAndCreateDocument(aadhaarFrontFile, 'identity_aadhaar_front');
-      await uploadAndCreateDocument(aadhaarBackFile, 'identity_aadhaar_back');
-      await uploadAndCreateDocument(panCardFile, 'identity_pan');
+      // Handle documents
+      await handleDocument(aadhaarFrontImageUrl, aadhaarFrontFile, 'identity_aadhaar_front');
+      await handleDocument(aadhaarBackImageUrl, aadhaarBackFile, 'identity_aadhaar_back');
+      await handleDocument(panCardImageUrl, panCardFile, 'identity_pan');
 
       if (documentFutures.isNotEmpty) {
         try {
           await Future.wait(documentFutures);
-          print('🟢 All document uploads completed successfully');
+          print('🟢 All document operations completed successfully');
         } catch (e) {
-          print('⚠️ Some document uploads failed: $e - But vendor record was created');
-          // Don't rethrow - vendor record is created, some uploads may have failed
+          print('⚠️ Some document operations failed: $e - But vendor record was created');
         }
       }
 
@@ -175,12 +374,10 @@ class VendorService {
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('id', vendorId);
 
-      print('🎉 Transaction complete: Vendor registration completed successfully!');
+      print('🎉 Vendor registration completed successfully with URL/file support!');
       
-      // Clean up temporary files after successful upload
-      _cleanupTempFiles([profileImageFile, aadhaarFrontFile, aadhaarBackFile, panCardFile]);
     } catch (e) {
-      print('🔴 Transaction failed in createVendorAndDocuments: $e');
+      print('🔴 Transaction failed in createVendorAndDocumentsWithUrls: $e');
       rethrow;
     }
   }
@@ -188,12 +385,19 @@ class VendorService {
   /// Clean up temporary files after upload
   void _cleanupTempFiles(List<File?> files) {
     for (final file in files) {
-      if (file != null && file.path.contains('temp_images')) {
+      if (file != null) {
         try {
-          file.deleteSync();
-          print('🧹 Cleaned up temp file: ${file.path}');
+          // Only clean up files that are explicitly in temp directories
+          // Be more conservative - only clean up if we're sure it's a temp file
+          if (file.path.contains('temp_images') || 
+              (file.path.contains('vendor_uploads') && file.path.contains('cache'))) {
+            file.deleteSync();
+            print('🧹 Cleaned up temp file: ${file.path}');
+          } else {
+            print('ℹ️ Keeping file (not temp): ${file.path}');
+          }
         } catch (e) {
-          print('⚠️ Failed to cleanup temp file: ${file.path} - $e');
+          print('⚠️ Failed to cleanup file: ${file.path} - $e');
         }
       }
     }
@@ -206,9 +410,31 @@ class VendorService {
       final user = _client.auth.currentUser;
       if (user == null) throw Exception('User not authenticated.');
 
+      print('🔵 Starting upload for $imageType...');
+      print('🔵 File path: ${imageFile.path}');
+
       // Check if file exists before attempting upload
       if (!await imageFile.exists()) {
-        throw Exception('Image file not found at path: ${imageFile.path}. The file may have been cleaned up.');
+        print('🔴 File not found at path: ${imageFile.path}');
+        
+        // Try to provide helpful error message based on file path
+        if (imageFile.path.contains('temp_images')) {
+          throw Exception('Image file was moved or deleted from temporary storage. Please select the image again and upload immediately.');
+        } else {
+          throw Exception('Image file not found. Please select the image again.');
+        }
+      }
+      
+      // Verify file size and readability
+      int fileSize;
+      try {
+        fileSize = await imageFile.length();
+        if (fileSize == 0) {
+          throw Exception('Selected image file is empty or corrupted. Please choose a different image.');
+        }
+        print('🔵 File size: $fileSize bytes');
+      } catch (e) {
+        throw Exception('Unable to read the selected image file. Please choose a different image.');
       }
 
       final bucketName = (imageType == 'profile') ? 'profile-pictures' : 'vendor-documents';
@@ -217,7 +443,6 @@ class VendorService {
       final filePath = '$folderPath/$fileName';
 
       print('🔵 Uploading to bucket: $bucketName, path: $filePath');
-      print('🔵 Source file: ${imageFile.path}');
       
       await _client.storage.from(bucketName).upload(
             filePath,
@@ -230,10 +455,18 @@ class VendorService {
       return publicUrl;
     } catch (e) {
       print('🔴 Image upload failed: $e');
+      
+      // Provide more specific error messages
       if (e.toString().contains('PathNotFoundException') || e.toString().contains('file not found')) {
         throw Exception('Image file was deleted or moved. Please select the image again and try uploading immediately.');
+      } else if (e.toString().contains('corrupted') || e.toString().contains('empty')) {
+        throw Exception('The selected image file is corrupted or invalid. Please choose a different image.');
+      } else if (e.toString().contains('User not authenticated')) {
+        throw Exception('Your session has expired. Please log in again and try uploading.');
+      } else {
+        // Pass through our custom exceptions
+        rethrow;
       }
-      rethrow;
     }
   }
 
@@ -339,6 +572,20 @@ class VendorService {
         if (aadhaarBackUrl != null) 'aadhaarBack': aadhaarBackUrl,
         if (panCardUrl != null) 'panCard': panCardUrl,
       };
+    }
+  }
+
+  // 🔴 NEW: Helper method to get user app type
+  Future<String?> _getUserAppType(String userId) async {
+    try {
+      final response = await _client.rpc('get_user_app_type', params: {
+        'user_id': userId,
+      });
+      
+      return response as String?;
+    } catch (e) {
+      print('🔴 Failed to get user app type: $e');
+      return null;
     }
   }
 } 

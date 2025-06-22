@@ -19,7 +19,8 @@ class GoogleAuthService {
 
   /// Initiates the Google Sign-In process and authenticates with Supabase.
   /// Returns the AuthResponse from Supabase if successful, otherwise null.
-  Future<AuthResponse?> signInWithGoogle() async {
+  /// Now includes app type to differentiate between vendor and customer apps.
+  Future<AuthResponse?> signInWithGoogle({String appType = 'vendor'}) async {
     // Ensure service is initialized
     if (_googleSignIn == null) {
       initialize();
@@ -43,11 +44,18 @@ class GoogleAuthService {
     }
 
     // 3. Use the ID token to sign in to Supabase.
-    return Supabase.instance.client.auth.signInWithIdToken(
+    final authResponse = await Supabase.instance.client.auth.signInWithIdToken(
       provider: OAuthProvider.google,
       idToken: googleAuth.idToken!,
       accessToken: googleAuth.accessToken,
     );
+
+    // 🔴 NEW: Create user profile with app type after successful Google sign-in
+    if (authResponse.user != null) {
+      await _createUserProfile(authResponse.user!.id, appType);
+    }
+
+    return authResponse;
   }
 
   /// Signs the user out from both Google and Supabase.
@@ -57,6 +65,21 @@ class GoogleAuthService {
     }
     await _googleSignIn?.signOut();
     await Supabase.instance.client.auth.signOut();
+  }
+
+  // 🔴 NEW: Helper method to create user profile with app type
+  Future<void> _createUserProfile(String userId, String appType) async {
+    try {
+      await SupabaseConfig.client.rpc('create_user_profile', params: {
+        'user_id': userId,
+        'app_type': appType,
+      });
+      
+      print('🟢 User profile created with app type: $appType');
+    } catch (e) {
+      print('🔴 Failed to create user profile: $e');
+      // Don't throw - this is not critical for auth flow
+    }
   }
 
   bool get isSignedIn => SupabaseConfig.client.auth.currentUser != null;

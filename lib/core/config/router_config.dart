@@ -27,6 +27,7 @@ import 'package:sylonow_vendor/features/profile/screens/payment_settings_screen.
 import 'package:sylonow_vendor/features/splash/splash_screen.dart';
 import '../../features/onboarding/screens/welcome_screen.dart';
 import '../../features/home/screens/home_screen.dart';
+import '../../features/dashboard/screens/booking_details_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 
@@ -229,6 +230,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/service-listings',
         builder: (_, __) => const ServiceListingsScreen(),
+      ),
+      GoRoute(
+        path: '/booking-details/:bookingId',
+        builder: (context, state) {
+          final bookingId = state.pathParameters['bookingId']!;
+          return BookingDetailsScreen(bookingId: bookingId);
+        },
       ),
     ],
   );

@@ -9,7 +9,7 @@ class NotificationNotifier extends _$NotificationNotifier {
   late final NotificationService _notificationService;
 
   @override
-  Future<bool> build() async {
+  Future<bool> build() async { 
     _notificationService = NotificationService();
     
     try {

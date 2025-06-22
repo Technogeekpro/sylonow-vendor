@@ -12,6 +12,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import '../../../core/config/supabase_config.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class VendorOnboardingScreen extends ConsumerStatefulWidget {
   const VendorOnboardingScreen({super.key});
@@ -336,9 +338,14 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
             title: 'Aadhaar Front Image',
             subtitle: 'Upload clear image of Aadhaar front side',
             image: onboardingState.aadhaarFrontImage,
+            documentType: 'aadhaar_front',
             onImageSelected: (image) {
               ref.read(vendorOnboardingControllerProvider.notifier)
                   .setAadhaarFrontImage(image);
+            },
+            onImageUploaded: (url) {
+              ref.read(vendorOnboardingControllerProvider.notifier)
+                  .setAadhaarFrontImageUrl(url);
             },
           ),
           const SizedBox(height: 20),
@@ -347,9 +354,14 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
             title: 'Aadhaar Back Image',
             subtitle: 'Upload clear image of Aadhaar back side',
             image: onboardingState.aadhaarBackImage,
+            documentType: 'aadhaar_back',
             onImageSelected: (image) {
               ref.read(vendorOnboardingControllerProvider.notifier)
                   .setAadhaarBackImage(image);
+            },
+            onImageUploaded: (url) {
+              ref.read(vendorOnboardingControllerProvider.notifier)
+                  .setAadhaarBackImageUrl(url);
             },
           ),
           const SizedBox(height: 20),
@@ -358,9 +370,14 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
             title: 'PAN Card Image',
             subtitle: 'Upload clear image of PAN card',
             image: onboardingState.panCardImage,
+            documentType: 'pan_card',
             onImageSelected: (image) {
               ref.read(vendorOnboardingControllerProvider.notifier)
                   .setPanCardImage(image);
+            },
+            onImageUploaded: (url) {
+              ref.read(vendorOnboardingControllerProvider.notifier)
+                  .setPanCardImageUrl(url);
             },
           ),
         ],
@@ -591,10 +608,44 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
       );
       
       if (image != null) {
-        // Copy file to a permanent location to prevent cleanup
+        final File imageFile = File(image.path);
+        
+        // Try to upload immediately to Supabase
+        try {
+          final user = SupabaseConfig.client.auth.currentUser;
+          if (user != null) {
+            final fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
+            final filePath = '${user.id}/$fileName';
+            
+            print('🔵 Uploading profile image to Supabase...');
+            
+            await SupabaseConfig.client.storage
+                .from('profile-pictures')
+                .upload(filePath, imageFile, fileOptions: const FileOptions(upsert: true));
+                
+            final String publicUrl = SupabaseConfig.client.storage
+                .from('profile-pictures')
+                .getPublicUrl(filePath);
+                
+            print('🟢 Profile image uploaded successfully: $publicUrl');
+            
+            ref.read(vendorOnboardingControllerProvider.notifier)
+                .setProfileImageUrl(publicUrl);
+                
+            // Also clear the local file since we have the URL
+            ref.read(vendorOnboardingControllerProvider.notifier)
+                .setProfileImage(null);
+                
+            return;
+          }
+        } catch (uploadError) {
+          print('🔴 Profile image upload failed, using local storage: $uploadError');
+        }
+        
+        // Fallback to local storage if upload fails
         final Directory appDir = await getApplicationDocumentsDirectory();
-        final String fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}${path.extension(image.path)}';
-        final String permanentPath = path.join(appDir.path, 'temp_images', fileName);
+        final String fileName = 'vendor_profile_${DateTime.now().millisecondsSinceEpoch}${path.extension(image.path)}';
+        final String permanentPath = path.join(appDir.path, 'vendor_uploads', fileName);
         
         // Create directory if it doesn't exist
         await Directory(path.dirname(permanentPath)).create(recursive: true);
@@ -602,7 +653,17 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
         // Copy the file to permanent location
         final File permanentFile = await File(image.path).copy(permanentPath);
         
-        print('📸 Profile image copied to permanent location: $permanentPath');
+        // Verify the copy was successful
+        if (!await permanentFile.exists()) {
+          throw Exception('Failed to save profile image to persistent storage');
+        }
+        
+        final persistentSize = await permanentFile.length();
+        if (persistentSize == 0) {
+          throw Exception('Profile image file became corrupted during save');
+        }
+        
+        print('📸 Profile image copied to permanent location: $permanentPath ($persistentSize bytes)');
         
         ref.read(vendorOnboardingControllerProvider.notifier)
             .setProfileImage(permanentFile);
@@ -641,9 +702,9 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
         return _formKey.currentState?.validate() ?? false;
       case 2:
         final state = ref.read(vendorOnboardingControllerProvider);
-        if (state.aadhaarFrontImage == null ||
-            state.aadhaarBackImage == null ||
-            state.panCardImage == null) {
+        if ((state.aadhaarFrontImage == null && state.aadhaarFrontImageUrl == null) ||
+            (state.aadhaarBackImage == null && state.aadhaarBackImageUrl == null) ||
+            (state.panCardImage == null && state.panCardImageUrl == null)) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Please upload all required documents'),

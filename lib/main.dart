@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:sylonow_vendor/core/theme/app_theme.dart';
 import 'core/config/router_config.dart';
 import 'core/config/supabase_config.dart';
 import 'core/services/google_auth_service.dart';
+import 'firebase_options.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
@@ -11,11 +13,35 @@ import 'package:path/path.dart' as path;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Supabase using the config class
-  await SupabaseConfig.initialize();
+  try {
+    // Initialize Firebase with proper configuration
+    print('🔥 Initializing Firebase...');
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('🟢 Firebase initialized successfully');
+  } catch (e) {
+    print('🔴 Firebase initialization failed: $e');
+    // Continue without Firebase for now
+  }
   
-  // Initialize Google Auth Service
-  GoogleAuthService().initialize();
+  try {
+    // Initialize Supabase using the config class
+    print('🔵 Initializing Supabase...');
+    await SupabaseConfig.initialize();
+    print('🟢 Supabase initialized successfully');
+  } catch (e) {
+    print('🔴 Supabase initialization failed: $e');
+  }
+  
+  try {
+    // Initialize Google Auth Service
+    print('🔐 Initializing Google Auth...');
+    GoogleAuthService().initialize();
+    print('🟢 Google Auth initialized successfully');
+  } catch (e) {
+    print('🔴 Google Auth initialization failed: $e');
+  }
   
   // Clean up old temporary files
   await _cleanupOldTempFiles();

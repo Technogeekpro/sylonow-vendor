@@ -71,7 +71,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
     setState(() => _isGoogleLoading = true);
 
     try {
-      final AuthResponse? response = await GoogleAuthService().signInWithGoogle();
+      final AuthResponse? response = await GoogleAuthService().signInWithGoogle(appType: 'vendor');
       
       if (response?.user != null && mounted) {
         print('🟢 Google Sign-In successful!');
