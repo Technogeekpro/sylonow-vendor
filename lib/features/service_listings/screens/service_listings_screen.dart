@@ -146,7 +146,7 @@ class _ServiceListingsScreenState extends ConsumerState<ServiceListingsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        listing.title,
+                        listing.title ?? 'Untitled',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -166,7 +166,7 @@ class _ServiceListingsScreenState extends ConsumerState<ServiceListingsScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          listing.category,
+                          listing.category ?? 'Uncategorized',
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,

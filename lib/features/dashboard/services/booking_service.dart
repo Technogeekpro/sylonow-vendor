@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/booking.dart';
+import '../../../core/services/firebase_analytics_service.dart';
 
 class BookingService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -32,6 +33,14 @@ class BookingService {
         
         if (rpcResponse != null && rpcResponse['success'] == true) {
           print('✅ Booking accepted via RPC successfully');
+          
+          // Track booking acceptance
+          FirebaseAnalyticsService().logBookingStatusChanged(
+            bookingId: bookingId,
+            oldStatus: 'pending',
+            newStatus: 'confirmed',
+          );
+          
           return true;
         } else {
           print('❌ RPC call returned error: ${rpcResponse?['error']}');
@@ -69,6 +78,14 @@ class BookingService {
               .eq('vendor_id', existingBooking['vendor_id']);
 
           print('✅ Booking accepted via direct update successfully');
+          
+          // Track booking acceptance
+          FirebaseAnalyticsService().logBookingStatusChanged(
+            bookingId: bookingId,
+            oldStatus: 'pending',
+            newStatus: 'confirmed',
+          );
+          
           return true;
         } catch (updateError) {
           print('❌ Direct update failed: $updateError');
@@ -78,6 +95,14 @@ class BookingService {
       
     } catch (e) {
       print('❌ Error accepting booking: $e');
+      
+      // Track booking acceptance error
+      FirebaseAnalyticsService().logError(
+        errorType: 'booking_acceptance_failed',
+        errorMessage: e.toString(),
+        screenName: 'booking_details',
+      );
+      
       if (e.toString().contains('permission') || e.toString().contains('403')) {
         print('❌ Permission denied - RLS policies or trigger issues');
         print('💡 Suggestion: Check database triggers and RLS policies');

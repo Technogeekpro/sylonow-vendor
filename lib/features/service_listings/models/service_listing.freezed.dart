@@ -25,8 +25,8 @@ mixin _$ServiceListing {
   String get listingId => throw _privateConstructorUsedError;
   @JsonKey(name: 'vendor_id')
   String get vendorId => throw _privateConstructorUsedError; // Basic Info
-  String get title => throw _privateConstructorUsedError;
-  String get category => throw _privateConstructorUsedError;
+  String? get title => throw _privateConstructorUsedError;
+  String? get category => throw _privateConstructorUsedError;
   @JsonKey(name: 'theme_tags')
   List<String> get themeTags =>
       throw _privateConstructorUsedError; // Service Environment
@@ -89,8 +89,8 @@ abstract class $ServiceListingCopyWith<$Res> {
       {String id,
       @JsonKey(name: 'listing_id') String listingId,
       @JsonKey(name: 'vendor_id') String vendorId,
-      String title,
-      String category,
+      String? title,
+      String? category,
       @JsonKey(name: 'theme_tags') List<String> themeTags,
       @JsonKey(name: 'service_environment') List<String> serviceEnvironment,
       @JsonKey(name: 'cover_photo') String? coverPhoto,
@@ -132,8 +132,8 @@ class _$ServiceListingCopyWithImpl<$Res, $Val extends ServiceListing>
     Object? id = null,
     Object? listingId = null,
     Object? vendorId = null,
-    Object? title = null,
-    Object? category = null,
+    Object? title = freezed,
+    Object? category = freezed,
     Object? themeTags = null,
     Object? serviceEnvironment = null,
     Object? coverPhoto = freezed,
@@ -169,14 +169,14 @@ class _$ServiceListingCopyWithImpl<$Res, $Val extends ServiceListing>
           ? _value.vendorId
           : vendorId // ignore: cast_nullable_to_non_nullable
               as String,
-      title: null == title
+      title: freezed == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      category: null == category
+              as String?,
+      category: freezed == category
           ? _value.category
           : category // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       themeTags: null == themeTags
           ? _value.themeTags
           : themeTags // ignore: cast_nullable_to_non_nullable
@@ -277,8 +277,8 @@ abstract class _$$ServiceListingImplCopyWith<$Res>
       {String id,
       @JsonKey(name: 'listing_id') String listingId,
       @JsonKey(name: 'vendor_id') String vendorId,
-      String title,
-      String category,
+      String? title,
+      String? category,
       @JsonKey(name: 'theme_tags') List<String> themeTags,
       @JsonKey(name: 'service_environment') List<String> serviceEnvironment,
       @JsonKey(name: 'cover_photo') String? coverPhoto,
@@ -318,8 +318,8 @@ class __$$ServiceListingImplCopyWithImpl<$Res>
     Object? id = null,
     Object? listingId = null,
     Object? vendorId = null,
-    Object? title = null,
-    Object? category = null,
+    Object? title = freezed,
+    Object? category = freezed,
     Object? themeTags = null,
     Object? serviceEnvironment = null,
     Object? coverPhoto = freezed,
@@ -355,14 +355,14 @@ class __$$ServiceListingImplCopyWithImpl<$Res>
           ? _value.vendorId
           : vendorId // ignore: cast_nullable_to_non_nullable
               as String,
-      title: null == title
+      title: freezed == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      category: null == category
+              as String?,
+      category: freezed == category
           ? _value.category
           : category // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       themeTags: null == themeTags
           ? _value._themeTags
           : themeTags // ignore: cast_nullable_to_non_nullable
@@ -458,8 +458,8 @@ class _$ServiceListingImpl implements _ServiceListing {
       {required this.id,
       @JsonKey(name: 'listing_id') required this.listingId,
       @JsonKey(name: 'vendor_id') required this.vendorId,
-      required this.title,
-      required this.category,
+      this.title,
+      this.category,
       @JsonKey(name: 'theme_tags') final List<String> themeTags = const [],
       @JsonKey(name: 'service_environment')
       final List<String> serviceEnvironment = const [],
@@ -504,9 +504,9 @@ class _$ServiceListingImpl implements _ServiceListing {
   final String vendorId;
 // Basic Info
   @override
-  final String title;
+  final String? title;
   @override
-  final String category;
+  final String? category;
   final List<String> _themeTags;
   @override
   @JsonKey(name: 'theme_tags')
@@ -734,8 +734,8 @@ abstract class _ServiceListing implements ServiceListing {
           {required final String id,
           @JsonKey(name: 'listing_id') required final String listingId,
           @JsonKey(name: 'vendor_id') required final String vendorId,
-          required final String title,
-          required final String category,
+          final String? title,
+          final String? category,
           @JsonKey(name: 'theme_tags') final List<String> themeTags,
           @JsonKey(name: 'service_environment')
           final List<String> serviceEnvironment,
@@ -773,9 +773,9 @@ abstract class _ServiceListing implements ServiceListing {
   @JsonKey(name: 'vendor_id')
   String get vendorId; // Basic Info
   @override
-  String get title;
+  String? get title;
   @override
-  String get category;
+  String? get category;
   @override
   @JsonKey(name: 'theme_tags')
   List<String> get themeTags; // Service Environment

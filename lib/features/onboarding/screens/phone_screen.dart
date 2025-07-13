@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/onboarding_provider.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/services/firebase_analytics_service.dart';
 
 class PhoneScreen extends ConsumerStatefulWidget {
   const PhoneScreen({super.key});
@@ -27,6 +28,11 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen>
     super.initState();
     _setupAnimations();
     _startAnimations();
+    
+    // Track screen view
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FirebaseAnalyticsService().logScreenView(screenName: 'phone_screen');
+    });
   }
 
   void _setupAnimations() {
@@ -67,6 +73,12 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen>
 
     setState(() => _isLoading = true);
 
+    // Track phone sign-in attempt
+    FirebaseAnalyticsService().logFeatureUsed(
+      featureName: 'phone_number_submit',
+      screenName: 'phone_screen',
+    );
+
     final result = await ref.read(onboardingProvider.notifier).signInWithMobile(
           "+91${_phoneController.text.trim()}",
         );
@@ -75,6 +87,13 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen>
 
     result.fold(
       (error) {
+        // Track phone sign-in error
+        FirebaseAnalyticsService().logError(
+          errorType: 'phone_signin_failed',
+          errorMessage: error,
+          screenName: 'phone_screen',
+        );
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(error),
@@ -87,6 +106,15 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen>
         );
       },
       (_) {
+        // Track successful OTP sent
+        FirebaseAnalyticsService().logCustomEvent(
+          eventName: 'otp_sent',
+          parameters: {
+            'method': 'phone',
+            'screen_name': 'phone_screen',
+          },
+        );
+        
         context.push('/verify-otp', extra: "+91${_phoneController.text.trim()}");
       },
     );

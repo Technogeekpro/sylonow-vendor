@@ -13,6 +13,7 @@ import 'package:sylonow_vendor/features/onboarding/models/vendor.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../onboarding/providers/vendor_provider.dart';
 import '../../onboarding/providers/service_area_provider.dart';
+import '../../../core/services/firebase_analytics_service.dart';
 
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -35,6 +36,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     _setupAnimations();
     _startAnimations();
     _setStatusBarColor();
+    
+    // Track screen view
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FirebaseAnalyticsService().logScreenView(screenName: 'home_screen');
+    });
   }
 
   void _setupAnimations() {
@@ -163,6 +169,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Future<void> _handleRefresh() async {
     try {
       print('🔄 Refreshing home screen data...');
+      
+      // Track refresh action
+      FirebaseAnalyticsService().logFeatureUsed(
+        featureName: 'pull_to_refresh',
+        screenName: 'home_screen',
+      );
       
       // Show haptic feedback
       HapticFeedback.lightImpact();

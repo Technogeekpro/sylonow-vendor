@@ -11,8 +11,8 @@ _$ServiceListingImpl _$$ServiceListingImplFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       listingId: json['listing_id'] as String,
       vendorId: json['vendor_id'] as String,
-      title: json['title'] as String,
-      category: json['category'] as String,
+      title: json['title'] as String?,
+      category: json['category'] as String?,
       themeTags: (json['theme_tags'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??

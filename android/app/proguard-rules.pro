@@ -1,11 +1,43 @@
-# Flutter specific rules
+# Flutter and Dart specific
 -keep class io.flutter.app.** { *; }
 -keep class io.flutter.plugin.**  { *; }
 -keep class io.flutter.util.**  { *; }
 -keep class io.flutter.view.**  { *; }
 -keep class io.flutter.**  { *; }
 -keep class io.flutter.plugins.**  { *; }
--dontwarn io.flutter.embedding.**
+
+# Image Picker specific fixes
+-keep class io.flutter.plugins.imagepicker.** { *; }
+-keep class io.flutter.plugins.imagepicker.ImagePickerCache { *; }
+-keep class io.flutter.plugins.imagepicker.ImagePickerCache$* { *; }
+
+# Firebase
+-keep class com.google.firebase.** { *; }
+-keep class com.google.android.gms.** { *; }
+
+# Google Sign In
+-keep class com.google.android.gms.auth.** { *; }
+-keep class com.google.android.gms.common.** { *; }
+
+# Supabase/Gotrue
+-keep class io.supabase.** { *; }
+
+# General Android rules
+-keepattributes *Annotation*
+-keepattributes Signature
+-keepattributes InnerClasses
+-keepattributes EnclosingMethod
+
+# Gson (if used)
+-keepattributes Signature
+-keep class * implements com.google.gson.TypeAdapterFactory
+-keep class * implements com.google.gson.JsonSerializer
+-keep class * implements com.google.gson.JsonDeserializer
+
+# Don't warn about missing classes
+-dontwarn io.flutter.plugins.imagepicker.**
+-dontwarn com.google.android.gms.**
+-dontwarn com.google.firebase.**
 
 # Gson rules (used by Supabase)
 -keepattributes Signature
@@ -21,17 +53,11 @@
 }
 
 # Supabase specific rules
--keep class io.supabase.** { *; }
 -keep class com.github.kittinunf.fuel.** { *; }
 -dontwarn io.supabase.**
 
 # Google Play Services
--keep class com.google.android.gms.** { *; }
 -dontwarn com.google.android.gms.**
-
-# Google Sign-In
--keep class com.google.android.gms.auth.** { *; }
--keep class com.google.android.gms.common.** { *; }
 
 # OkHttp (used by networking libraries)
 -dontwarn okhttp3.**

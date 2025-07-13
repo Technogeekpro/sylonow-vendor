@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
 import '../service/vendor_service.dart';
 import '../../../core/config/supabase_config.dart';
+import '../../../core/services/firebase_analytics_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
@@ -263,10 +264,35 @@ class VendorOnboardingController extends StateNotifier<VendorOnboardingState> {
       );
 
       print('🟢 Vendor application submitted successfully in controller!');
+      
+      // Track successful onboarding completion
+      FirebaseAnalyticsService().logOnboardingCompleted(
+        timeSpent: const Duration(minutes: 5), // Approximate time
+        totalSteps: 1, // Single form submission
+      );
+      
+      // Track vendor registration as sign up
+      FirebaseAnalyticsService().logSignUp(method: 'vendor_onboarding');
+      
+      // Set user properties
+      FirebaseAnalyticsService().setUserProperties(
+        userId: user.id,
+        userType: 'vendor',
+        businessType: serviceType,
+        location: '$serviceArea, $pincode',
+      );
+      
       state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
       print('🔴 Error submitting vendor application in controller: $e');
+      
+      // Track onboarding error
+      FirebaseAnalyticsService().logError(
+        errorType: 'onboarding_submission_failed',
+        errorMessage: e.toString(),
+        screenName: 'vendor_onboarding',
+      );
       
       String userMessage;
       if (e.toString().contains('already a verified vendor')) {

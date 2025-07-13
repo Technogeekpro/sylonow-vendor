@@ -6,6 +6,7 @@ import '../helpers/otp_helper.dart';
 import '../../../core/config/supabase_config.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/vendor_provider.dart';
+import '../../../core/services/firebase_analytics_service.dart';
 
 class OtpVerificationScreen extends ConsumerStatefulWidget {
   final String phoneNumber;
@@ -33,6 +34,8 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
     // Defer the initial OTP sending to avoid provider modification during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        // Track screen view
+        FirebaseAnalyticsService().logScreenView(screenName: 'otp_verification_screen');
         _sendInitialOtp();
       }
     });
@@ -72,6 +75,12 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
   }
 
   Future<void> _verifyOtp() async {
+    // Track OTP verification attempt
+    FirebaseAnalyticsService().logFeatureUsed(
+      featureName: 'otp_verification_submit',
+      screenName: 'otp_verification_screen',
+    );
+    
     final controller = ref.read(otpControllerProvider.notifier);
     final isVerified = await controller.verifyOtp(widget.phoneNumber);
 
@@ -81,6 +90,9 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
       final user = client.auth.currentUser;
       
       if (user != null) {
+        // Track successful phone login
+        FirebaseAnalyticsService().logLogin(method: 'phone');
+        
         OtpHelper.showSuccessSnackBar(context, 'OTP verified successfully!');
         
         // Force refresh vendor data after successful login
@@ -98,12 +110,25 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
           context.go('/');
         }
       } else {
+        // Track OTP verification failure
+        FirebaseAnalyticsService().logError(
+          errorType: 'otp_verification_auth_failed',
+          errorMessage: 'Authentication failed after OTP verification',
+          screenName: 'otp_verification_screen',
+        );
+        
         OtpHelper.showErrorSnackBar(context, 'Authentication failed. Please try again.');
       }
     }
   }
 
   Future<void> _resendOtp() async {
+    // Track OTP resend
+    FirebaseAnalyticsService().logFeatureUsed(
+      featureName: 'otp_resend',
+      screenName: 'otp_verification_screen',
+    );
+    
     final controller = ref.read(otpControllerProvider.notifier);
     await controller.resendOtp(widget.phoneNumber);
     

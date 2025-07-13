@@ -12,8 +12,8 @@ class ServiceListing with _$ServiceListing {
     @JsonKey(name: 'vendor_id') required String vendorId,
     
     // Basic Info
-    required String title,
-    required String category,
+    String? title,
+    String? category,
     @JsonKey(name: 'theme_tags') @Default([]) List<String> themeTags,
     
     // Service Environment

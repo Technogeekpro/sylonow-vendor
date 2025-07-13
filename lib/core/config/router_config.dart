@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sylonow_vendor/core/config/supabase_config.dart';
+import 'package:sylonow_vendor/core/services/firebase_analytics_service.dart';
 import 'package:sylonow_vendor/features/onboarding/providers/vendor_provider.dart';
 import 'package:sylonow_vendor/features/onboarding/screens/otp_verification_screen.dart';
 import 'package:sylonow_vendor/features/onboarding/screens/phone_screen.dart';
@@ -61,6 +62,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/',
     debugLogDiagnostics: true,
     refreshListenable: refreshStream,
+    observers: [FirebaseAnalyticsService().observer],
     redirect: (context, state) {
       final authState = ref.watch(authStateProvider);
       final vendorState = ref.watch(vendorProvider);

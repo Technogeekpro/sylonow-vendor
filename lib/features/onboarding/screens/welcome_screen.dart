@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/config/supabase_config.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/google_auth_service.dart';
+import '../../../core/services/firebase_analytics_service.dart';
 
 class WelcomeScreen extends ConsumerStatefulWidget {
   const WelcomeScreen({super.key});
@@ -27,6 +28,11 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
     super.initState();
     _setupAnimations();
     _startAnimations();
+    
+    // Track screen view
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FirebaseAnalyticsService().logScreenView(screenName: 'welcome_screen');
+    });
   }
 
   void _setupAnimations() {
@@ -71,10 +77,20 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
     setState(() => _isGoogleLoading = true);
 
     try {
+      // Track sign-in attempt
+      FirebaseAnalyticsService().logFeatureUsed(
+        featureName: 'google_signin_button',
+        screenName: 'welcome_screen',
+      );
+      
       final AuthResponse? response = await GoogleAuthService().signInWithGoogle(appType: 'vendor');
       
       if (response?.user != null && mounted) {
         print('🟢 Google Sign-In successful!');
+        
+        // Track successful login
+        FirebaseAnalyticsService().logLogin(method: 'google');
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -101,6 +117,14 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
       
     } catch (error) {
       print('🔴 Google Sign-In Error: $error');
+      
+      // Track sign-in error
+      FirebaseAnalyticsService().logError(
+        errorType: 'google_signin_failed',
+        errorMessage: error.toString(),
+        screenName: 'welcome_screen',
+      );
+      
       if (mounted) {
         String errorMessage = 'Google Sign-In failed';
         
@@ -379,6 +403,11 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                     height: 56,
                     child: OutlinedButton(
                       onPressed: () {
+                        // Track phone sign-in button click
+                        FirebaseAnalyticsService().logFeatureUsed(
+                          featureName: 'phone_signin_button',
+                          screenName: 'welcome_screen',
+                        );
                         context.go('/phone');
                       },
                       style: OutlinedButton.styleFrom(

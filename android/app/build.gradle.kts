@@ -37,8 +37,8 @@ android {
         applicationId = "com.sylonow.vendor"
         minSdk = 23
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
         
         // Enable multidex support
         multiDexEnabled = true
@@ -67,7 +67,7 @@ android {
             isShrinkResources = false
             isDebuggable = false
             
-            // Temporarily disabled for app bundle generation
+            // Temporarily disabled for compatibility
             // proguardFiles(
             //     getDefaultProguardFile("proguard-android-optimize.txt"),
             //     "proguard-rules.pro"
@@ -78,6 +78,25 @@ android {
     // Enable R8 full mode
     buildFeatures {
         buildConfig = true
+    }
+    
+    // Fix for image_picker and other plugins compilation issues
+    packagingOptions {
+        pickFirst("**/libc++_shared.so")
+        pickFirst("**/libjsc.so")
+    }
+    
+    // Additional configuration for release builds
+    bundle {
+        language {
+            enableSplit = false
+        }
+        density {
+            enableSplit = true
+        }
+        abi {
+            enableSplit = true
+        }
     }
 }
 
