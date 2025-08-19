@@ -26,12 +26,8 @@ mixin _$DashboardData {
   @JsonKey(includeFromJson: false, includeToJson: false)
   List<ActivityItem> get recentActivities => throw _privateConstructorUsedError;
 
-  /// Serializes this DashboardData to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of DashboardData
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $DashboardDataCopyWith<DashboardData> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -62,8 +58,6 @@ class _$DashboardDataCopyWithImpl<$Res, $Val extends DashboardData>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of DashboardData
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -87,8 +81,6 @@ class _$DashboardDataCopyWithImpl<$Res, $Val extends DashboardData>
     ) as $Val);
   }
 
-  /// Create a copy of DashboardData
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $DashboardStatsCopyWith<$Res> get stats {
@@ -97,8 +89,6 @@ class _$DashboardDataCopyWithImpl<$Res, $Val extends DashboardData>
     });
   }
 
-  /// Create a copy of DashboardData
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $BookingCopyWith<$Res>? get latestPendingBooking {
@@ -140,8 +130,6 @@ class __$$DashboardDataImplCopyWithImpl<$Res>
       _$DashboardDataImpl _value, $Res Function(_$DashboardDataImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of DashboardData
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -211,14 +199,12 @@ class _$DashboardDataImpl implements _DashboardData {
                 .equals(other._recentActivities, _recentActivities));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, stats, latestPendingBooking,
       const DeepCollectionEquality().hash(_recentActivities));
 
-  /// Create a copy of DashboardData
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$DashboardDataImplCopyWith<_$DashboardDataImpl> get copyWith =>
@@ -251,11 +237,8 @@ abstract class _DashboardData implements DashboardData {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   List<ActivityItem> get recentActivities;
-
-  /// Create a copy of DashboardData
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$DashboardDataImplCopyWith<_$DashboardDataImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

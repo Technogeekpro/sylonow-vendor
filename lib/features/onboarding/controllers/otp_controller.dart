@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 import '../providers/otp_provider.dart';
 import '../helpers/otp_helper.dart';
+import '../../../core/utils/error_utils.dart';
 
 final otpControllerProvider = StateNotifierProvider<OtpController, OtpState>((ref) {
   return OtpController(ref);
@@ -80,9 +80,19 @@ class OtpController extends StateNotifier<OtpState> {
       );
       state = state.copyWith(isLoading: false);
     } catch (e) {
+      String errorMessage = e.toString();
+      if (errorMessage.startsWith('Exception: ')) {
+        errorMessage = errorMessage.substring(11);
+      }
+      
+      // Handle rate limiting specifically for initial send
+      if (errorMessage.contains('rate_limit') || errorMessage.contains('wait')) {
+        errorMessage = 'Please wait a few seconds before requesting OTP';
+      }
+      
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Failed to send OTP: $e',
+        errorMessage: errorMessage,
       );
     }
   }
@@ -94,6 +104,7 @@ class OtpController extends StateNotifier<OtpState> {
     }
 
     try {
+      print('🔍 OTP Controller: Starting verification for phone: $phoneNumber');
       state = state.copyWith(isLoading: true, errorMessage: null);
       
       final otpNotifier = ref.read(otpNotifierProvider.notifier);
@@ -106,17 +117,18 @@ class OtpController extends StateNotifier<OtpState> {
 
       state = state.copyWith(isLoading: false);
       
-      if (!isVerified) {
+      if (isVerified) {
+        print('🟢 OTP Controller: Verification successful');
+      } else {
+        print('🔴 OTP Controller: Verification failed - invalid OTP');
         state = state.copyWith(errorMessage: 'Invalid OTP. Please try again.');
       }
       
       return isVerified;
     } catch (e) {
-      String errorMessage = e.toString();
-      if (errorMessage.startsWith('Exception: ')) {
-        errorMessage = errorMessage.substring(11);
-      }
-      
+      print('❌ OTP Controller: Verification failed with error: $e');
+      // Use ErrorUtils to get user-friendly error message
+      final errorMessage = ErrorUtils.getOtpErrorMessage(e);
       state = state.copyWith(
         isLoading: false,
         errorMessage: errorMessage,
@@ -143,9 +155,19 @@ class OtpController extends StateNotifier<OtpState> {
       _startTimer();
       state = state.copyWith(isLoading: false);
     } catch (e) {
+      String errorMessage = e.toString();
+      if (errorMessage.startsWith('Exception: ')) {
+        errorMessage = errorMessage.substring(11);
+      }
+      
+      // Handle rate limiting specifically
+      if (errorMessage.contains('rate_limit') || errorMessage.contains('wait')) {
+        errorMessage = 'Please wait a few seconds before requesting another OTP';
+      }
+      
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Failed to resend OTP: $e',
+        errorMessage: errorMessage,
       );
     }
   }
@@ -153,4 +175,4 @@ class OtpController extends StateNotifier<OtpState> {
   void clearError() {
     state = state.copyWith(errorMessage: null);
   }
-} 
+}

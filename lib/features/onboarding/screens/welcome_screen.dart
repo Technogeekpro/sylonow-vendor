@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../core/config/supabase_config.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/google_auth_service.dart';
 import '../../../core/services/firebase_analytics_service.dart';
@@ -28,7 +28,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
     super.initState();
     _setupAnimations();
     _startAnimations();
-    
+
     // Track screen view
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FirebaseAnalyticsService().logScreenView(screenName: 'welcome_screen');
@@ -82,15 +82,16 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
         featureName: 'google_signin_button',
         screenName: 'welcome_screen',
       );
-      
-      final AuthResponse? response = await GoogleAuthService().signInWithGoogle(appType: 'vendor');
-      
+
+      final AuthResponse? response =
+          await GoogleAuthService().signInWithGoogle(appType: 'vendor');
+
       if (response?.user != null && mounted) {
         print('🟢 Google Sign-In successful!');
-        
+
         // Track successful login
         FirebaseAnalyticsService().logLogin(method: 'google');
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -107,33 +108,35 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
             ),
           ),
         );
-        
+
         // Navigate to home after successful sign-in
         context.go('/');
       } else if (response == null) {
         // User cancelled the sign-in
         print('🔵 User cancelled Google Sign-In');
       }
-      
     } catch (error) {
       print('🔴 Google Sign-In Error: $error');
-      
+
       // Track sign-in error
       FirebaseAnalyticsService().logError(
         errorType: 'google_signin_failed',
         errorMessage: error.toString(),
         screenName: 'welcome_screen',
       );
-      
+
       if (mounted) {
         String errorMessage = 'Google Sign-In failed';
-        
+
         // Handle specific error types
         if (error.toString().contains('PlatformException')) {
-          if (error.toString().contains('sign_in_failed') || error.toString().contains('10')) {
-            errorMessage = 'Google Sign-In configuration issue. Please try phone verification.';
+          if (error.toString().contains('sign_in_failed') ||
+              error.toString().contains('10')) {
+            errorMessage =
+                'Google Sign-In configuration issue. Please try phone verification.';
           } else if (error.toString().contains('network_error')) {
-            errorMessage = 'Network error. Please check your internet connection.';
+            errorMessage =
+                'Network error. Please check your internet connection.';
           } else if (error.toString().contains('sign_in_canceled')) {
             errorMessage = 'Sign-in was cancelled.';
           }
@@ -143,10 +146,11 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
           errorMessage = error.message;
           print('🔴 AuthException details: ${error.message}');
         } else if (error.toString().contains('Bad ID token')) {
-          errorMessage = 'Authentication configuration issue. Please try phone verification.';
+          errorMessage =
+              'Authentication configuration issue. Please try phone verification.';
           print('🔴 Bad ID token - likely client ID mismatch');
         }
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Column(
@@ -215,13 +219,13 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppTheme.primaryColor,
-              AppTheme.secondaryColor,
+              Theme.of(context).primaryColor,
+              Theme.of(context).primaryColor.withValues(alpha: 0.8),
             ],
           ),
         ),
@@ -236,63 +240,20 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                   opacity: _fadeAnimation,
                   child: SlideTransition(
                     position: _slideAnimation,
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceColor,
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
+                    child: AspectRatio(
+                      aspectRatio: 1,
                       child: Image.asset(
                         'assets/images/app_logo.png',
-                        width: 100,
-                        height: 100,
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 40),
 
-                // Welcome Text
-                FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: Column(
-                      children: [
-                        const Text(
-                          'Welcome to',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w300,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const Text(
-                          'Sylonow Vendor',
-                          style: TextStyle(
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Manage your business with ease',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white.withOpacity(0.8),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                 Text(
+                  'Join the Vendor community and start earning from today',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w400,)
                 ),
 
                 const Spacer(),
@@ -331,7 +292,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                                     color: Colors.white,
                                     fontWeight: FontWeight.w600,
                                     decoration: TextDecoration.underline,
-                                    decorationColor: Colors.white.withOpacity(0.7),
+                                    decorationColor:
+                                        Colors.white.withOpacity(0.7),
                                   ),
                                 ),
                               ],
@@ -345,17 +307,99 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
 
                 const SizedBox(height: 24),
 
+                  // Phone Sign-In Button
+                FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: FilledButton(
+                      onPressed: _termsAccepted ? () {
+                        // Track phone sign-in button click
+                        FirebaseAnalyticsService().logFeatureUsed(
+                          featureName: 'phone_signin_button',
+                          screenName: 'welcome_screen',
+                        );
+                        context.go('/phone');
+                      } : null,
+
+                      
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.grey,
+                        disabledForegroundColor: Colors.grey,
+                        disabledBackgroundColor: Colors.grey,
+                        elevation: 8,
+                        shadowColor: Colors.black.withOpacity(0.3),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),  
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.phone, color: Colors.black),
+                          SizedBox(width: 12),
+                          Text(
+                            'Continue with Phone',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+                //Or Divider
+                 Row(
+                  children: [
+                    Expanded(
+                      child: Divider(
+                        color: Colors.white.withOpacity(0.5),
+                        thickness: 1,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 8,
+                    ),
+                    const Text(
+                      'OR',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 8,),
+                    Expanded(
+                      child: Divider(
+                        color: Colors.white.withOpacity(0.5),
+                        thickness: 1,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
                 // Google Sign-In Button
                 FadeTransition(
                   opacity: _fadeAnimation,
                   child: SizedBox(
                     width: double.infinity,
                     height: 56,
-                    child: ElevatedButton(
-                      onPressed: _isGoogleLoading ? null : _signInWithGoogle,
-                      style: ElevatedButton.styleFrom(
+                    child: FilledButton(
+                      onPressed: _termsAccepted  ? (_isGoogleLoading ? null : _signInWithGoogle) : null,
+                      style: FilledButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black87,
+                        disabledForegroundColor: Colors.grey,
+                        disabledBackgroundColor: Colors.grey,
                         elevation: 8,
                         shadowColor: Colors.black.withOpacity(0.3),
                         shape: RoundedRectangleBorder(
@@ -385,6 +429,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
+                                    color: Colors.black,
                                   ),
                                 ),
                               ],
@@ -395,45 +440,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
 
                 const SizedBox(height: 16),
 
-                // Phone Sign-In Button
-                FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        // Track phone sign-in button click
-                        FirebaseAnalyticsService().logFeatureUsed(
-                          featureName: 'phone_signin_button',
-                          screenName: 'welcome_screen',
-                        );
-                        context.go('/phone');
-                      },
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.white, width: 2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28),
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.phone, color: Colors.white),
-                          SizedBox(width: 12),
-                          Text(
-                            'Continue with Phone',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+              
 
                 const SizedBox(height: 32),
 

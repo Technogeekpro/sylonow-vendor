@@ -18,6 +18,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Release AAB**: `flutter build appbundle --release`
 - **Automated release build**: `./build_release.bat` (generates icons, splash, AAB, and APK)
 
+### Testing Commands
+- **Run all tests**: `flutter test`
+- **Run widget tests**: `flutter test test/widget_test/`
+- **Run integration tests**: `flutter test test/integration_test/`
+- **OneSignal integration test**: `./test_onesignal_integration.sh`
+
 ### Code Generation Commands
 - **Generate app icons**: `flutter pub run flutter_launcher_icons`
 - **Generate splash screen**: `flutter pub run flutter_native_splash:create`
@@ -53,8 +59,9 @@ lib/
 - **Routing**: GoRouter with comprehensive auth guards and state-based redirects
 - **Backend**: Supabase for authentication, database, real-time features, and file storage
 - **Data Models**: Freezed for immutable data classes with JSON serialization
-- **Notifications**: Firebase + OneSignal integration
+- **Notifications**: Firebase + OneSignal dual integration with edge function webhooks
 - **Image Handling**: Built-in image picker with temporary file cleanup system
+- **Authentication**: Phone-based OTP with Google Sign-In fallback
 
 ### Data Flow Pattern
 1. **Models**: Freezed classes with `fromJson`/`toJson` in `models/`
@@ -64,16 +71,34 @@ lib/
 5. **Screens**: UI screens consuming providers in `screens/`
 6. **Widgets**: Reusable components in `widgets/`
 
+## Code Development Principles
+- Always write clean, industry-level, and scalable code
+- Maintain code quality and adhere to best practices
+- Separate UI and business logic
+  - Use Riverpod providers for business logic
+  - Create providers to manage logic in UI files
+- Maximum code file length: 1000 lines
+- UI files should not contain business logic
+- Create separate providers for complex interactions
+- Use controllers to manage UI logic
+
 ## Feature Development Workflow
 
 When creating new features, follow this exact structure from `.cursor/rules/flutter-rules.mdc`:
 
 1. **Create folder structure**: `screens/`, `providers/`, `controllers/`, `models/`, `widgets/`, `service/`
-2. **Create Freezed models**: Define data structures with JSON serialization
-3. **Implement services**: Supabase data access returning Freezed models
-4. **Create providers**: AsyncNotifier providers with error handling
-5. **Build screens**: UI consuming providers
-6. **Add controllers**: UI logic control for complex interactions
+2. **Create Freezed models first**: Define data structures with JSON serialization using `@freezed`
+3. **Run code generation**: `flutter packages pub run build_runner build --delete-conflicting-outputs`
+4. **Implement services**: Supabase data access in `service/` folder returning Freezed models via `fromJson`/`toJson`
+5. **Create providers**: AsyncNotifier providers in `providers/` with proper error handling
+6. **Build screens**: UI in `screens/` consuming providers
+7. **Add controllers**: UI logic controllers in `controllers/` for complex interactions
+
+### Development Principles from Cursor Rules
+- Follow feature-first layer approach
+- Keep user interface minimal and clean
+- Avoid complex code and maintain proper separations
+- Always use AsyncNotifier pattern for providers
 
 ## Important Configuration
 
@@ -83,10 +108,11 @@ When creating new features, follow this exact structure from `.cursor/rules/flut
 - Real-time subscriptions used throughout the app
 
 ### Authentication Flow
-- Phone-based OTP authentication via Supabase
-- Google Sign-In integration available
-- Comprehensive auth guards in router configuration
+- Phone-based OTP authentication via Supabase with PKCE flow
+- Google Sign-In integration available as fallback
+- Comprehensive auth guards in router configuration with `GoRouterRefreshStream`
 - Vendor verification workflow: Authentication → Onboarding → Verification → Home
+- Auth state managed through `authStateProvider` and `vendorProvider`
 
 ### Code Generation Requirements
 - Run code generation after model changes: `flutter packages pub run build_runner build --delete-conflicting-outputs`
@@ -98,6 +124,13 @@ When creating new features, follow this exact structure from `.cursor/rules/flut
 - Includes app icon and splash screen generation
 - Supports both APK and AAB output formats
 - Configured for core library desugaring (Android API compatibility)
+
+### Notification System (OneSignal + Firebase)
+- **OneSignal**: Primary push notification service with edge function integration
+- **Firebase**: Backup notification system and analytics
+- **Edge Functions**: Supabase functions in `supabase/functions/order-notifications-onesignal/`
+- **Database Webhooks**: Automatic order notification triggers via PostgreSQL functions
+- **Testing**: Use `./test_onesignal_integration.sh` for comprehensive integration testing
 
 ## Development Notes
 
@@ -122,3 +155,32 @@ When creating new features, follow this exact structure from `.cursor/rules/flut
 - Unit tests: `flutter test`
 - Widget tests in `test/widget_test/`
 - Integration tests in `test/integration_test/`
+
+## Key Dependencies
+
+### Core Flutter Stack
+- **Flutter SDK**: 3.2.3+ with Dart 3.2.3+
+- **State Management**: `flutter_riverpod: ^2.4.9` with `riverpod_annotation: ^2.6.1`
+- **Navigation**: `go_router: ^13.0.1` for declarative routing
+- **Backend**: `supabase_flutter: ^2.3.2` for database and auth
+
+### Notification Services
+- **Firebase**: `firebase_core: ^2.24.2` + `firebase_messaging: ^14.7.10`
+- **OneSignal**: `onesignal_flutter: ^5.1.2` for primary push notifications
+- **Local Notifications**: `flutter_local_notifications: ^18.0.1`
+
+### Code Generation
+- **Data Classes**: `freezed: ^2.4.6` + `freezed_annotation: ^2.4.1`
+- **JSON Serialization**: `json_serializable: ^6.7.1` + `json_annotation: ^4.8.1`
+- **Riverpod**: `riverpod_generator: ^2.6.2` for provider code generation
+- **Build Runner**: `build_runner: ^2.4.8` for running code generation
+
+### UI and Forms
+- **Forms**: `flutter_form_builder: ^9.4.1` + `form_builder_validators: ^10.0.1`
+- **OTP Input**: `pin_code_fields: ^8.0.1` (replaces pinput to avoid smart_auth crashes)
+- **Images**: `image_picker: ^1.0.7` + `cached_network_image: ^3.3.1`
+
+### Development Notes
+- Uses dependency overrides for `analyzer: ^6.4.1` and `custom_lint_core: ^0.6.0`
+- Requires Android SDK 23+ due to core library desugaring
+- while changing model file keep in mind that awe are using freexzed so dont edit model file that has .g.dart extention it will auto create when we run dart run build_runner build --delete-conflicting-outputs

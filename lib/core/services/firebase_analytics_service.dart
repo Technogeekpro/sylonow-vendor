@@ -1,4 +1,4 @@
-﻿import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
 
 class FirebaseAnalyticsService {
@@ -7,23 +7,31 @@ class FirebaseAnalyticsService {
   FirebaseAnalyticsService._internal();
 
   late final FirebaseAnalytics _analytics;
-  late final FirebaseAnalyticsObserver _observer;
+  FirebaseAnalyticsObserver? _observer;
+  bool _isInitialized = false;
 
   /// Initialize Firebase Analytics
   void initialize() {
-    _analytics = FirebaseAnalytics.instance;
-    _observer = FirebaseAnalyticsObserver(analytics: _analytics);
-    
-    // Enable analytics collection (disabled by default in debug mode)
-    _analytics.setAnalyticsCollectionEnabled(true);
-    
-    if (kDebugMode) {
-      print('🔥📊 Firebase Analytics initialized');
+    try {
+      _analytics = FirebaseAnalytics.instance;
+      _observer = FirebaseAnalyticsObserver(analytics: _analytics);
+      _isInitialized = true;
+      
+      // Enable analytics collection (disabled by default in debug mode)
+      _analytics.setAnalyticsCollectionEnabled(true);
+      
+      if (kDebugMode) {
+        print('🔥📊 Firebase Analytics initialized');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('⚠️ Firebase Analytics initialization failed: $e');
+      }
     }
   }
 
   /// Get the observer for navigation tracking
-  FirebaseAnalyticsObserver get observer => _observer;
+  FirebaseAnalyticsObserver? get observer => _isInitialized ? _observer : null;
 
   // ==========================================
   // USER PROPERTIES
@@ -36,6 +44,13 @@ class FirebaseAnalyticsService {
     String? businessType,
     String? location,
   }) async {
+    if (!_isInitialized) {
+      if (kDebugMode) {
+        print('⚠️ Firebase Analytics not initialized, skipping setUserProperties');
+      }
+      return;
+    }
+    
     try {
       await _analytics.setUserId(id: userId);
       
@@ -67,6 +82,13 @@ class FirebaseAnalyticsService {
 
   /// Track user login
   Future<void> logLogin({required String method}) async {
+    if (!_isInitialized) {
+      if (kDebugMode) {
+        print('⚠️ Firebase Analytics not initialized, skipping logLogin');
+      }
+      return;
+    }
+    
     try {
       await _analytics.logLogin(loginMethod: method);
       if (kDebugMode) {
@@ -81,6 +103,13 @@ class FirebaseAnalyticsService {
 
   /// Track user sign up
   Future<void> logSignUp({required String method}) async {
+    if (!_isInitialized) {
+      if (kDebugMode) {
+        print('⚠️ Firebase Analytics not initialized, skipping logSignUp');
+      }
+      return;
+    }
+    
     try {
       await _analytics.logSignUp(signUpMethod: method);
       if (kDebugMode) {
@@ -103,6 +132,13 @@ class FirebaseAnalyticsService {
     required int stepNumber,
     Map<String, Object>? additionalParams,
   }) async {
+    if (!_isInitialized) {
+      if (kDebugMode) {
+        print('⚠️ Firebase Analytics not initialized, skipping logOnboardingStep');
+      }
+      return;
+    }
+    
     try {
       final params = <String, Object>{
         'step_name': stepName,
@@ -130,6 +166,13 @@ class FirebaseAnalyticsService {
     required Duration timeSpent,
     required int totalSteps,
   }) async {
+    if (!_isInitialized) {
+      if (kDebugMode) {
+        print('⚠️ Firebase Analytics not initialized, skipping logOnboardingCompleted');
+      }
+      return;
+    }
+    
     try {
       await _analytics.logEvent(
         name: 'onboarding_completed',
@@ -159,6 +202,13 @@ class FirebaseAnalyticsService {
     required double price,
     String? location,
   }) async {
+    if (!_isInitialized) {
+      if (kDebugMode) {
+        print('⚠️ Firebase Analytics not initialized, skipping logServiceCreated');
+      }
+      return;
+    }
+    
     try {
       await _analytics.logEvent(
         name: 'service_created',
@@ -185,6 +235,13 @@ class FirebaseAnalyticsService {
     required String serviceType,
     required double value,
   }) async {
+    if (!_isInitialized) {
+      if (kDebugMode) {
+        print('⚠️ Firebase Analytics not initialized, skipping logBookingReceived');
+      }
+      return;
+    }
+    
     try {
       await _analytics.logEvent(
         name: 'booking_received',
@@ -211,6 +268,13 @@ class FirebaseAnalyticsService {
     required String oldStatus,
     required String newStatus,
   }) async {
+    if (!_isInitialized) {
+      if (kDebugMode) {
+        print('⚠️ Firebase Analytics not initialized, skipping logBookingStatusChanged');
+      }
+      return;
+    }
+    
     try {
       await _analytics.logEvent(
         name: 'booking_status_changed',
@@ -240,6 +304,13 @@ class FirebaseAnalyticsService {
     required String screenName,
     String? screenClass,
   }) async {
+    if (!_isInitialized) {
+      if (kDebugMode) {
+        print('⚠️ Firebase Analytics not initialized, skipping logScreenView');
+      }
+      return;
+    }
+    
     try {
       await _analytics.logScreenView(
         screenName: screenName,
@@ -262,6 +333,13 @@ class FirebaseAnalyticsService {
     String? screenName,
     Map<String, Object>? additionalParams,
   }) async {
+    if (!_isInitialized) {
+      if (kDebugMode) {
+        print('⚠️ Firebase Analytics not initialized, skipping logFeatureUsed');
+      }
+      return;
+    }
+    
     try {
       final params = <String, Object>{
         'feature_name': featureName,
@@ -290,6 +368,13 @@ class FirebaseAnalyticsService {
     required String errorMessage,
     String? screenName,
   }) async {
+    if (!_isInitialized) {
+      if (kDebugMode) {
+        print('⚠️ Firebase Analytics not initialized, skipping logError');
+      }
+      return;
+    }
+    
     try {
       await _analytics.logEvent(
         name: 'app_error',
@@ -320,6 +405,13 @@ class FirebaseAnalyticsService {
     required String currency,
     required String source, // 'booking', 'tip', etc.
   }) async {
+    if (!_isInitialized) {
+      if (kDebugMode) {
+        print('⚠️ Firebase Analytics not initialized, skipping logEarnings');
+      }
+      return;
+    }
+    
     try {
       await _analytics.logEvent(
         name: 'earnings_received',
@@ -349,6 +441,13 @@ class FirebaseAnalyticsService {
     required String eventName,
     Map<String, Object>? parameters,
   }) async {
+    if (!_isInitialized) {
+      if (kDebugMode) {
+        print('⚠️ Firebase Analytics not initialized, skipping logCustomEvent');
+      }
+      return;
+    }
+    
     try {
       await _analytics.logEvent(
         name: eventName,

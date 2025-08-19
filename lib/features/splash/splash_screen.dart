@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sylonow_vendor/core/theme/app_theme.dart';
 import 'package:sylonow_vendor/core/providers/auth_provider.dart';
 import 'package:sylonow_vendor/features/onboarding/providers/vendor_provider.dart';
@@ -80,10 +81,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     final authState = ref.watch(authStateProvider);
     final vendorState = ref.watch(vendorProvider);
     final isAuthenticated = authState.valueOrNull?.session != null;
-    
+
     return Scaffold(
-      backgroundColor: AppTheme.primaryColor,
-      body: Center(
+        body: Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Theme.of(context).primaryColor,
+            Theme.of(context).primaryColor.withValues(alpha: 0.8),
+          ],
+        ),
+      ),
+      child: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
           child: Column(
@@ -92,10 +103,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             children: [
               ScaleTransition(
                 scale: _scaleAnimation,
-                child: Image.asset(
-                  'assets/images/app_logo_new.png',
+                child: SvgPicture.asset(
+                  'assets/svgs/app_logo.svg',
                   width: 150,
                   height: 150,
+                  colorFilter: const ColorFilter.mode(
+                    Colors.white,
+                    BlendMode.srcIn,
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -143,43 +158,44 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           ),
         ),
       ),
-    );
+    ));
   }
 
-  String _getLoadingText(AsyncValue authState, AsyncValue vendorState, bool isAuthenticated) {
+  String _getLoadingText(
+      AsyncValue authState, AsyncValue vendorState, bool isAuthenticated) {
     if (authState.isLoading) {
       return 'Checking authentication...';
     }
-    
+
     if (!isAuthenticated) {
       return 'Redirecting to login...';
     }
-    
+
     if (vendorState.isLoading) {
       return 'Loading your profile...';
     }
-    
+
     if (vendorState.hasError) {
       return 'Authentication error...';
     }
-    
+
     if (vendorState.hasValue) {
       final vendor = vendorState.value;
       if (vendor == null) {
         return 'Setting up your account...';
       }
-      
+
       if (!vendor.isOnboardingComplete) {
         return 'Redirecting to registration...';
       }
-      
+
       if (!vendor.isVerified) {
         return 'Checking verification status...';
       }
-      
+
       return 'Welcome back!';
     }
-    
+
     return 'Initializing...';
   }
 }

@@ -7,14 +7,16 @@ part 'wallet_transaction.g.dart';
 class WalletTransaction with _$WalletTransaction {
   const factory WalletTransaction({
     required String id,
+    @JsonKey(name: 'vendor_id') required String vendorId,
     @JsonKey(name: 'transaction_type') required String transactionType,
     required double amount,
-    required String status,
+    String? status,
     String? description,
     @JsonKey(name: 'reference_id') String? referenceId,
     @JsonKey(name: 'reference_type') String? referenceType,
-    @JsonKey(name: 'created_at') required DateTime createdAt,
     Map<String, dynamic>? metadata,
+    @JsonKey(name: 'created_at') DateTime? createdAt,
+    @JsonKey(name: 'updated_at') DateTime? updatedAt,
   }) = _WalletTransaction;
 
   factory WalletTransaction.fromJson(Map<String, dynamic> json) => _$WalletTransactionFromJson(json);

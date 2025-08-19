@@ -13,7 +13,7 @@ final primaryServiceAreaProvider = FutureProvider.autoDispose<ServiceArea?>((ref
   }
   
   final serviceAreaService = ref.read(serviceAreaServiceProvider);
-  return await serviceAreaService.getPrimaryServiceArea(vendor.id);
+  return await serviceAreaService.getPrimaryServiceArea(vendor.id!);
 });
 
 final allServiceAreasProvider = FutureProvider.autoDispose.family<List<ServiceArea>, String>((ref, vendorId) async {

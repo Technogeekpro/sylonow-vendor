@@ -28,5 +28,11 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	
+	<!-- Location permissions -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Sylonow Vendor needs location access to help customers find your services and to provide location-based service recommendations.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Sylonow Vendor needs location access to help customers find your services and to provide location-based service recommendations.</string>
 </dict>
 </plist>

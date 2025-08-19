@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:heroicons/heroicons.dart';
 import '../../../core/theme/app_theme.dart';
 import '../controllers/add_service_controller.dart';
 
@@ -19,15 +20,18 @@ class _BasicInfoSectionState extends State<BasicInfoSection> {
   void initState() {
     super.initState();
     // Debug: Ensure form key is properly set
-    print('🔧 BasicInfoSection: Form key initialized - ${widget.controller.formKey}');
+    print(
+        '🔧 BasicInfoSection: Form key initialized - ${widget.controller.formKey}');
   }
 
   @override
   Widget build(BuildContext context) {
     // Debug: Check form key state during build
-    print('🔧 BasicInfoSection: Building with form key - ${widget.controller.formKey}');
-    print('🔧 BasicInfoSection: Form state exists - ${widget.controller.formKey.currentState != null}');
-    
+    print(
+        '🔧 BasicInfoSection: Building with form key - ${widget.controller.formKey}');
+    print(
+        '🔧 BasicInfoSection: Form state exists - ${widget.controller.formKey.currentState != null}');
+
     return Form(
       key: widget.controller.formKey,
       child: SingleChildScrollView(
@@ -47,23 +51,23 @@ class _BasicInfoSectionState extends State<BasicInfoSection> {
               validator: widget.controller.validateTitle,
               maxLength: 100,
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Category Selection
             _buildSectionTitle('Category'),
             const SizedBox(height: 8),
             _buildCategorySelection(),
-            
+
             const SizedBox(height: 24),
-            
+
             // Service Environment
             _buildSectionTitle('Service Environment'),
             const SizedBox(height: 8),
             _buildServiceEnvironmentSelection(),
-            
+
             const SizedBox(height: 24),
-            
+
             // Theme Tags
             _buildSectionTitle('Theme Tags'),
             const SizedBox(height: 8),
@@ -88,14 +92,14 @@ class _BasicInfoSectionState extends State<BasicInfoSection> {
   InputDecoration _buildInputDecoration(String hint, IconData icon) {
     return InputDecoration(
       hintText: hint,
-      prefixIcon: Icon(icon, color: AppTheme.primaryColor),
+      prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppTheme.borderColor),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppTheme.borderColor),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -107,38 +111,31 @@ class _BasicInfoSectionState extends State<BasicInfoSection> {
   }
 
   Widget _buildCategorySelection() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderColor),
+    return DropdownButtonFormField<String>(
+      value: widget.controller.selectedCategory,
+      decoration: const InputDecoration(
+        border: InputBorder.none,
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        prefixIcon: HeroIcon(HeroIcons.cog, color: AppTheme.primaryColor),
       ),
-      child: DropdownButtonFormField<String>(
-        value: widget.controller.selectedCategory,
-        decoration: const InputDecoration(
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          prefixIcon: Icon(Icons.category_rounded, color: AppTheme.primaryColor),
-        ),
-        hint: const Text('Select a category'),
-        items: widget.controller.categories.map((category) {
-          return DropdownMenuItem<String>(
-            value: category,
-            child: Text(category),
-          );
-        }).toList(),
-        onChanged: (value) {
-          setState(() {
-            widget.controller.selectedCategory = value;
-          });
-        },
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please select a category';
-          }
-          return null;
-        },
-      ),
+      hint: const Text('Select a category'),
+      items: widget.controller.categories.map((category) {
+        return DropdownMenuItem<String>(
+          value: category,
+          child: Text(category),
+        );
+      }).toList(),
+      onChanged: (value) {
+        setState(() {
+          widget.controller.selectedCategory = value;
+        });
+      },
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please select a category';
+        }
+        return null;
+      },
     );
   }
 
@@ -154,96 +151,86 @@ class _BasicInfoSectionState extends State<BasicInfoSection> {
           ),
         ),
         const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.surfaceColor,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.borderColor),
+        DropdownButtonFormField<String>(
+          value: widget.controller.selectedServiceEnvironments.isNotEmpty
+              ? widget.controller.selectedServiceEnvironments.first
+              : null,
+          decoration: const InputDecoration(
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            prefixIcon:
+                Icon(Icons.location_on_rounded, color: AppTheme.primaryColor),
           ),
-          child: Column(
-            children: [
-              Row(
+          hint: const Text('Select service environment'),
+          items: const [
+            DropdownMenuItem<String>(
+              value: 'indoor',
+              child: Row(
                 children: [
-                  const Icon(
-                    Icons.home_rounded,
-                    color: AppTheme.primaryColor,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Text(
-                      'Indoor',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppTheme.textPrimaryColor,
-                      ),
-                    ),
-                  ),
-                  Checkbox(
-                    value: widget.controller.selectedServiceEnvironments.contains('indoor'),
-                    onChanged: (value) {
-                      setState(() {
-                        widget.controller.toggleServiceEnvironment('indoor');
-                      });
-                    },
-                    activeColor: AppTheme.primaryColor,
-                  ),
+                  HeroIcon(HeroIcons.home,
+                      size: 18, color: AppTheme.primaryColor),
+                  SizedBox(width: 8),
+                  Text('Indoor'),
                 ],
               ),
-              const SizedBox(height: 8),
-              Row(
+            ),
+            DropdownMenuItem<String>(
+              value: 'outdoor',
+              child: Row(
                 children: [
-                  const Icon(
-                    Icons.nature_rounded,
-                    color: AppTheme.primaryColor,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Text(
-                      'Outdoor',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppTheme.textPrimaryColor,
-                      ),
-                    ),
-                  ),
-                  Checkbox(
-                    value: widget.controller.selectedServiceEnvironments.contains('outdoor'),
-                    onChanged: (value) {
-                      setState(() {
-                        widget.controller.toggleServiceEnvironment('outdoor');
-                      });
-                    },
-                    activeColor: AppTheme.primaryColor,
-                  ),
+                  HeroIcon(HeroIcons.buildingOffice,
+                      size: 18, color: AppTheme.primaryColor),
+                  SizedBox(width: 8),
+                  Text('Outdoor'),
                 ],
               ),
-            ],
-          ),
+            ),
+            DropdownMenuItem<String>(
+              value: 'both',
+              child: Row(
+                children: [
+                  Icon(Icons.home_work_rounded,
+                      size: 18, color: AppTheme.primaryColor),
+                  SizedBox(width: 8),
+                  Text('Indoor & Outdoor'),
+                ],
+              ),
+            ),
+          ],
+          onChanged: (value) {
+            setState(() {
+              widget.controller.selectedServiceEnvironments.clear();
+              if (value != null) {
+                if (value == 'both') {
+                  widget.controller.selectedServiceEnvironments
+                      .addAll(['indoor', 'outdoor']);
+                } else {
+                  widget.controller.selectedServiceEnvironments.add(value);
+                }
+              }
+            });
+          },
+          validator: (value) {
+            if (widget.controller.selectedServiceEnvironments.isEmpty) {
+              return 'Please select a service environment';
+            }
+            return null;
+          },
         ),
         const SizedBox(height: 8),
         Text(
-          '${widget.controller.selectedServiceEnvironments.length} environment${widget.controller.selectedServiceEnvironments.length != 1 ? 's' : ''} selected',
-          style: const TextStyle(
-            fontSize: 10,
-            color: AppTheme.textSecondaryColor,
+          widget.controller.selectedServiceEnvironments.isEmpty
+              ? 'No environment selected'
+              : widget.controller.selectedServiceEnvironments.length == 2
+                  ? 'Indoor & Outdoor service available'
+                  : '${widget.controller.selectedServiceEnvironments.first.toUpperCase()} service available',
+          style: TextStyle(
+            fontSize: 12,
+            color: widget.controller.selectedServiceEnvironments.isEmpty
+                ? AppTheme.errorColor
+                : AppTheme.textSecondaryColor,
           ),
         ),
-        if (widget.controller.selectedServiceEnvironments.isEmpty)
-          const Padding(
-            padding: EdgeInsets.only(top: 4),
-            child: Text(
-              'Please select at least one environment',
-              style: TextStyle(
-                fontSize: 10,
-                color: AppTheme.errorColor,
-              ),
-            ),
-          ),
       ],
     );
   }
@@ -264,7 +251,8 @@ class _BasicInfoSectionState extends State<BasicInfoSection> {
           spacing: 8,
           runSpacing: 8,
           children: widget.controller.themeTags.map((tag) {
-            final isSelected = widget.controller.selectedThemeTags.contains(tag);
+            final isSelected =
+                widget.controller.selectedThemeTags.contains(tag);
             return GestureDetector(
               onTap: () {
                 setState(() {
@@ -272,15 +260,16 @@ class _BasicInfoSectionState extends State<BasicInfoSection> {
                 });
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected 
-                      ? AppTheme.primaryColor 
+                  color: isSelected
+                      ? AppTheme.primaryColor
                       : AppTheme.surfaceColor,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected 
-                        ? AppTheme.primaryColor 
+                    color: isSelected
+                        ? AppTheme.primaryColor
                         : AppTheme.borderColor,
                   ),
                 ),
@@ -289,9 +278,8 @@ class _BasicInfoSectionState extends State<BasicInfoSection> {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: isSelected 
-                        ? Colors.white 
-                        : AppTheme.textPrimaryColor,
+                    color:
+                        isSelected ? Colors.white : AppTheme.textPrimaryColor,
                   ),
                 ),
               ),
@@ -309,4 +297,4 @@ class _BasicInfoSectionState extends State<BasicInfoSection> {
       ],
     );
   }
-} 
+}

@@ -15,21 +15,102 @@ class VendorService {
     try {
       print('🔵 VendorService: Getting vendor for user ID: ${userId.substring(0, 8)}...');
       
-      final response = await _client
+      final currentUser = _client.auth.currentUser;
+      print('🔍 Current user - ID: ${currentUser?.id}, Phone: ${currentUser?.phone}, Email: ${currentUser?.email}');
+      
+      // First try by auth_user_id
+      var response = await _client
           .from('vendors')
           .select('*')
           .eq('auth_user_id', userId)
           .maybeSingle();
       
-      if (response == null) {
-        print('🟡 VendorService: No vendor found');
-        return null;
+      if (response != null) {
+        final vendor = Vendor.fromJson(response);
+        print('🟢 VendorService: Vendor found by auth_user_id - ${vendor.fullName} (${vendor.isOnboardingComplete ? 'Complete' : 'Incomplete'}, ${vendor.isVerified ? 'Verified' : 'Unverified'})');
+        return vendor;
       }
       
-      final vendor = Vendor.fromJson(response);
-      print('🟢 VendorService: Vendor found - ${vendor.fullName} (${vendor.isOnboardingComplete ? 'Complete' : 'Incomplete'}, ${vendor.isVerified ? 'Verified' : 'Unverified'})');
+      // If not found by auth_user_id, try by phone number
+      if (currentUser?.phone != null) {
+        print('🔍 VendorService: Trying lookup by phone: ${currentUser!.phone}');
+        
+        // Try exact phone match first
+        response = await _client
+            .from('vendors')
+            .select('*')
+            .eq('phone', currentUser.phone!)
+            .maybeSingle();
+            
+        if (response != null) {
+          final vendor = Vendor.fromJson(response);
+          print('🟡 VendorService: Vendor found by phone - updating auth_user_id link');
+          
+        // Update the auth_user_id to link this vendor to current user
+          await _client
+              .from('vendors')
+              .update({'auth_user_id': userId})
+              .eq('id', vendor.id!);
+              
+          // Return updated vendor
+          final updatedVendor = vendor.copyWith(authUserId: userId);
+          print('🟢 VendorService: Vendor linked and returned - ${vendor.fullName}');
+          return updatedVendor;
+        }
+        
+        // Try without +91 prefix
+        final phoneWithoutPrefix = currentUser.phone!.replaceFirst('+91', '');
+        response = await _client
+            .from('vendors')
+            .select('*')
+            .eq('phone', phoneWithoutPrefix)
+            .maybeSingle();
+            
+        if (response != null) {
+          final vendor = Vendor.fromJson(response);
+          print('🟡 VendorService: Vendor found by phone without prefix - updating auth_user_id link');
+          
+          // Update the auth_user_id to link this vendor to current user
+          await _client
+              .from('vendors')
+              .update({'auth_user_id': userId})
+              .eq('id', vendor.id!);
+              
+          // Return updated vendor
+          final updatedVendor = vendor.copyWith(authUserId: userId);
+          print('🟢 VendorService: Vendor linked and returned - ${vendor.fullName}');
+          return updatedVendor;
+        }
+      }
       
-      return vendor;
+      // Try by email if available
+      if (currentUser?.email != null) {
+        print('🔍 VendorService: Trying lookup by email: ${currentUser!.email}');
+        response = await _client
+            .from('vendors')
+            .select('*')
+            .eq('email', currentUser.email!)
+            .maybeSingle();
+            
+        if (response != null) {
+          final vendor = Vendor.fromJson(response);
+          print('🟡 VendorService: Vendor found by email - updating auth_user_id link');
+          
+          // Update the auth_user_id to link this vendor to current user
+          await _client
+              .from('vendors')
+              .update({'auth_user_id': userId})
+              .eq('id', vendor.id!);
+              
+          // Return updated vendor
+          final updatedVendor = vendor.copyWith(authUserId: userId);
+          print('🟢 VendorService: Vendor linked and returned - ${vendor.fullName}');
+          return updatedVendor;
+        }
+      }
+      
+      print('🟡 VendorService: No vendor found by any method');
+      return null;
     } catch (e) {
       print('🔴 VendorService: Error getting vendor: $e');
       if (e is PostgrestException) {
@@ -133,11 +214,16 @@ class VendorService {
     required String serviceArea,
     required String pincode,
     required String serviceType,
+    required String vendorType,
     required String businessName,
     required String aadhaarNumber,
     required String bankAccountNumber,
     required String bankIfscCode,
+    required String additionalAddress,
+    String? fcmToken,
     String? gstNumber,
+    double? latitude,
+    double? longitude,
     // Image URLs (take priority)
     String? profileImageUrl,
     String? aadhaarFrontImageUrl,
@@ -201,10 +287,7 @@ class VendorService {
       final authEmail = authUser.email;
       final authPhone = authUser.phone;
       
-      if (authEmail == null) {
-        throw Exception('User email is required for vendor registration. Please ensure your account has an email address.');
-      }
-      
+      // Email can be null for phone-based authentication
       print('🔵 Auth user phone: $authPhone, email: $authEmail, app type: $userAppType');
 
       // 1. Find or create the vendor record
@@ -217,23 +300,39 @@ class VendorService {
           .eq('auth_user_id', authUserId)
           .maybeSingle();
 
-      // Also check by email to handle cases where auth_user_id might be different
-      final existingVendorByEmail = await _client
-          .from('vendors')
-          .select('id, auth_user_id, email, is_onboarding_completed, verification_status')
-          .eq('email', authEmail)
-          .maybeSingle();
+      // Also check by email to handle cases where auth_user_id might be different (only if email is not null)
+      Map<String, dynamic>? existingVendorByEmail;
+      if (authEmail != null && authEmail.isNotEmpty) {
+        existingVendorByEmail = await _client
+            .from('vendors')
+            .select('id, auth_user_id, email, is_onboarding_completed, verification_status')
+            .eq('email', authEmail)
+            .maybeSingle();
+      }
 
       if (existingVendorByAuth != null) {
         // Found vendor by auth_user_id - this is the normal case
         vendorId = existingVendorByAuth['id'];
         print('🟢 Vendor found by auth_user_id: $vendorId. Updating record...');
         
+        final locationJson = (latitude != null && longitude != null) ? {
+          'latitude': latitude,
+          'longitude': longitude,
+          'address': serviceArea,
+          'pincode': pincode,
+          'timestamp': DateTime.now().toIso8601String(),
+        } : null;
+
         await _client.from('vendors').update({
           'full_name': fullName,
           'phone': authPhone,
           'business_name': businessName,
           'business_type': serviceType,
+          'service_area': serviceArea,
+          'pincode': pincode,
+          'latitude': latitude,
+          'longitude': longitude,
+          'location': locationJson,
           'updated_at': DateTime.now().toIso8601String(),
         }).eq('id', vendorId);
         
@@ -246,12 +345,25 @@ class VendorService {
           // Email exists but no auth_user_id - link it to current user
           print('🟡 Vendor found by email with no auth_user_id. Linking to current user: $vendorId');
           
+          final locationJson = (latitude != null && longitude != null) ? {
+            'latitude': latitude,
+            'longitude': longitude,
+            'address': serviceArea,
+            'pincode': pincode,
+            'timestamp': DateTime.now().toIso8601String(),
+          } : null;
+
           await _client.from('vendors').update({
             'auth_user_id': authUserId,
             'full_name': fullName,
             'phone': authPhone,
             'business_name': businessName,
             'business_type': serviceType,
+            'service_area': serviceArea,
+            'pincode': pincode,
+            'latitude': latitude,
+            'longitude': longitude,
+            'location': locationJson,
             'updated_at': DateTime.now().toIso8601String(),
           }).eq('id', vendorId);
           
@@ -264,11 +376,24 @@ class VendorService {
           // This shouldn't happen (would be caught by first check), but handle it
           print('🟢 Vendor found by email with same auth_user_id: $vendorId. Updating record...');
           
+          final locationJson = (latitude != null && longitude != null) ? {
+            'latitude': latitude,
+            'longitude': longitude,
+            'address': serviceArea,
+            'pincode': pincode,
+            'timestamp': DateTime.now().toIso8601String(),
+          } : null;
+
           await _client.from('vendors').update({
             'full_name': fullName,
             'phone': authPhone,
             'business_name': businessName,
             'business_type': serviceType,
+            'service_area': serviceArea,
+            'pincode': pincode,
+            'latitude': latitude,
+            'longitude': longitude,
+            'location': locationJson,
             'updated_at': DateTime.now().toIso8601String(),
           }).eq('id', vendorId);
         }
@@ -276,6 +401,14 @@ class VendorService {
       } else {
         // No existing vendor found - create new one
         print('🟡 No vendor found by auth_user_id or email. Creating new record...');
+        final locationJson = (latitude != null && longitude != null) ? {
+          'latitude': latitude,
+          'longitude': longitude,
+          'address': serviceArea,
+          'pincode': pincode,
+          'timestamp': DateTime.now().toIso8601String(),
+        } : null;
+
         final newVendor = await _client.from('vendors').insert({
           'full_name': fullName,
           'auth_user_id': authUserId,
@@ -283,8 +416,16 @@ class VendorService {
           'phone': authPhone,
           'business_name': businessName,
           'business_type': serviceType,
+          'vendor_type': vendorType,
           'verification_status': 'pending',
           'is_active': false,
+          'service_area': serviceArea,
+          'additional_address': additionalAddress,
+          'fcm_token': fcmToken,
+          'pincode': pincode,
+          'latitude': latitude,
+          'longitude': longitude,
+          'location': locationJson,
         }).select('id').single();
         vendorId = newVendor['id'];
         print('🟢 New vendor created with ID: $vendorId');
@@ -586,6 +727,27 @@ class VendorService {
     } catch (e) {
       print('🔴 Failed to get user app type: $e');
       return null;
+    }
+  }
+
+  /// Update vendor online status
+  Future<bool> updateVendorOnlineStatus(String vendorId, bool isOnline) async {
+    try {
+      print('🔵 VendorService: Updating online status for vendor $vendorId to $isOnline');
+      
+      await _client
+          .from('vendors')
+          .update({
+            'is_online': isOnline,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', vendorId);
+          
+      print('🟢 VendorService: Vendor online status updated successfully');
+      return true;
+    } catch (e) {
+      print('🔴 VendorService: Error updating vendor online status: $e');
+      return false;
     }
   }
 } 

@@ -545,7 +545,7 @@ class WalletScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
-          transaction.status.toUpperCase(),
+          transaction.status?.toUpperCase() ?? '',
           style: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w600,
@@ -607,7 +607,7 @@ class WalletScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  DateFormat('MMM dd, yyyy • h:mm a').format(transaction.createdAt),
+                  DateFormat('MMM dd, yyyy • h:mm a').format(transaction.createdAt!),
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey.shade600,

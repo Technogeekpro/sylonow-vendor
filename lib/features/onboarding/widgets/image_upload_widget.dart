@@ -40,7 +40,24 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
     _uploadedUrl = widget.imageUrl;
   }
 
-  bool get hasImage => widget.image != null || _uploadedUrl != null;
+  @override
+  void didUpdateWidget(ImageUploadWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.imageUrl != oldWidget.imageUrl) {
+      setState(() {
+        _uploadedUrl = widget.imageUrl;
+      });
+    }
+  }
+
+  bool get hasImage {
+    final result = widget.image != null || _uploadedUrl != null;
+    print('📸 hasImage check for ${widget.documentType}: $result (image: ${widget.image != null}, url: ${_uploadedUrl != null})');
+    if (_uploadedUrl != null) {
+      print('📸 Current _uploadedUrl: $_uploadedUrl');
+    }
+    return result;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -181,7 +198,11 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
                                   height: 200,
                                   fit: BoxFit.cover,
                                   loadingBuilder: (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
+                                    if (loadingProgress == null) {
+                                      print('📸 Image loaded successfully: $_uploadedUrl');
+                                      return child;
+                                    }
+                                    print('📸 Loading image: $_uploadedUrl');
                                     return Container(
                                       width: double.infinity,
                                       height: 200,
@@ -192,12 +213,25 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
                                     );
                                   },
                                   errorBuilder: (context, error, stackTrace) {
+                                    print('📸 Failed to load image: $_uploadedUrl');
+                                    print('📸 Image error: $error');
                                     return Container(
                                       width: double.infinity,
                                       height: 200,
                                       color: Colors.grey.shade100,
-                                      child: const Center(
-                                        child: Icon(Icons.error, color: Colors.red),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(Icons.error, color: Colors.red),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Failed to load image',
+                                            style: TextStyle(
+                                              color: Colors.grey.shade600,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     );
                                   },

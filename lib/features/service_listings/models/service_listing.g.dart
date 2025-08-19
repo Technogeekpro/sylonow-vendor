@@ -29,10 +29,6 @@ _$ServiceListingImpl _$$ServiceListingImplFromJson(Map<String, dynamic> json) =>
       videoUrl: json['video_url'] as String?,
       originalPrice: (json['original_price'] as num).toDouble(),
       offerPrice: (json['offer_price'] as num).toDouble(),
-      addOns: (json['add_ons'] as List<dynamic>?)
-              ?.map((e) => AddOn.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
       promotionalTag: json['promotional_tag'] as String?,
       description: json['description'] as String?,
       inclusions: (json['inclusions'] as List<dynamic>?)
@@ -43,6 +39,8 @@ _$ServiceListingImpl _$$ServiceListingImplFromJson(Map<String, dynamic> json) =>
       customizationNote: json['customization_note'] as String?,
       setupTime: json['setup_time'] as String,
       bookingNotice: json['booking_notice'] as String,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
       pincodes: (json['pincodes'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
@@ -76,7 +74,6 @@ Map<String, dynamic> _$$ServiceListingImplToJson(
       'video_url': instance.videoUrl,
       'original_price': instance.originalPrice,
       'offer_price': instance.offerPrice,
-      'add_ons': instance.addOns,
       'promotional_tag': instance.promotionalTag,
       'description': instance.description,
       'inclusions': instance.inclusions,
@@ -84,6 +81,8 @@ Map<String, dynamic> _$$ServiceListingImplToJson(
       'customization_note': instance.customizationNote,
       'setup_time': instance.setupTime,
       'booking_notice': instance.bookingNotice,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
       'pincodes': instance.pincodes,
       'venue_types': instance.venueTypes,
       'is_active': instance.isActive,

@@ -37,13 +37,12 @@ mixin _$ServiceListing {
   String? get coverPhoto => throw _privateConstructorUsedError;
   List<String> get photos => throw _privateConstructorUsedError;
   @JsonKey(name: 'video_url')
-  String? get videoUrl => throw _privateConstructorUsedError; // Pricing
+  String? get videoUrl =>
+      throw _privateConstructorUsedError; // Pricing (add-ons moved to separate table)
   @JsonKey(name: 'original_price')
   double get originalPrice => throw _privateConstructorUsedError;
   @JsonKey(name: 'offer_price')
   double get offerPrice => throw _privateConstructorUsedError;
-  @JsonKey(name: 'add_ons')
-  List<AddOn> get addOns => throw _privateConstructorUsedError;
   @JsonKey(name: 'promotional_tag')
   String? get promotionalTag => throw _privateConstructorUsedError; // Details
   String? get description => throw _privateConstructorUsedError;
@@ -55,7 +54,10 @@ mixin _$ServiceListing {
   @JsonKey(name: 'setup_time')
   String get setupTime => throw _privateConstructorUsedError;
   @JsonKey(name: 'booking_notice')
-  String get bookingNotice => throw _privateConstructorUsedError; // Area
+  String get bookingNotice =>
+      throw _privateConstructorUsedError; // Location (populate from vendor data)
+  double? get latitude => throw _privateConstructorUsedError;
+  double? get longitude => throw _privateConstructorUsedError; // Area
   List<String> get pincodes => throw _privateConstructorUsedError;
   @JsonKey(name: 'venue_types')
   List<String> get venueTypes =>
@@ -69,12 +71,8 @@ mixin _$ServiceListing {
   @JsonKey(name: 'updated_at')
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
-  /// Serializes this ServiceListing to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of ServiceListing
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ServiceListingCopyWith<ServiceListing> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -98,7 +96,6 @@ abstract class $ServiceListingCopyWith<$Res> {
       @JsonKey(name: 'video_url') String? videoUrl,
       @JsonKey(name: 'original_price') double originalPrice,
       @JsonKey(name: 'offer_price') double offerPrice,
-      @JsonKey(name: 'add_ons') List<AddOn> addOns,
       @JsonKey(name: 'promotional_tag') String? promotionalTag,
       String? description,
       List<String> inclusions,
@@ -106,6 +103,8 @@ abstract class $ServiceListingCopyWith<$Res> {
       @JsonKey(name: 'customization_note') String? customizationNote,
       @JsonKey(name: 'setup_time') String setupTime,
       @JsonKey(name: 'booking_notice') String bookingNotice,
+      double? latitude,
+      double? longitude,
       List<String> pincodes,
       @JsonKey(name: 'venue_types') List<String> venueTypes,
       @JsonKey(name: 'is_active') bool isActive,
@@ -124,8 +123,6 @@ class _$ServiceListingCopyWithImpl<$Res, $Val extends ServiceListing>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ServiceListing
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -141,7 +138,6 @@ class _$ServiceListingCopyWithImpl<$Res, $Val extends ServiceListing>
     Object? videoUrl = freezed,
     Object? originalPrice = null,
     Object? offerPrice = null,
-    Object? addOns = null,
     Object? promotionalTag = freezed,
     Object? description = freezed,
     Object? inclusions = null,
@@ -149,6 +145,8 @@ class _$ServiceListingCopyWithImpl<$Res, $Val extends ServiceListing>
     Object? customizationNote = freezed,
     Object? setupTime = null,
     Object? bookingNotice = null,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
     Object? pincodes = null,
     Object? venueTypes = null,
     Object? isActive = null,
@@ -205,10 +203,6 @@ class _$ServiceListingCopyWithImpl<$Res, $Val extends ServiceListing>
           ? _value.offerPrice
           : offerPrice // ignore: cast_nullable_to_non_nullable
               as double,
-      addOns: null == addOns
-          ? _value.addOns
-          : addOns // ignore: cast_nullable_to_non_nullable
-              as List<AddOn>,
       promotionalTag: freezed == promotionalTag
           ? _value.promotionalTag
           : promotionalTag // ignore: cast_nullable_to_non_nullable
@@ -237,6 +231,14 @@ class _$ServiceListingCopyWithImpl<$Res, $Val extends ServiceListing>
           ? _value.bookingNotice
           : bookingNotice // ignore: cast_nullable_to_non_nullable
               as String,
+      latitude: freezed == latitude
+          ? _value.latitude
+          : latitude // ignore: cast_nullable_to_non_nullable
+              as double?,
+      longitude: freezed == longitude
+          ? _value.longitude
+          : longitude // ignore: cast_nullable_to_non_nullable
+              as double?,
       pincodes: null == pincodes
           ? _value.pincodes
           : pincodes // ignore: cast_nullable_to_non_nullable
@@ -286,7 +288,6 @@ abstract class _$$ServiceListingImplCopyWith<$Res>
       @JsonKey(name: 'video_url') String? videoUrl,
       @JsonKey(name: 'original_price') double originalPrice,
       @JsonKey(name: 'offer_price') double offerPrice,
-      @JsonKey(name: 'add_ons') List<AddOn> addOns,
       @JsonKey(name: 'promotional_tag') String? promotionalTag,
       String? description,
       List<String> inclusions,
@@ -294,6 +295,8 @@ abstract class _$$ServiceListingImplCopyWith<$Res>
       @JsonKey(name: 'customization_note') String? customizationNote,
       @JsonKey(name: 'setup_time') String setupTime,
       @JsonKey(name: 'booking_notice') String bookingNotice,
+      double? latitude,
+      double? longitude,
       List<String> pincodes,
       @JsonKey(name: 'venue_types') List<String> venueTypes,
       @JsonKey(name: 'is_active') bool isActive,
@@ -310,8 +313,6 @@ class __$$ServiceListingImplCopyWithImpl<$Res>
       _$ServiceListingImpl _value, $Res Function(_$ServiceListingImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of ServiceListing
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -327,7 +328,6 @@ class __$$ServiceListingImplCopyWithImpl<$Res>
     Object? videoUrl = freezed,
     Object? originalPrice = null,
     Object? offerPrice = null,
-    Object? addOns = null,
     Object? promotionalTag = freezed,
     Object? description = freezed,
     Object? inclusions = null,
@@ -335,6 +335,8 @@ class __$$ServiceListingImplCopyWithImpl<$Res>
     Object? customizationNote = freezed,
     Object? setupTime = null,
     Object? bookingNotice = null,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
     Object? pincodes = null,
     Object? venueTypes = null,
     Object? isActive = null,
@@ -391,10 +393,6 @@ class __$$ServiceListingImplCopyWithImpl<$Res>
           ? _value.offerPrice
           : offerPrice // ignore: cast_nullable_to_non_nullable
               as double,
-      addOns: null == addOns
-          ? _value._addOns
-          : addOns // ignore: cast_nullable_to_non_nullable
-              as List<AddOn>,
       promotionalTag: freezed == promotionalTag
           ? _value.promotionalTag
           : promotionalTag // ignore: cast_nullable_to_non_nullable
@@ -423,6 +421,14 @@ class __$$ServiceListingImplCopyWithImpl<$Res>
           ? _value.bookingNotice
           : bookingNotice // ignore: cast_nullable_to_non_nullable
               as String,
+      latitude: freezed == latitude
+          ? _value.latitude
+          : latitude // ignore: cast_nullable_to_non_nullable
+              as double?,
+      longitude: freezed == longitude
+          ? _value.longitude
+          : longitude // ignore: cast_nullable_to_non_nullable
+              as double?,
       pincodes: null == pincodes
           ? _value._pincodes
           : pincodes // ignore: cast_nullable_to_non_nullable
@@ -468,7 +474,6 @@ class _$ServiceListingImpl implements _ServiceListing {
       @JsonKey(name: 'video_url') this.videoUrl,
       @JsonKey(name: 'original_price') required this.originalPrice,
       @JsonKey(name: 'offer_price') required this.offerPrice,
-      @JsonKey(name: 'add_ons') final List<AddOn> addOns = const [],
       @JsonKey(name: 'promotional_tag') this.promotionalTag,
       this.description,
       final List<String> inclusions = const [],
@@ -477,6 +482,8 @@ class _$ServiceListingImpl implements _ServiceListing {
       @JsonKey(name: 'customization_note') this.customizationNote,
       @JsonKey(name: 'setup_time') required this.setupTime,
       @JsonKey(name: 'booking_notice') required this.bookingNotice,
+      this.latitude,
+      this.longitude,
       final List<String> pincodes = const [],
       @JsonKey(name: 'venue_types') final List<String> venueTypes = const [],
       @JsonKey(name: 'is_active') this.isActive = true,
@@ -486,7 +493,6 @@ class _$ServiceListingImpl implements _ServiceListing {
       : _themeTags = themeTags,
         _serviceEnvironment = serviceEnvironment,
         _photos = photos,
-        _addOns = addOns,
         _inclusions = inclusions,
         _pincodes = pincodes,
         _venueTypes = venueTypes;
@@ -544,22 +550,13 @@ class _$ServiceListingImpl implements _ServiceListing {
   @override
   @JsonKey(name: 'video_url')
   final String? videoUrl;
-// Pricing
+// Pricing (add-ons moved to separate table)
   @override
   @JsonKey(name: 'original_price')
   final double originalPrice;
   @override
   @JsonKey(name: 'offer_price')
   final double offerPrice;
-  final List<AddOn> _addOns;
-  @override
-  @JsonKey(name: 'add_ons')
-  List<AddOn> get addOns {
-    if (_addOns is EqualUnmodifiableListView) return _addOns;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_addOns);
-  }
-
   @override
   @JsonKey(name: 'promotional_tag')
   final String? promotionalTag;
@@ -587,6 +584,11 @@ class _$ServiceListingImpl implements _ServiceListing {
   @override
   @JsonKey(name: 'booking_notice')
   final String bookingNotice;
+// Location (populate from vendor data)
+  @override
+  final double? latitude;
+  @override
+  final double? longitude;
 // Area
   final List<String> _pincodes;
 // Area
@@ -623,7 +625,7 @@ class _$ServiceListingImpl implements _ServiceListing {
 
   @override
   String toString() {
-    return 'ServiceListing(id: $id, listingId: $listingId, vendorId: $vendorId, title: $title, category: $category, themeTags: $themeTags, serviceEnvironment: $serviceEnvironment, coverPhoto: $coverPhoto, photos: $photos, videoUrl: $videoUrl, originalPrice: $originalPrice, offerPrice: $offerPrice, addOns: $addOns, promotionalTag: $promotionalTag, description: $description, inclusions: $inclusions, customizationAvailable: $customizationAvailable, customizationNote: $customizationNote, setupTime: $setupTime, bookingNotice: $bookingNotice, pincodes: $pincodes, venueTypes: $venueTypes, isActive: $isActive, isFeatured: $isFeatured, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'ServiceListing(id: $id, listingId: $listingId, vendorId: $vendorId, title: $title, category: $category, themeTags: $themeTags, serviceEnvironment: $serviceEnvironment, coverPhoto: $coverPhoto, photos: $photos, videoUrl: $videoUrl, originalPrice: $originalPrice, offerPrice: $offerPrice, promotionalTag: $promotionalTag, description: $description, inclusions: $inclusions, customizationAvailable: $customizationAvailable, customizationNote: $customizationNote, setupTime: $setupTime, bookingNotice: $bookingNotice, latitude: $latitude, longitude: $longitude, pincodes: $pincodes, venueTypes: $venueTypes, isActive: $isActive, isFeatured: $isFeatured, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -652,7 +654,6 @@ class _$ServiceListingImpl implements _ServiceListing {
                 other.originalPrice == originalPrice) &&
             (identical(other.offerPrice, offerPrice) ||
                 other.offerPrice == offerPrice) &&
-            const DeepCollectionEquality().equals(other._addOns, _addOns) &&
             (identical(other.promotionalTag, promotionalTag) ||
                 other.promotionalTag == promotionalTag) &&
             (identical(other.description, description) ||
@@ -667,6 +668,10 @@ class _$ServiceListingImpl implements _ServiceListing {
                 other.setupTime == setupTime) &&
             (identical(other.bookingNotice, bookingNotice) ||
                 other.bookingNotice == bookingNotice) &&
+            (identical(other.latitude, latitude) ||
+                other.latitude == latitude) &&
+            (identical(other.longitude, longitude) ||
+                other.longitude == longitude) &&
             const DeepCollectionEquality().equals(other._pincodes, _pincodes) &&
             const DeepCollectionEquality()
                 .equals(other._venueTypes, _venueTypes) &&
@@ -680,7 +685,7 @@ class _$ServiceListingImpl implements _ServiceListing {
                 other.updatedAt == updatedAt));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
@@ -696,7 +701,6 @@ class _$ServiceListingImpl implements _ServiceListing {
         videoUrl,
         originalPrice,
         offerPrice,
-        const DeepCollectionEquality().hash(_addOns),
         promotionalTag,
         description,
         const DeepCollectionEquality().hash(_inclusions),
@@ -704,6 +708,8 @@ class _$ServiceListingImpl implements _ServiceListing {
         customizationNote,
         setupTime,
         bookingNotice,
+        latitude,
+        longitude,
         const DeepCollectionEquality().hash(_pincodes),
         const DeepCollectionEquality().hash(_venueTypes),
         isActive,
@@ -712,9 +718,7 @@ class _$ServiceListingImpl implements _ServiceListing {
         updatedAt
       ]);
 
-  /// Create a copy of ServiceListing
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ServiceListingImplCopyWith<_$ServiceListingImpl> get copyWith =>
@@ -744,7 +748,6 @@ abstract class _ServiceListing implements ServiceListing {
           @JsonKey(name: 'video_url') final String? videoUrl,
           @JsonKey(name: 'original_price') required final double originalPrice,
           @JsonKey(name: 'offer_price') required final double offerPrice,
-          @JsonKey(name: 'add_ons') final List<AddOn> addOns,
           @JsonKey(name: 'promotional_tag') final String? promotionalTag,
           final String? description,
           final List<String> inclusions,
@@ -753,6 +756,8 @@ abstract class _ServiceListing implements ServiceListing {
           @JsonKey(name: 'customization_note') final String? customizationNote,
           @JsonKey(name: 'setup_time') required final String setupTime,
           @JsonKey(name: 'booking_notice') required final String bookingNotice,
+          final double? latitude,
+          final double? longitude,
           final List<String> pincodes,
           @JsonKey(name: 'venue_types') final List<String> venueTypes,
           @JsonKey(name: 'is_active') final bool isActive,
@@ -771,38 +776,35 @@ abstract class _ServiceListing implements ServiceListing {
   String get listingId;
   @override
   @JsonKey(name: 'vendor_id')
-  String get vendorId; // Basic Info
-  @override
+  String get vendorId;
+  @override // Basic Info
   String? get title;
   @override
   String? get category;
   @override
   @JsonKey(name: 'theme_tags')
-  List<String> get themeTags; // Service Environment
-  @override
+  List<String> get themeTags;
+  @override // Service Environment
   @JsonKey(name: 'service_environment')
-  List<String> get serviceEnvironment; // Media Upload
-  @override
+  List<String> get serviceEnvironment;
+  @override // Media Upload
   @JsonKey(name: 'cover_photo')
   String? get coverPhoto;
   @override
   List<String> get photos;
   @override
   @JsonKey(name: 'video_url')
-  String? get videoUrl; // Pricing
-  @override
+  String? get videoUrl;
+  @override // Pricing (add-ons moved to separate table)
   @JsonKey(name: 'original_price')
   double get originalPrice;
   @override
   @JsonKey(name: 'offer_price')
   double get offerPrice;
   @override
-  @JsonKey(name: 'add_ons')
-  List<AddOn> get addOns;
-  @override
   @JsonKey(name: 'promotional_tag')
-  String? get promotionalTag; // Details
-  @override
+  String? get promotionalTag;
+  @override // Details
   String? get description;
   @override
   List<String> get inclusions;
@@ -817,13 +819,17 @@ abstract class _ServiceListing implements ServiceListing {
   String get setupTime;
   @override
   @JsonKey(name: 'booking_notice')
-  String get bookingNotice; // Area
+  String get bookingNotice;
+  @override // Location (populate from vendor data)
+  double? get latitude;
   @override
+  double? get longitude;
+  @override // Area
   List<String> get pincodes;
   @override
   @JsonKey(name: 'venue_types')
-  List<String> get venueTypes; // Status and metadata
-  @override
+  List<String> get venueTypes;
+  @override // Status and metadata
   @JsonKey(name: 'is_active')
   bool get isActive;
   @override
@@ -835,11 +841,8 @@ abstract class _ServiceListing implements ServiceListing {
   @override
   @JsonKey(name: 'updated_at')
   DateTime? get updatedAt;
-
-  /// Create a copy of ServiceListing
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ServiceListingImplCopyWith<_$ServiceListingImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

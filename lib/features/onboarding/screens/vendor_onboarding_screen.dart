@@ -4,8 +4,6 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../controllers/vendor_onboarding_controller.dart';
 import '../providers/vendor_provider.dart';
-import '../providers/service_types_provider.dart';
-import '../service/service_types_service.dart';
 import '../widgets/image_upload_widget.dart';
 import '../widgets/custom_text_field.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +12,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import '../../../core/config/supabase_config.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+import '../../../core/services/firebase_notification_service.dart';
 
 class VendorOnboardingScreen extends ConsumerStatefulWidget {
   const VendorOnboardingScreen({super.key});
@@ -35,9 +36,15 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
   final _bankAccountController = TextEditingController();
   final _bankIfscController = TextEditingController();
   final _gstNumberController = TextEditingController();
+  final _additionalAddressController = TextEditingController();
 
-  ServiceType? _selectedServiceType;
+  String? _selectedVendorType;
   int _currentPage = 0;
+  
+  // Location data
+  double? _latitude;
+  double? _longitude;
+  bool _isLocationLoading = false;
 
   @override
   void dispose() {
@@ -49,8 +56,130 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
     _bankAccountController.dispose();
     _bankIfscController.dispose();
     _gstNumberController.dispose();
+    _additionalAddressController.dispose();
     _pageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchCurrentLocation() async {
+    setState(() {
+      _isLocationLoading = true;
+    });
+
+    try {
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw 'Location services are disabled. Please enable location services in your device settings.';
+      }
+
+      // Check location permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw 'Location permission denied. Please allow location access to use this feature.';
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw 'Location permissions are permanently denied. Please enable location access in app settings.';
+      }
+
+      // Get current position
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10),
+      );
+
+      _latitude = position.latitude;
+      _longitude = position.longitude;
+
+      // Get address from coordinates
+      try {
+        List<Placemark> placemarks = await placemarkFromCoordinates(
+          position.latitude,
+          position.longitude,
+        );
+
+        if (placemarks.isNotEmpty) {
+          Placemark placemark = placemarks.first;
+          String address = '';
+          
+          if (placemark.subLocality != null && placemark.subLocality!.isNotEmpty) {
+            address += placemark.subLocality!;
+          }
+          
+          if (placemark.locality != null && placemark.locality!.isNotEmpty) {
+            if (address.isNotEmpty) address += ', ';
+            address += placemark.locality!;
+          }
+          
+          if (placemark.administrativeArea != null && placemark.administrativeArea!.isNotEmpty) {
+            if (address.isNotEmpty) address += ', ';
+            address += placemark.administrativeArea!;
+          }
+
+          if (address.isNotEmpty) {
+            _serviceAreaController.text = address;
+          }
+
+          // Update pincode if available
+          if (placemark.postalCode != null && placemark.postalCode!.isNotEmpty) {
+            _pincodeController.text = placemark.postalCode!;
+          }
+        }
+      } catch (e) {
+        print('Failed to get address from coordinates: $e');
+        // Still save coordinates even if reverse geocoding fails
+        _serviceAreaController.text = 'Current Location (${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)})';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.location_on, color: Colors.white),
+                SizedBox(width: 12),
+                Text('Current location fetched successfully!'),
+              ],
+            ),
+            backgroundColor: AppTheme.successColor,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(child: Text(e.toString())),
+              ],
+            ),
+            backgroundColor: AppTheme.errorColor,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLocationLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -209,15 +338,58 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
           ),
           const SizedBox(height: 16),
           
-          CustomTextField(
-            controller: _serviceAreaController,
-            label: 'Service Area',
-            hint: 'e.g., Bangalore,JP Nagar',
-            prefixIcon: Icons.location_on_outlined,
-            validator: (value) {
-              if (value?.isEmpty ?? true) return 'Service area is required';
-              return null;
-            },
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomTextField(
+                      controller: _serviceAreaController,
+                      label: 'Service Area',
+                      hint: 'e.g., Bangalore, JP Nagar',
+                      prefixIcon: Icons.location_on_outlined,
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) return 'Service area is required';
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    onPressed: _isLocationLoading ? null : _fetchCurrentLocation,
+                    icon: _isLocationLoading 
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.my_location, size: 20),
+                    label: Text(_isLocationLoading ? 'Getting...' : 'Use Current'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'We\'ll use your current location to help customers find you nearby',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           
@@ -235,7 +407,20 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
           ),
           const SizedBox(height: 16),
           
-          _buildServiceTypeDropdown(),
+          CustomTextField(
+            controller: _additionalAddressController,
+            label: 'Additional Address Detail',
+            hint: 'e.g., Landmark, Building name, Floor number',
+            prefixIcon: Icons.home_outlined,
+            maxLines: 2,
+            validator: (value) {
+              if (value?.isEmpty ?? true) return 'Additional address detail is required';
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          
+          _buildVendorTypeSelection(),
         ],
       ),
     );
@@ -476,126 +661,6 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
     );
   }
 
-  Widget _buildServiceTypeDropdown() {
-    final serviceTypesAsync = ref.watch(serviceTypesProvider);
-    
-    return serviceTypesAsync.when(
-      data: (serviceTypes) => DropdownButtonFormField<ServiceType>(
-        value: _selectedServiceType,
-        decoration: InputDecoration(
-          labelText: 'Service Type',
-          hintText: 'Select your service type',
-          prefixIcon: const Icon(Icons.work_outline),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppTheme.borderColor),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppTheme.primaryColor),
-          ),
-          filled: true,
-          fillColor: AppTheme.surfaceColor,
-        ),
-        items: serviceTypes.map((ServiceType service) {
-          return DropdownMenuItem<ServiceType>(
-            value: service,
-            child: Text(service.name),
-          );
-        }).toList(),
-        onChanged: (ServiceType? newValue) {
-          setState(() {
-            _selectedServiceType = newValue;
-          });
-        },
-        validator: (value) {
-          if (value == null) return 'Please select a service type';
-          return null;
-        },
-      ),
-      loading: () => Container(
-        height: 56,
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.borderColor),
-        ),
-        child: const Center(
-          child: Row(
-            children: [
-              SizedBox(width: 16),
-              Icon(Icons.work_outline, color: AppTheme.textSecondaryColor),
-              SizedBox(width: 12),
-              Text(
-                'Loading service types...',
-                style: TextStyle(
-                  color: AppTheme.textSecondaryColor,
-                  fontSize: 16,
-                ),
-              ),
-              Spacer(),
-              SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppTheme.primaryColor,
-                ),
-              ),
-              SizedBox(width: 16),
-            ],
-          ),
-        ),
-      ),
-      error: (error, stack) => Container(
-        height: 56,
-        decoration: BoxDecoration(
-          color: AppTheme.errorColor.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.errorColor.withOpacity(0.3)),
-        ),
-        child: Center(
-          child: Row(
-            children: [
-              const SizedBox(width: 16),
-              const Icon(Icons.error_outline, color: AppTheme.errorColor),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  'Failed to load service types',
-                  style: TextStyle(
-                    color: AppTheme.errorColor,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  ref.invalidate(serviceTypesProvider);
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppTheme.errorColor,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text(
-                    'Retry',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Future<void> _pickProfileImage() async {
     try {
@@ -697,7 +762,20 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
   bool _validateCurrentPage() {
     switch (_currentPage) {
       case 0:
-        return _formKey.currentState?.validate() ?? false;
+        final isFormValid = _formKey.currentState?.validate() ?? false;
+        if (!isFormValid) return false;
+        
+        // Check vendor type selection
+        if (_selectedVendorType == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please select your vendor type'),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+          return false;
+        }
+        return true;
       case 1:
         return _formKey.currentState?.validate() ?? false;
       case 2:
@@ -724,11 +802,23 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
 
     final controller = ref.read(vendorOnboardingControllerProvider.notifier);
     
+    // Get FCM token from Firebase notification service
+    String? fcmToken;
+    try {
+      final firebaseService = FirebaseNotificationService();
+      fcmToken = firebaseService.fcmToken;
+      print('🔑 FCM Token for vendor signup: $fcmToken');
+    } catch (e) {
+      print('⚠️ Could not get FCM token: $e');
+      // Continue without FCM token - it will be updated later when notifications are initialized
+    }
+    
     final success = await controller.submitVendorApplication(
       fullName: _fullNameController.text.trim(),
       serviceArea: _serviceAreaController.text.trim(),
       pincode: _pincodeController.text.trim(),
-      serviceType: _selectedServiceType!.id,
+      serviceType: 'sylonow_vendor',
+      vendorType: _selectedVendorType!,
       businessName: _businessNameController.text.trim(),
       aadhaarNumber: _aadhaarNumberController.text.trim(),
       bankAccountNumber: _bankAccountController.text.trim(),
@@ -736,10 +826,14 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
       gstNumber: _gstNumberController.text.trim().isEmpty 
           ? null 
           : _gstNumberController.text.trim(),
+      additionalAddress: _additionalAddressController.text.trim(),
+      fcmToken: fcmToken,
+      latitude: _latitude,
+      longitude: _longitude,
     );
-
+ 
     // Check if widget is still mounted before proceeding
-    if (!mounted) {
+    if (!mounted) { 
       print('⚠️ Widget unmounted after submission, skipping UI updates');
       return;
     }
@@ -838,5 +932,146 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
         ),
       );
     }
+  }
+
+  Widget _buildVendorTypeSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Vendor Type',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textPrimaryColor,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildVendorTypeCard(
+                title: 'Decoration Provider',
+                description: 'Event decoration and planning services',
+                icon: Icons.celebration_rounded,
+                value: 'decoration_provider',
+                isSelected: _selectedVendorType == 'decoration_provider',
+                onTap: () {
+                  setState(() {
+                    _selectedVendorType = 'decoration_provider';
+                  });
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildVendorTypeCard(
+                title: 'Theater Provider',
+                description: 'Private theater and cinema services',
+                icon: Icons.theaters_rounded,
+                value: 'theater_provider',
+                isSelected: _selectedVendorType == 'theater_provider',
+                onTap: () {
+                  setState(() {
+                    _selectedVendorType = 'theater_provider';
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+        if (_selectedVendorType == null)
+          const Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: Text(
+              'Please select your vendor type',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppTheme.errorColor,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildVendorTypeCard({
+    required String title,
+    required String description,
+    required IconData icon,
+    required String value,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primaryColor.withOpacity(0.1) : AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppTheme.primaryColor : AppTheme.borderColor,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: isSelected 
+                      ? AppTheme.primaryColor 
+                      : AppTheme.primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: isSelected ? Colors.white : AppTheme.primaryColor,
+                    size: 20,
+                  ),
+                ),
+                const Spacer(),
+                if (isSelected)
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: const BoxDecoration(
+                      color: AppTheme.primaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 14,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: isSelected ? AppTheme.primaryColor : AppTheme.textPrimaryColor,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              description,
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppTheme.textSecondaryColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 } 

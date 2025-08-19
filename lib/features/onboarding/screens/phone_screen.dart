@@ -28,7 +28,7 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen>
     super.initState();
     _setupAnimations();
     _startAnimations();
-    
+
     // Track screen view
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FirebaseAnalyticsService().logScreenView(screenName: 'phone_screen');
@@ -51,7 +51,8 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen>
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic));
+    ).animate(
+        CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic));
   }
 
   void _startAnimations() async {
@@ -93,7 +94,7 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen>
           errorMessage: error,
           screenName: 'phone_screen',
         );
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(error),
@@ -114,8 +115,9 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen>
             'screen_name': 'phone_screen',
           },
         );
-        
-        context.push('/verify-otp', extra: "+91${_phoneController.text.trim()}");
+
+        context.push('/verify-otp',
+            extra: "+91${_phoneController.text.trim()}");
       },
     );
 
@@ -126,71 +128,46 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        backgroundColor: AppTheme.backgroundColor,
+        elevation: 0,
+        title: const Text(
+          'Enter your mobile number',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textPrimaryColor,
+          ),
+        ),
+        leading: const BackButton(
+          color: AppTheme.textPrimaryColor,
+        ),
+      ),
       body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 40),
-                      
-                      // Back Button
-                      Row(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              color: AppTheme.surfaceColor,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [AppTheme.cardShadow],
-                            ),
-                            child: IconButton(
-                              onPressed: () => context.pop(),
-                              icon: const Icon(
-                                Icons.arrow_back_ios_rounded,
-                                color: AppTheme.primaryColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      
-                      const SizedBox(height: 40),
-                      
-                      // Header Section
-                      _buildHeader(),
-                      
-                      const SizedBox(height: 60),
-                      
-                      // Phone Illustration
-                      _buildPhoneIllustration(),
-                      
-                      const SizedBox(height: 50),
-                      
-                      // Phone Input Section
-                      _buildPhoneInput(),
-                      
-                      const SizedBox(height: 40),
-                      
-                      // Continue Button
-                      _buildContinueButton(),
-                      
-                      const SizedBox(height: 30),
-                      
-                      // Terms and Privacy
-                      _buildTermsText(),
-                      
-                      const SizedBox(height: 40),
-                    ],
-                  ),
-                ),
-              ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header Section
+
+                _buildPhoneInput(),
+
+                const SizedBox(height: 24),
+
+                // Continue Button
+                _buildContinueButton(),
+
+                const SizedBox(height: 30),
+
+                // Terms and Privacy
+                const Spacer(),
+                _buildTermsText(),
+
+                const SizedBox(height: 40),
+              ],
             ),
           ),
         ),
@@ -224,164 +201,125 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen>
     );
   }
 
-  Widget _buildPhoneIllustration() {
-    return Center(
-      child: Container(
-        width: 200,
-        height: 200,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppTheme.primarySurface,
-              AppTheme.primarySurface.withOpacity(0.5),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(100),
-        ),
-        child: Icon(
-          Icons.phone_android_rounded,
-          size: 80,
-          color: AppTheme.primaryColor.withOpacity(0.8),
-        ),
-      ),
-    );
-  }
-
   Widget _buildPhoneInput() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [AppTheme.cardShadow],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
-            child: Text(
-              'Mobile Number',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textSecondaryColor,
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+          child: Text(
+            'Mobile Number',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textSecondaryColor,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-            child: Row(
-              children: [
-                // Country Code Section
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primarySurface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.borderColor),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 24,
-                        height: 16,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(2),
-                          color: Colors.orange,
-                        ),
-                        child: const Stack(
-                          children: [
-                            Positioned.fill(
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [Colors.orange, Colors.white, Colors.green],
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        '+91',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textPrimaryColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                const SizedBox(width: 16),
-                
-                // Phone Number Input
-                Expanded(
-                  child: TextFormField(
-                    controller: _phoneController,
-                    keyboardType: TextInputType.phone,
-                    style: const TextStyle(
+        ),
+        Container(
+          margin: const EdgeInsets.only(top: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            border: BoxBorder.all(
+              color: AppTheme.borderColor,
+              width: 1,
+            ),
+            borderRadius: BorderRadius.circular(40),
+          ),
+          child: Row(
+            children: [
+              // Country Code Section
+              Row(
+                children: [
+                  SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: Image.asset('assets/images/flag.png')),
+                  const SizedBox(width: 8),
+                  const Text(
+                    '+91',
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      letterSpacing: 1,
+                      color: AppTheme.textPrimaryColor,
                     ),
-                    decoration: InputDecoration(
-                      hintText: '9876543210',
-                      hintStyle: const TextStyle(
-                        color: AppTheme.textDisabledColor,
-                        fontWeight: FontWeight.normal,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppTheme.borderColor),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppTheme.borderColor),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppTheme.errorColor, width: 2),
-                      ),
-                      focusedErrorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppTheme.errorColor, width: 2),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 16,
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your mobile number';
-                      }
-                      if (value.length != 10) {
-                        return 'Please enter a valid 10-digit mobile number';
-                      }
-                      if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
-                        return 'Please enter only numbers';
-                      }
-                      return null;
-                    },
                   ),
+                ],
+              ),
+              const SizedBox(
+                width: 8,
+              ),
+              Container(
+                height: 24,
+                width: 1,
+                color: AppTheme.borderColor,
+              ),
+
+              const SizedBox(width: 8),
+
+              // Phone Number Input
+              Expanded(
+                child: TextFormField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: '9876543210',
+                    fillColor: Colors.transparent,
+                    hintStyle: const TextStyle(
+                      color: AppTheme.textDisabledColor,
+                      fontWeight: FontWeight.normal,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.transparent),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.transparent),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                          color: AppTheme.primaryColor, width: 2),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                          color: AppTheme.errorColor, width: 2),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                          color: AppTheme.errorColor, width: 2),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your mobile number';
+                    }
+                    if (value.length != 10) {
+                      return 'Please enter a valid 10-digit mobile number';
+                    }
+                    if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
+                      return 'Please enter only numbers';
+                    }
+                    return null;
+                  },
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -391,11 +329,11 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen>
       height: 60,
       child: Container(
         decoration: BoxDecoration(
-          gradient: AppTheme.primaryGradient,
+          color: Theme.of(context).colorScheme.primary,
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: AppTheme.primaryColor.withOpacity(0.3),
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
               blurRadius: 15,
               offset: const Offset(0, 6),
             ),
@@ -490,4 +428,4 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen>
       ),
     );
   }
-} 
+}

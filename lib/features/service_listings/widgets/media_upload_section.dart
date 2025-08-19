@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_theme.dart';
+import 'package:heroicons/heroicons.dart';
 import '../controllers/add_service_controller.dart';
 
 class MediaUploadSection extends StatefulWidget {
@@ -25,11 +25,11 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
           // Photos Section
           _buildSectionTitle('Photos'),
           const SizedBox(height: 8),
-          const Text(
+           Text(
             'Add up to 6 photos. First photo will be the cover photo.',
             style: TextStyle(
               fontSize: 12,
-              color: AppTheme.textSecondaryColor,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
           ),
           const SizedBox(height: 12),
@@ -40,11 +40,11 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
           // Video Section
           _buildSectionTitle('Video (Optional)'),
           const SizedBox(height: 8),
-          const Text(
+           Text(
             'Add a video to showcase your service (max 30 seconds).',
             style: TextStyle(
               fontSize: 12,
-              color: AppTheme.textSecondaryColor,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
           ),
           const SizedBox(height: 12),
@@ -57,10 +57,10 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w600,
-        color: AppTheme.textPrimaryColor,
+        color: Theme.of(context).textTheme.bodyLarge?.color,
       ),
     );
   }
@@ -87,7 +87,7 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
           },
         ),
         if (widget.controller.isUploadingMedia)
-          const Padding(
+           Padding(
             padding: EdgeInsets.only(top: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -97,7 +97,7 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
                   height: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                    valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.primary),
                   ),
                 ),
                 SizedBox(width: 8),
@@ -105,7 +105,7 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
                   'Uploading images...',
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppTheme.textSecondaryColor,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
               ],
@@ -124,7 +124,7 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isCover ? AppTheme.primaryColor : AppTheme.borderColor,
+              color: isCover ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.onSurface,
               width: isCover ? 2 : 1,
             ),
           ),
@@ -138,21 +138,21 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
               loadingBuilder: (context, child, loadingProgress) {
                 if (loadingProgress == null) return child;
                 return Container(
-                  color: AppTheme.borderColor,
-                  child: const Center(
+                  color: Theme.of(context).colorScheme.onSurface, 
+                  child: Center(
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                      valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
                     ),
                   ),
                 );
               },
               errorBuilder: (context, error, stackTrace) {
                 return Container(
-                  color: AppTheme.borderColor,
-                  child: const Icon(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  child:  Icon(
                     Icons.image_not_supported,
-                    color: AppTheme.textSecondaryColor,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 );
               },
@@ -166,10 +166,10 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor,
+                color: Theme.of(context).colorScheme.primary,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text(
+              child: Text(
                 'Cover',
                 style: TextStyle(
                   fontSize: 8,
@@ -195,7 +195,7 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryColor,
+                      color: Theme.of(context).primaryColor,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
@@ -211,7 +211,7 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: AppTheme.errorColor,
+                    color: Theme.of(context).colorScheme.error,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
@@ -233,24 +233,24 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
       onTap: widget.controller.isUploadingMedia ? null : _uploadImages,
       child: Container(
         decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: widget.controller.isUploadingMedia 
-                ? AppTheme.borderColor.withOpacity(0.5)
-                : AppTheme.borderColor,
+                ? Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
             style: BorderStyle.solid,
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.add_photo_alternate_outlined,
+            HeroIcon(
+              HeroIcons.photo,
               size: 32,
               color: widget.controller.isUploadingMedia 
-                  ? AppTheme.textSecondaryColor
-                  : AppTheme.primaryColor,
+                  ? Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+                  : Theme.of(context).colorScheme.onSurface,
             ),
             const SizedBox(height: 4),
             Text(
@@ -258,8 +258,8 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
               style: TextStyle(
                 fontSize: 10,
                 color: widget.controller.isUploadingMedia 
-                    ? AppTheme.textSecondaryColor
-                    : AppTheme.textSecondaryColor,
+                    ? Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+                    : Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],
@@ -273,9 +273,9 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderColor),
+        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
       ),
       child: widget.controller.videoUrl?.isNotEmpty == true
           ? _buildVideoPreview()
@@ -289,17 +289,17 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
         Container(
           height: 150,
           decoration: BoxDecoration(
-            color: AppTheme.borderColor,
+            color: Theme.of(context).colorScheme.onSurface,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Center(
+          child:  Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   Icons.play_circle_outline,
                   size: 48,
-                  color: AppTheme.primaryColor,
+                  color: Theme.of(context).primaryColor,
                 ),
                 SizedBox(height: 8),
                 Text(
@@ -307,7 +307,7 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: AppTheme.textPrimaryColor,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -317,12 +317,12 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
         const SizedBox(height: 12),
         Row(
           children: [
-            const Expanded(
+             Expanded(
               child: Text(
                 'Video successfully uploaded',
                 style: TextStyle(
                   fontSize: 12,
-                  color: AppTheme.successColor,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w500,
                 ),
                 maxLines: 1,
@@ -331,11 +331,11 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
             ),
             TextButton(
               onPressed: _removeVideo,
-              child: const Text(
+              child: Text(
                 'Remove',
                 style: TextStyle(
                   fontSize: 12,
-                  color: AppTheme.errorColor,
+                  color: Theme.of(context).colorScheme.error,
                 ),
               ),
             ),
@@ -350,12 +350,12 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
       onTap: widget.controller.isUploadingMedia ? null : _uploadVideo,
       child: Column(
         children: [
-          Icon(
-            Icons.videocam_outlined,
+          HeroIcon(
+            HeroIcons.videoCamera,
             size: 48,
             color: widget.controller.isUploadingMedia 
-                ? AppTheme.textSecondaryColor
-                : AppTheme.primaryColor,
+                ? Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+                : Theme.of(context).colorScheme.onSurface,
           ),
           const SizedBox(height: 8),
           Text(
@@ -364,27 +364,27 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: widget.controller.isUploadingMedia 
-                  ? AppTheme.textSecondaryColor
-                  : AppTheme.textPrimaryColor,
+                  ? Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+                  : Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Upload a video to showcase your service',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 12,
-              color: AppTheme.textSecondaryColor,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           if (widget.controller.isUploadingMedia) ...[
             const SizedBox(height: 12),
-            const SizedBox(
+            SizedBox(
               width: 20,
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.primary),
               ),
             ),
           ],
@@ -433,7 +433,7 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: AppTheme.errorColor,
+        backgroundColor: Theme.of(context).colorScheme.error,
         behavior: SnackBarBehavior.floating,
       ),
     );

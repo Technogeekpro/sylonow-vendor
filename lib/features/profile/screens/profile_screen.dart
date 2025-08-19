@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path/path.dart';
 import '../../../core/config/supabase_config.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/auth_provider.dart';
@@ -28,14 +30,14 @@ class ProfileScreen extends ConsumerWidget {
             children: [
               // Header with Profile Info
               _buildProfileHeader(context, vendorAsync, currentUser),
-              
+
               // Profile Options
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
                     const SizedBox(height: 20),
-                    
+
                     // Profile Options Container
                     Container(
                       decoration: BoxDecoration(
@@ -46,6 +48,7 @@ class ProfileScreen extends ConsumerWidget {
                       child: Column(
                         children: [
                           _buildProfileOption(
+                            context: context,
                             icon: Icons.person_outline,
                             title: 'Edit Profile',
                             subtitle: 'Update your personal information',
@@ -55,6 +58,7 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                           _buildDivider(),
                           _buildProfileOption(
+                            context: context,
                             icon: Icons.business_outlined,
                             title: 'Business Details',
                             subtitle: 'Manage your business information',
@@ -64,6 +68,7 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                           _buildDivider(),
                           _buildProfileOption(
+                            context: context,
                             icon: Icons.account_balance_wallet_outlined,
                             title: 'Payment Settings',
                             subtitle: 'Manage payment methods',
@@ -73,6 +78,7 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                           _buildDivider(),
                           _buildProfileOption(
+                            context: context,
                             icon: Icons.help_outline,
                             title: 'Help & Support',
                             subtitle: 'Get help and contact support',
@@ -83,11 +89,11 @@ class ProfileScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
-                    // Legal Documents Section
-                    _buildSectionHeader('Legal Documents'),
+
+                    // About Section
+                    _buildSectionHeader('About'),
                     const SizedBox(height: 12),
                     Container(
                       decoration: BoxDecoration(
@@ -98,36 +104,29 @@ class ProfileScreen extends ConsumerWidget {
                       child: Column(
                         children: [
                           _buildProfileOption(
-                            icon: Icons.privacy_tip_outlined,
-                            title: 'Privacy Policy',
-                            subtitle: 'Read our privacy policy',
+                            context: context,
+                            icon: Icons.info_outline,
+                            title: 'App Information',
+                            subtitle: 'Version, updates and app details',
                             onTap: () {
-                              context.push('/privacy-policy');
+                              context.push('/app-info');
                             },
                           ),
                           _buildDivider(),
                           _buildProfileOption(
+                            context: context,
                             icon: Icons.description_outlined,
-                            title: 'Terms & Conditions',
-                            subtitle: 'View terms and conditions',
+                            title: 'Legal Documents',
+                            subtitle: 'Privacy policy, terms and conditions',
                             onTap: () {
-                              context.push('/terms-conditions');
-                            },
-                          ),
-                          _buildDivider(),
-                          _buildProfileOption(
-                            icon: Icons.monetization_on_outlined,
-                            title: 'Revenue Policy',
-                            subtitle: 'Commission and payment policy',
-                            onTap: () {
-                              context.push('/revenue-policy');
+                              _showLegalDocumentsBottomSheet(context);
                             },
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Logout Button
                     Container(
                       width: double.infinity,
@@ -161,7 +160,8 @@ class ProfileScreen extends ConsumerWidget {
                                 const SizedBox(width: 16),
                                 const Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Logout',
@@ -194,6 +194,22 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 40),
+                    
+                    // App Logo at bottom
+                    Center(
+                      child: Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: SvgPicture.asset(
+                          'assets/svgs/app_logo.svg',
+                          color: AppTheme.primaryColor,
+                        )
+                      ),
+                    ),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -207,23 +223,138 @@ class ProfileScreen extends ConsumerWidget {
   Future<void> _handleRefresh(WidgetRef ref) async {
     try {
       print('🔄 Refreshing profile screen data...');
-      
+
       // Show haptic feedback
       HapticFeedback.lightImpact();
-      
+
       // Use safer refresh approach that doesn't trigger router
       ref.read(vendorProvider.notifier).invalidateAndRefresh();
-      
+
       // Small delay to allow UI to update
       await Future.delayed(const Duration(milliseconds: 300));
-      
+
       print('🟢 Profile screen refresh completed');
     } catch (e) {
       print('🔴 Profile screen refresh failed: $e');
     }
   }
 
-  Widget _buildProfileHeader(BuildContext context, AsyncValue vendorAsync, currentUser) {
+  void _showLegalDocumentsBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: AppTheme.surfaceColor,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppTheme.textSecondaryColor.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.description_outlined,
+                    color: AppTheme.primaryColor,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Legal Documents',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimaryColor,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(
+                      Icons.close,
+                      color: AppTheme.textSecondaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Legal options
+            Container(
+              margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              decoration: BoxDecoration(
+                color: AppTheme.backgroundColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppTheme.textSecondaryColor.withOpacity(0.1),
+                ),
+              ),
+              child: Column(
+                children: [
+                  _buildProfileOption(
+                    context: context,
+                    icon: Icons.privacy_tip_outlined,
+                    title: 'Privacy Policy',
+                    subtitle: 'Read our privacy policy',
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/legal/privacy-policy');
+                    },
+                  ),
+                  _buildDivider(),
+                  _buildProfileOption(
+                    context: context,
+                    icon: Icons.description_outlined,
+                    title: 'Terms & Conditions',
+                    subtitle: 'View terms and conditions',
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/legal/terms-conditions');
+                    },
+                  ),
+                  _buildDivider(),
+                  _buildProfileOption(
+                    context: context,
+                    icon: Icons.monetization_on_outlined,
+                    title: 'Revenue Policy',
+                    subtitle: 'Commission and payment policy',
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/legal/revenue-policy');
+                    },
+                  ),
+                ],
+              ),
+            ),
+            
+            // Bottom padding for safe area
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileHeader(
+      BuildContext context, AsyncValue vendorAsync, currentUser) {
     // Set status bar color
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
@@ -234,9 +365,17 @@ class ProfileScreen extends ConsumerWidget {
     );
 
     return Container(
-      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 20, 20, 40),
+      padding: EdgeInsets.fromLTRB(
+          20, MediaQuery.of(context).padding.top + 20, 20, 40),
       decoration: BoxDecoration(
-        gradient: AppTheme.primaryGradient,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Theme.of(context).primaryColor,
+            Theme.of(context).primaryColor.withValues(alpha: 0.8),
+          ],
+        ),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(24),
           bottomRight: Radius.circular(24),
@@ -265,9 +404,9 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(width: 48), // To balance the back button
             ],
           ),
-          
+
           const SizedBox(height: 20),
-          
+
           // Profile Info
           vendorAsync.when(
             data: (vendor) => Column(
@@ -286,7 +425,7 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Name
                 Text(
                   vendor?.fullName ?? 'Vendor Name',
@@ -297,12 +436,13 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 // Vendor ID
                 if (vendor?.vendorId != null) ...[
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
@@ -333,16 +473,16 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ),
                 ],
-                
+
                 const SizedBox(height: 8),
-                
+
                 // Email or Phone
                 Text(
-                  vendor?.phone?.isNotEmpty == true 
+                  vendor?.phone?.isNotEmpty == true
                       ? vendor!.phone!
-                      : vendor?.email?.isNotEmpty == true 
-                      ? vendor!.email!
-                      : currentUser?.email ?? 'No contact info',
+                      : vendor?.email?.isNotEmpty == true
+                          ? vendor!.email!
+                          : currentUser?.email ?? 'No contact info',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.white.withOpacity(0.8),
@@ -351,37 +491,38 @@ class ProfileScreen extends ConsumerWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Verification Status
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: vendor?.verificationStatus == 'verified' 
-                        ? AppTheme.successColor 
+                    color: vendor?.verificationStatus == 'verified'
+                        ? AppTheme.successColor
                         : vendor?.verificationStatus == 'rejected'
-                        ? AppTheme.errorColor
-                        : AppTheme.warningColor,
+                            ? AppTheme.errorColor
+                            : AppTheme.warningColor,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        vendor?.verificationStatus == 'verified' 
-                            ? Icons.verified 
+                        vendor?.verificationStatus == 'verified'
+                            ? Icons.verified
                             : vendor?.verificationStatus == 'rejected'
-                            ? Icons.cancel
-                            : Icons.pending,
+                                ? Icons.cancel
+                                : Icons.pending,
                         color: Colors.white,
                         size: 16,
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        vendor?.verificationStatus == 'verified' 
-                            ? 'Verified Vendor' 
+                        vendor?.verificationStatus == 'verified'
+                            ? 'Verified Vendor'
                             : vendor?.verificationStatus == 'rejected'
-                            ? 'Verification Rejected'
-                            : 'Pending Verification',
+                                ? 'Verification Rejected'
+                                : 'Pending Verification',
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.white,
@@ -391,7 +532,7 @@ class ProfileScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                
+
                 if (vendor?.businessName != null) ...[
                   const SizedBox(height: 8),
                   Text(
@@ -518,6 +659,7 @@ class ProfileScreen extends ConsumerWidget {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    required BuildContext context,
   }) {
     return Material(
       color: Colors.transparent,
@@ -531,12 +673,12 @@ class ProfileScreen extends ConsumerWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppTheme.primarySurface,
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   icon,
-                  color: AppTheme.primaryColor,
+                  color: Theme.of(context).primaryColor,
                   size: 20,
                 ),
               ),
@@ -657,7 +799,7 @@ class ProfileScreen extends ConsumerWidget {
   Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
     try {
       print('🔵 Logout: Starting logout process...');
-      
+
       // Show loading indicator
       showDialog(
         context: context,
@@ -672,28 +814,28 @@ class ProfileScreen extends ConsumerWidget {
       // Clear vendor data first (before auth logout)
       print('🔵 Logout: Clearing vendor data...');
       ref.read(vendorProvider.notifier).clearVendorData();
-      
+
       // Perform logout from Supabase
       print('🔵 Logout: Signing out from Supabase...');
       await SupabaseConfig.client.auth.signOut();
-      
+
       // Force invalidate all providers to clear cached data
       print('🔵 Logout: Invalidating providers...');
       ref.invalidate(vendorProvider);
       ref.invalidate(authStateProvider);
-      
+
       // Small delay to ensure state propagation
       await Future.delayed(const Duration(milliseconds: 200));
-      
+
       print('🟢 Logout: Logout successful, navigating to welcome...');
-      
+
       // Close loading dialog
       if (context.mounted) {
         Navigator.of(context).pop();
-        
+
         // Navigate to welcome screen and clear the navigation stack
         context.go('/welcome');
-        
+
         // Fallback: If go() doesn't work, force navigation after a delay
         Future.delayed(const Duration(milliseconds: 500), () {
           if (context.mounted) {
@@ -707,11 +849,11 @@ class ProfileScreen extends ConsumerWidget {
       }
     } catch (e) {
       print('🔴 Logout: Error during logout: $e');
-      
+
       // Close loading dialog
       if (context.mounted) {
         Navigator.of(context).pop();
-        
+
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -720,7 +862,7 @@ class ProfileScreen extends ConsumerWidget {
             duration: const Duration(seconds: 3),
           ),
         );
-        
+
         // Even on error, try to navigate to welcome
         Future.delayed(const Duration(seconds: 1), () {
           if (context.mounted) {
@@ -737,10 +879,11 @@ class ProfileScreen extends ConsumerWidget {
     print('🔍 Vendor ID: ${vendor?.id}');
     print('🔍 Profile Picture URL: ${vendor?.profilePicture}');
     print('🔍 Profile Picture null? ${vendor?.profilePicture == null}');
-    print('🔍 Profile Picture empty? ${vendor?.profilePicture?.isEmpty ?? true}');
+    print(
+        '🔍 Profile Picture empty? ${vendor?.profilePicture?.isEmpty ?? true}');
 
     if (vendor?.profilePicture != null && vendor!.profilePicture!.isNotEmpty) {
-              return Image.network(
+      return Image.network(
         vendor.profilePicture!,
         fit: BoxFit.cover,
         width: 100,
@@ -811,4 +954,4 @@ class ProfileScreen extends ConsumerWidget {
       );
     }
   }
-} 
+}

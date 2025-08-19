@@ -49,22 +49,17 @@ class WalletService {
     try {
       print('🔵 WalletService: Fetching transactions (limit: $limit, offset: $offset)');
       
-      final response = await SupabaseConfig.client.rpc(
-        'get_wallet_transactions',
-        params: {
-          'p_limit': limit,
-          'p_offset': offset,
-        },
-      );
+      // Use direct table query with RLS - the policy will automatically filter by vendor
+      final response = await SupabaseConfig.client
+          .from('wallet_transactions')
+          .select('*')
+          .order('created_at', ascending: false)
+          .range(offset, offset + limit - 1);
       
-      print('🟢 WalletService: Transactions received: ${response?.length ?? 0} items');
+      print('🟢 WalletService: Transactions received: ${response.length} items');
       
-      if (response == null) {
-        return [];
-      }
-      
-      return (response as List)
-          .map((data) => WalletTransaction.fromJson(data as Map<String, dynamic>))
+      return response
+          .map((data) => WalletTransaction.fromJson(data))
           .toList();
     } catch (e, stackTrace) {
       print('🔴 WalletService: Error fetching transactions: $e');

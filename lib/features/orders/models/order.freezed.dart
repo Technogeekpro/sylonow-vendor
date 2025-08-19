@@ -28,13 +28,35 @@ mixin _$Order {
   @JsonKey(name: 'total_amount')
   double get totalAmount => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
+  @JsonKey(name: 'customer_name')
+  String? get customerName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'customer_phone')
+  String? get customerPhone => throw _privateConstructorUsedError;
+  @JsonKey(name: 'customer_email')
+  String? get customerEmail => throw _privateConstructorUsedError;
+  @JsonKey(name: 'booking_time')
+  String? get bookingTime => throw _privateConstructorUsedError;
+  @JsonKey(name: 'payment_status')
+  String? get paymentStatus => throw _privateConstructorUsedError;
+  @JsonKey(name: 'special_requirements')
+  String? get specialRequirements => throw _privateConstructorUsedError;
+  @JsonKey(name: 'venue_address')
+  String? get venueAddress => throw _privateConstructorUsedError;
+  @JsonKey(name: 'duration_hours')
+  int? get durationHours => throw _privateConstructorUsedError;
+  @JsonKey(name: 'advance_amount')
+  double? get advanceAmount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'remaining_amount')
+  double? get remainingAmount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
+  DateTime? get createdAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'confirmed_at')
+  DateTime? get confirmedAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'completed_at')
+  DateTime? get completedAt => throw _privateConstructorUsedError;
 
-  /// Serializes this Order to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Order
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $OrderCopyWith<Order> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -48,7 +70,20 @@ abstract class $OrderCopyWith<$Res> {
       @JsonKey(name: 'service_title') String serviceTitle,
       @JsonKey(name: 'booking_date') DateTime bookingDate,
       @JsonKey(name: 'total_amount') double totalAmount,
-      String status});
+      String status,
+      @JsonKey(name: 'customer_name') String? customerName,
+      @JsonKey(name: 'customer_phone') String? customerPhone,
+      @JsonKey(name: 'customer_email') String? customerEmail,
+      @JsonKey(name: 'booking_time') String? bookingTime,
+      @JsonKey(name: 'payment_status') String? paymentStatus,
+      @JsonKey(name: 'special_requirements') String? specialRequirements,
+      @JsonKey(name: 'venue_address') String? venueAddress,
+      @JsonKey(name: 'duration_hours') int? durationHours,
+      @JsonKey(name: 'advance_amount') double? advanceAmount,
+      @JsonKey(name: 'remaining_amount') double? remainingAmount,
+      @JsonKey(name: 'created_at') DateTime? createdAt,
+      @JsonKey(name: 'confirmed_at') DateTime? confirmedAt,
+      @JsonKey(name: 'completed_at') DateTime? completedAt});
 }
 
 /// @nodoc
@@ -61,8 +96,6 @@ class _$OrderCopyWithImpl<$Res, $Val extends Order>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Order
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -71,6 +104,19 @@ class _$OrderCopyWithImpl<$Res, $Val extends Order>
     Object? bookingDate = null,
     Object? totalAmount = null,
     Object? status = null,
+    Object? customerName = freezed,
+    Object? customerPhone = freezed,
+    Object? customerEmail = freezed,
+    Object? bookingTime = freezed,
+    Object? paymentStatus = freezed,
+    Object? specialRequirements = freezed,
+    Object? venueAddress = freezed,
+    Object? durationHours = freezed,
+    Object? advanceAmount = freezed,
+    Object? remainingAmount = freezed,
+    Object? createdAt = freezed,
+    Object? confirmedAt = freezed,
+    Object? completedAt = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -93,6 +139,58 @@ class _$OrderCopyWithImpl<$Res, $Val extends Order>
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
               as String,
+      customerName: freezed == customerName
+          ? _value.customerName
+          : customerName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      customerPhone: freezed == customerPhone
+          ? _value.customerPhone
+          : customerPhone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      customerEmail: freezed == customerEmail
+          ? _value.customerEmail
+          : customerEmail // ignore: cast_nullable_to_non_nullable
+              as String?,
+      bookingTime: freezed == bookingTime
+          ? _value.bookingTime
+          : bookingTime // ignore: cast_nullable_to_non_nullable
+              as String?,
+      paymentStatus: freezed == paymentStatus
+          ? _value.paymentStatus
+          : paymentStatus // ignore: cast_nullable_to_non_nullable
+              as String?,
+      specialRequirements: freezed == specialRequirements
+          ? _value.specialRequirements
+          : specialRequirements // ignore: cast_nullable_to_non_nullable
+              as String?,
+      venueAddress: freezed == venueAddress
+          ? _value.venueAddress
+          : venueAddress // ignore: cast_nullable_to_non_nullable
+              as String?,
+      durationHours: freezed == durationHours
+          ? _value.durationHours
+          : durationHours // ignore: cast_nullable_to_non_nullable
+              as int?,
+      advanceAmount: freezed == advanceAmount
+          ? _value.advanceAmount
+          : advanceAmount // ignore: cast_nullable_to_non_nullable
+              as double?,
+      remainingAmount: freezed == remainingAmount
+          ? _value.remainingAmount
+          : remainingAmount // ignore: cast_nullable_to_non_nullable
+              as double?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      confirmedAt: freezed == confirmedAt
+          ? _value.confirmedAt
+          : confirmedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      completedAt: freezed == completedAt
+          ? _value.completedAt
+          : completedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ) as $Val);
   }
 }
@@ -109,7 +207,20 @@ abstract class _$$OrderImplCopyWith<$Res> implements $OrderCopyWith<$Res> {
       @JsonKey(name: 'service_title') String serviceTitle,
       @JsonKey(name: 'booking_date') DateTime bookingDate,
       @JsonKey(name: 'total_amount') double totalAmount,
-      String status});
+      String status,
+      @JsonKey(name: 'customer_name') String? customerName,
+      @JsonKey(name: 'customer_phone') String? customerPhone,
+      @JsonKey(name: 'customer_email') String? customerEmail,
+      @JsonKey(name: 'booking_time') String? bookingTime,
+      @JsonKey(name: 'payment_status') String? paymentStatus,
+      @JsonKey(name: 'special_requirements') String? specialRequirements,
+      @JsonKey(name: 'venue_address') String? venueAddress,
+      @JsonKey(name: 'duration_hours') int? durationHours,
+      @JsonKey(name: 'advance_amount') double? advanceAmount,
+      @JsonKey(name: 'remaining_amount') double? remainingAmount,
+      @JsonKey(name: 'created_at') DateTime? createdAt,
+      @JsonKey(name: 'confirmed_at') DateTime? confirmedAt,
+      @JsonKey(name: 'completed_at') DateTime? completedAt});
 }
 
 /// @nodoc
@@ -120,8 +231,6 @@ class __$$OrderImplCopyWithImpl<$Res>
       _$OrderImpl _value, $Res Function(_$OrderImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Order
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -130,6 +239,19 @@ class __$$OrderImplCopyWithImpl<$Res>
     Object? bookingDate = null,
     Object? totalAmount = null,
     Object? status = null,
+    Object? customerName = freezed,
+    Object? customerPhone = freezed,
+    Object? customerEmail = freezed,
+    Object? bookingTime = freezed,
+    Object? paymentStatus = freezed,
+    Object? specialRequirements = freezed,
+    Object? venueAddress = freezed,
+    Object? durationHours = freezed,
+    Object? advanceAmount = freezed,
+    Object? remainingAmount = freezed,
+    Object? createdAt = freezed,
+    Object? confirmedAt = freezed,
+    Object? completedAt = freezed,
   }) {
     return _then(_$OrderImpl(
       id: null == id
@@ -152,6 +274,58 @@ class __$$OrderImplCopyWithImpl<$Res>
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
               as String,
+      customerName: freezed == customerName
+          ? _value.customerName
+          : customerName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      customerPhone: freezed == customerPhone
+          ? _value.customerPhone
+          : customerPhone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      customerEmail: freezed == customerEmail
+          ? _value.customerEmail
+          : customerEmail // ignore: cast_nullable_to_non_nullable
+              as String?,
+      bookingTime: freezed == bookingTime
+          ? _value.bookingTime
+          : bookingTime // ignore: cast_nullable_to_non_nullable
+              as String?,
+      paymentStatus: freezed == paymentStatus
+          ? _value.paymentStatus
+          : paymentStatus // ignore: cast_nullable_to_non_nullable
+              as String?,
+      specialRequirements: freezed == specialRequirements
+          ? _value.specialRequirements
+          : specialRequirements // ignore: cast_nullable_to_non_nullable
+              as String?,
+      venueAddress: freezed == venueAddress
+          ? _value.venueAddress
+          : venueAddress // ignore: cast_nullable_to_non_nullable
+              as String?,
+      durationHours: freezed == durationHours
+          ? _value.durationHours
+          : durationHours // ignore: cast_nullable_to_non_nullable
+              as int?,
+      advanceAmount: freezed == advanceAmount
+          ? _value.advanceAmount
+          : advanceAmount // ignore: cast_nullable_to_non_nullable
+              as double?,
+      remainingAmount: freezed == remainingAmount
+          ? _value.remainingAmount
+          : remainingAmount // ignore: cast_nullable_to_non_nullable
+              as double?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      confirmedAt: freezed == confirmedAt
+          ? _value.confirmedAt
+          : confirmedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      completedAt: freezed == completedAt
+          ? _value.completedAt
+          : completedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ));
   }
 }
@@ -164,7 +338,20 @@ class _$OrderImpl implements _Order {
       @JsonKey(name: 'service_title') required this.serviceTitle,
       @JsonKey(name: 'booking_date') required this.bookingDate,
       @JsonKey(name: 'total_amount') required this.totalAmount,
-      required this.status});
+      required this.status,
+      @JsonKey(name: 'customer_name') this.customerName,
+      @JsonKey(name: 'customer_phone') this.customerPhone,
+      @JsonKey(name: 'customer_email') this.customerEmail,
+      @JsonKey(name: 'booking_time') this.bookingTime,
+      @JsonKey(name: 'payment_status') this.paymentStatus,
+      @JsonKey(name: 'special_requirements') this.specialRequirements,
+      @JsonKey(name: 'venue_address') this.venueAddress,
+      @JsonKey(name: 'duration_hours') this.durationHours,
+      @JsonKey(name: 'advance_amount') this.advanceAmount,
+      @JsonKey(name: 'remaining_amount') this.remainingAmount,
+      @JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'confirmed_at') this.confirmedAt,
+      @JsonKey(name: 'completed_at') this.completedAt});
 
   factory _$OrderImpl.fromJson(Map<String, dynamic> json) =>
       _$$OrderImplFromJson(json);
@@ -182,10 +369,49 @@ class _$OrderImpl implements _Order {
   final double totalAmount;
   @override
   final String status;
+  @override
+  @JsonKey(name: 'customer_name')
+  final String? customerName;
+  @override
+  @JsonKey(name: 'customer_phone')
+  final String? customerPhone;
+  @override
+  @JsonKey(name: 'customer_email')
+  final String? customerEmail;
+  @override
+  @JsonKey(name: 'booking_time')
+  final String? bookingTime;
+  @override
+  @JsonKey(name: 'payment_status')
+  final String? paymentStatus;
+  @override
+  @JsonKey(name: 'special_requirements')
+  final String? specialRequirements;
+  @override
+  @JsonKey(name: 'venue_address')
+  final String? venueAddress;
+  @override
+  @JsonKey(name: 'duration_hours')
+  final int? durationHours;
+  @override
+  @JsonKey(name: 'advance_amount')
+  final double? advanceAmount;
+  @override
+  @JsonKey(name: 'remaining_amount')
+  final double? remainingAmount;
+  @override
+  @JsonKey(name: 'created_at')
+  final DateTime? createdAt;
+  @override
+  @JsonKey(name: 'confirmed_at')
+  final DateTime? confirmedAt;
+  @override
+  @JsonKey(name: 'completed_at')
+  final DateTime? completedAt;
 
   @override
   String toString() {
-    return 'Order(id: $id, serviceTitle: $serviceTitle, bookingDate: $bookingDate, totalAmount: $totalAmount, status: $status)';
+    return 'Order(id: $id, serviceTitle: $serviceTitle, bookingDate: $bookingDate, totalAmount: $totalAmount, status: $status, customerName: $customerName, customerPhone: $customerPhone, customerEmail: $customerEmail, bookingTime: $bookingTime, paymentStatus: $paymentStatus, specialRequirements: $specialRequirements, venueAddress: $venueAddress, durationHours: $durationHours, advanceAmount: $advanceAmount, remainingAmount: $remainingAmount, createdAt: $createdAt, confirmedAt: $confirmedAt, completedAt: $completedAt)';
   }
 
   @override
@@ -200,17 +426,59 @@ class _$OrderImpl implements _Order {
                 other.bookingDate == bookingDate) &&
             (identical(other.totalAmount, totalAmount) ||
                 other.totalAmount == totalAmount) &&
-            (identical(other.status, status) || other.status == status));
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.customerName, customerName) ||
+                other.customerName == customerName) &&
+            (identical(other.customerPhone, customerPhone) ||
+                other.customerPhone == customerPhone) &&
+            (identical(other.customerEmail, customerEmail) ||
+                other.customerEmail == customerEmail) &&
+            (identical(other.bookingTime, bookingTime) ||
+                other.bookingTime == bookingTime) &&
+            (identical(other.paymentStatus, paymentStatus) ||
+                other.paymentStatus == paymentStatus) &&
+            (identical(other.specialRequirements, specialRequirements) ||
+                other.specialRequirements == specialRequirements) &&
+            (identical(other.venueAddress, venueAddress) ||
+                other.venueAddress == venueAddress) &&
+            (identical(other.durationHours, durationHours) ||
+                other.durationHours == durationHours) &&
+            (identical(other.advanceAmount, advanceAmount) ||
+                other.advanceAmount == advanceAmount) &&
+            (identical(other.remainingAmount, remainingAmount) ||
+                other.remainingAmount == remainingAmount) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.confirmedAt, confirmedAt) ||
+                other.confirmedAt == confirmedAt) &&
+            (identical(other.completedAt, completedAt) ||
+                other.completedAt == completedAt));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-      runtimeType, id, serviceTitle, bookingDate, totalAmount, status);
+      runtimeType,
+      id,
+      serviceTitle,
+      bookingDate,
+      totalAmount,
+      status,
+      customerName,
+      customerPhone,
+      customerEmail,
+      bookingTime,
+      paymentStatus,
+      specialRequirements,
+      venueAddress,
+      durationHours,
+      advanceAmount,
+      remainingAmount,
+      createdAt,
+      confirmedAt,
+      completedAt);
 
-  /// Create a copy of Order
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$OrderImplCopyWith<_$OrderImpl> get copyWith =>
@@ -230,7 +498,21 @@ abstract class _Order implements Order {
       @JsonKey(name: 'service_title') required final String serviceTitle,
       @JsonKey(name: 'booking_date') required final DateTime bookingDate,
       @JsonKey(name: 'total_amount') required final double totalAmount,
-      required final String status}) = _$OrderImpl;
+      required final String status,
+      @JsonKey(name: 'customer_name') final String? customerName,
+      @JsonKey(name: 'customer_phone') final String? customerPhone,
+      @JsonKey(name: 'customer_email') final String? customerEmail,
+      @JsonKey(name: 'booking_time') final String? bookingTime,
+      @JsonKey(name: 'payment_status') final String? paymentStatus,
+      @JsonKey(name: 'special_requirements') final String? specialRequirements,
+      @JsonKey(name: 'venue_address') final String? venueAddress,
+      @JsonKey(name: 'duration_hours') final int? durationHours,
+      @JsonKey(name: 'advance_amount') final double? advanceAmount,
+      @JsonKey(name: 'remaining_amount') final double? remainingAmount,
+      @JsonKey(name: 'created_at') final DateTime? createdAt,
+      @JsonKey(name: 'confirmed_at') final DateTime? confirmedAt,
+      @JsonKey(name: 'completed_at')
+      final DateTime? completedAt}) = _$OrderImpl;
 
   factory _Order.fromJson(Map<String, dynamic> json) = _$OrderImpl.fromJson;
 
@@ -247,11 +529,47 @@ abstract class _Order implements Order {
   double get totalAmount;
   @override
   String get status;
-
-  /// Create a copy of Order
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(name: 'customer_name')
+  String? get customerName;
+  @override
+  @JsonKey(name: 'customer_phone')
+  String? get customerPhone;
+  @override
+  @JsonKey(name: 'customer_email')
+  String? get customerEmail;
+  @override
+  @JsonKey(name: 'booking_time')
+  String? get bookingTime;
+  @override
+  @JsonKey(name: 'payment_status')
+  String? get paymentStatus;
+  @override
+  @JsonKey(name: 'special_requirements')
+  String? get specialRequirements;
+  @override
+  @JsonKey(name: 'venue_address')
+  String? get venueAddress;
+  @override
+  @JsonKey(name: 'duration_hours')
+  int? get durationHours;
+  @override
+  @JsonKey(name: 'advance_amount')
+  double? get advanceAmount;
+  @override
+  @JsonKey(name: 'remaining_amount')
+  double? get remainingAmount;
+  @override
+  @JsonKey(name: 'created_at')
+  DateTime? get createdAt;
+  @override
+  @JsonKey(name: 'confirmed_at')
+  DateTime? get confirmedAt;
+  @override
+  @JsonKey(name: 'completed_at')
+  DateTime? get completedAt;
+  @override
+  @JsonKey(ignore: true)
   _$$OrderImplCopyWith<_$OrderImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

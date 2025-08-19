@@ -1,15 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-
-// OneSignal Types
-interface OneSignalResponse {
-  id: string;
-  recipients: number;
-  external_id?: string;
-  errors?: Array<{
-    code: number;
-    message: string;
-  }>;
-}
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import * as OneSignal from "https://esm.sh/@onesignal/node-onesignal@5.0.0-alpha-01";
 
 interface OrderRecord {
   id: string;
@@ -20,268 +11,175 @@ interface OrderRecord {
   vendor_id?: string;
   customer_name?: string;
   customer_phone?: string;
-  booking_time?: string;
-  service_duration?: number;
-  location_address?: string;
+  service_type?: string;
+  location?: string;
   created_at?: string;
+  updated_at?: string;
 }
 
-interface OneSignalNotificationPayload {
-  app_id: string;
-  include_external_user_ids?: string[];
-  filters?: Array<{
-    field: string;
-    key?: string;
-    relation: string;
-    value: string;
-  }>;
-  headings: {
-    en: string;
-  };
-  contents: {
-    en: string;
-  };
-  data: Record<string, any>;
-  android_channel_id?: string;
-  priority?: number;
-  small_icon?: string;
-  large_icon?: string;
-  ios_badgeType?: string;
-  ios_badgeCount?: number;
-  ios_sound?: string;
-  android_sound?: string;
-  web_buttons?: Array<{
-    id: string;
-    text: string;
-    url?: string;
-  }>;
-  big_picture?: string;
-  chrome_web_icon?: string;
-  firefox_icon?: string;
-  chrome_icon?: string;
-  adm_big_picture?: string;
-  chrome_big_picture?: string;
+interface WebhookPayload {
+  type: 'INSERT' | 'UPDATE' | 'DELETE';
+  table: string;
+  record?: OrderRecord;
+  old_record?: OrderRecord;
+  schema: string;
 }
 
-// Environment variables
-const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID') || '49c2960f-3ac3-4542-9348-dd1248a273f3';
-const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY') || 'os_v2_app_jhbjmdz2yncufe2i3ujeritt6m5lejyy5ktud25fp7zknzvgfae2ikijmfpglh2ip4cynizph6tvehpao73rfvj3zdskjczvyc4at2q';
+// Initialize OneSignal configuration
+const ONESIGNAL_APP_ID = "49c2960f-3ac3-4542-9348-dd1248a273f3";
+const ONESIGNAL_REST_API_KEY = "os_v2_app_jhbjmdz2yncufe2i3ujeritt6m5lejyy5ktud25fp7zknzvgfae2ikijmfpglh2ip4cynizph6tvehpao73rfvj3zdskjczvyc4at2q";
 
-/**
- * Send OneSignal notification using the official REST API
- * Following OneSignal + Supabase integration best practices
- */
-async function sendOneSignalNotification(
-  payload: OneSignalNotificationPayload
-): Promise<{ success: boolean; response?: OneSignalResponse; error?: string }> {
-  try {
-    console.log('📤 Sending OneSignal notification:', JSON.stringify(payload, null, 2));
-    
-    const response = await fetch('https://onesignal.com/api/v1/notifications', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const responseData = await response.json() as OneSignalResponse;
-
-    if (response.ok) {
-      console.log('✅ OneSignal notification sent successfully:', responseData);
-      return { success: true, response: responseData };
-    } else {
-      console.error('❌ OneSignal API error:', response.status, responseData);
-      return { 
-        success: false, 
-        error: `OneSignal API error: ${response.status} - ${JSON.stringify(responseData)}` 
-      };
+// Create OneSignal configuration
+const oneSignalConfig = OneSignal.createConfiguration({
+  authMethods: {
+    rest_api_key: {
+      tokenProvider: {
+        getToken(): string {
+          return ONESIGNAL_REST_API_KEY;
+        }
+      }
     }
-  } catch (error) {
-    console.error('❌ Error sending OneSignal notification:', error);
-    return { success: false, error: error.message };
   }
-}
+});
 
-/**
- * Create notification payload for new order
- * Optimized for vendor engagement and order management
- */
-function createNewOrderNotification(order: OrderRecord): OneSignalNotificationPayload {
-  const formattedAmount = order.total_amount.toFixed(2);
-  const orderDate = new Date(order.booking_date).toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+const oneSignalClient = new OneSignal.DefaultApi(oneSignalConfig);
 
-  return {
-    app_id: ONESIGNAL_APP_ID,
-    // Target specific vendor using external user ID (vendor_id)
-    include_external_user_ids: order.vendor_id ? [order.vendor_id] : undefined,
-    // Fallback filter for tag-based targeting
-    filters: order.vendor_id ? undefined : [
-      {
-        field: 'tag',
-        key: 'vendor_id',
-        relation: '=',
-        value: 'all_vendors'
-      }
-    ],
-    headings: {
-      en: '🛎️ New Order Received!'
-    },
-    contents: {
-      en: `${order.service_title} - $${formattedAmount}\nScheduled: ${orderDate}${order.customer_name ? `\nCustomer: ${order.customer_name}` : ''}`
-    },
-    data: {
-      type: 'new_order',
-      order_id: order.id,
-      service_title: order.service_title,
-      total_amount: formattedAmount,
-      booking_date: order.booking_date,
-      booking_time: order.booking_time || '',
-      vendor_id: order.vendor_id || '',
-      customer_name: order.customer_name || '',
-      customer_phone: order.customer_phone || '',
-      status: order.status,
-      location_address: order.location_address || '',
-      service_duration: order.service_duration?.toString() || '',
-      timestamp: new Date().toISOString(),
-      // Action data for deep linking
-      action: 'view_order',
-      screen: 'order_details'
-    },
-    // Android specific settings
-    android_channel_id: 'new_orders_channel',
-    priority: 10, // High priority for new orders
-    small_icon: 'ic_notification',
-    large_icon: 'https://sylonow.com/assets/icon-192x192.png',
-    android_sound: 'new_order_sound',
-    
-    // iOS specific settings
-    ios_badgeType: 'Increase',
-    ios_badgeCount: 1,
-    ios_sound: 'new_order.wav',
-    
-    // Web push settings
-    chrome_web_icon: 'https://sylonow.com/assets/icon-192x192.png',
-    firefox_icon: 'https://sylonow.com/assets/icon-192x192.png',
-    chrome_icon: 'https://sylonow.com/assets/icon-192x192.png',
-    
-    // Action buttons for quick responses
-    web_buttons: [
-      {
-        id: 'view_order',
-        text: 'View Order',
-        url: `https://vendor.sylonow.com/orders/${order.id}`
-      },
-      {
-        id: 'accept_order',
-        text: 'Accept'
-      }
-    ],
-    
-    // Rich media support
-    big_picture: order.service_title.toLowerCase().includes('cleaning') 
-      ? 'https://sylonow.com/assets/cleaning-service.jpg'
-      : 'https://sylonow.com/assets/default-service.jpg',
-    adm_big_picture: 'https://sylonow.com/assets/icon-512x512.png',
-    chrome_big_picture: 'https://sylonow.com/assets/service-banner.jpg'
-  };
-}
+// Function to create notification for new order
+function createNewOrderNotification(order: OrderRecord): OneSignal.Notification {
+  const notification = new OneSignal.Notification();
+  notification.app_id = ONESIGNAL_APP_ID;
+  
+  // Target specific vendor if vendor_id is available, otherwise all vendors
+  if (order.vendor_id) {
+    notification.include_external_user_ids = [order.vendor_id];
+  } else {
+    notification.included_segments = ['All'];
+  }
 
-/**
- * Create notification payload for order status updates
- */
-function createOrderUpdateNotification(order: OrderRecord, updateType: string): OneSignalNotificationPayload {
-  const statusMessages = {
-    'confirmed': 'Order Confirmed ✅',
-    'in_progress': 'Service In Progress 🔄',
-    'completed': 'Service Completed ✅',
-    'cancelled': 'Order Cancelled ❌',
-    'payment_received': 'Payment Received 💰'
+  // Notification content
+  notification.headings = { en: "🛎️ New Order Received!" };
+  notification.contents = { 
+    en: `New order for "${order.service_title}" - $${order.total_amount?.toFixed(2) || '0.00'}` 
   };
 
-  const statusMessage = statusMessages[updateType] || 'Order Updated';
-
-  return {
-    app_id: ONESIGNAL_APP_ID,
-    include_external_user_ids: order.vendor_id ? [order.vendor_id] : undefined,
-    headings: {
-      en: statusMessage
-    },
-    contents: {
-      en: `${order.service_title} - $${order.total_amount.toFixed(2)}\nStatus: ${order.status}`
-    },
-    data: {
-      type: 'order_update',
-      update_type: updateType,
-      order_id: order.id,
-      service_title: order.service_title,
-      total_amount: order.total_amount.toString(),
-      vendor_id: order.vendor_id || '',
-      status: order.status,
-      timestamp: new Date().toISOString(),
-      action: 'view_order',
-      screen: 'order_details'
-    },
-    android_channel_id: 'order_updates_channel',
-    priority: 8, // Medium-high priority for updates
-    small_icon: 'ic_notification',
-    ios_badgeType: 'Increase',
-    ios_sound: 'default'
+  // Rich notification data
+  notification.data = {
+    type: 'new_order',
+    order_id: order.id,
+    service_title: order.service_title,
+    total_amount: order.total_amount?.toString() || '0',
+    booking_date: order.booking_date,
+    vendor_id: order.vendor_id || '',
+    status: order.status,
+    customer_name: order.customer_name || '',
+    location: order.location || ''
   };
+
+  // Platform-specific configurations
+  notification.android_channel_id = "new_orders_channel";
+  notification.priority = 10;
+  notification.small_icon = "ic_notification";
+  notification.large_icon = "https://your-app-domain.com/icons/order-icon.png";
+
+  // Action buttons
+  notification.buttons = [
+    {
+      id: "view_order",
+      text: "View Order",
+      icon: "ic_view"
+    },
+    {
+      id: "accept_order", 
+      text: "Accept",
+      icon: "ic_check"
+    }
+  ];
+
+  // iOS specific
+  notification.ios_badge_type = "Increase";
+  notification.ios_badge_count = 1;
+  notification.ios_sound = "default";
+
+  return notification;
 }
 
-/**
- * Log notification to Supabase for tracking and analytics
- */
+// Function to create notification for order status update
+function createOrderUpdateNotification(order: OrderRecord, oldRecord?: OrderRecord): OneSignal.Notification {
+  const notification = new OneSignal.Notification();
+  notification.app_id = ONESIGNAL_APP_ID;
+  
+  if (order.vendor_id) {
+    notification.include_external_user_ids = [order.vendor_id];
+  } else {
+    notification.included_segments = ['All'];
+  }
+
+  // Determine notification content based on status change
+  let title = "📋 Order Update";
+  let message = `Order "${order.service_title}" status updated`;
+  
+  switch (order.status?.toLowerCase()) {
+    case 'confirmed':
+      title = "✅ Order Confirmed";
+      message = `Order "${order.service_title}" has been confirmed`;
+      break;
+    case 'in_progress':
+      title = "🔄 Order In Progress";
+      message = `Work started on "${order.service_title}"`;
+      break;
+    case 'completed':
+      title = "🎉 Order Completed";
+      message = `Order "${order.service_title}" completed successfully`;
+      break;
+    case 'cancelled':
+      title = "❌ Order Cancelled";
+      message = `Order "${order.service_title}" has been cancelled`;
+      break;
+  }
+
+  notification.headings = { en: title };
+  notification.contents = { en: message };
+
+  notification.data = {
+    type: 'order_update',
+    order_id: order.id,
+    service_title: order.service_title,
+    old_status: oldRecord?.status || '',
+    new_status: order.status,
+    vendor_id: order.vendor_id || '',
+    total_amount: order.total_amount?.toString() || '0'
+  };
+
+  notification.android_channel_id = "order_updates_channel";
+  notification.priority = 8;
+
+  return notification;
+}
+
+// Function to log notification to Supabase for analytics
 async function logNotification(
+  supabase: any,
   orderId: string,
-  vendorId: string,
   notificationType: string,
-  oneSignalResponse: OneSignalResponse
+  oneSignalResponse: any,
+  error?: string
 ) {
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
-    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    const { error } = await supabase
+    await supabase
       .from('notification_logs')
       .insert({
         order_id: orderId,
-        vendor_id: vendorId,
         notification_type: notificationType,
-        onesignal_id: oneSignalResponse.id,
-        recipients: oneSignalResponse.recipients,
-        sent_at: new Date().toISOString(),
-        payload_data: {
-          external_id: oneSignalResponse.external_id,
-          errors: oneSignalResponse.errors
-        }
+        onesignal_response: oneSignalResponse,
+        error_message: error,
+        created_at: new Date().toISOString()
       });
-
-    if (error) {
-      console.error('❌ Error logging notification:', error);
-    } else {
-      console.log('📊 Notification logged successfully');
-    }
-  } catch (error) {
-    console.error('❌ Error in notification logging:', error);
+  } catch (logError) {
+    console.error('Failed to log notification:', logError);
   }
 }
 
-/**
- * Main Edge Function handler
- * Handles database webhooks from orders table
- */
+// Main Edge Function handler
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -296,141 +194,112 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    console.log('🚀 Processing OneSignal order notification...');
-    console.log('🔧 OneSignal App ID:', ONESIGNAL_APP_ID);
+    console.log('🚀 OneSignal order notification function started');
 
-    // Parse the request body to get order data
-    const requestBody = await req.text();
-    console.log('📨 Received webhook payload:', requestBody);
+    // Initialize Supabase client for logging
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    let orderData: OrderRecord;
-    let eventType = 'INSERT'; // Default to new order
+    // Skip auth check for database triggers - they come from internal Supabase
+    const authHeader = req.headers.get('authorization');
+    const isInternalRequest = !authHeader || authHeader === 'Bearer undefined';
     
-    try {
-      // Handle Supabase webhook payload structure
-      const payload = JSON.parse(requestBody);
-      
-      // Extract order data and event type from webhook payload
-      if (payload.type) {
-        eventType = payload.type; // INSERT, UPDATE, DELETE
+    if (!isInternalRequest) {
+      // For external requests, validate the auth header
+      const token = authHeader?.replace('Bearer ', '');
+      if (!token) {
+        console.error('❌ Missing authorization header for external request');
+        return new Response(
+          JSON.stringify({ error: 'Missing authorization header' }),
+          { status: 401, headers: { 'Content-Type': 'application/json' } }
+        );
       }
-      
-      if (payload.record) {
-        // Supabase database webhook format
-        orderData = payload.record;
-      } else if (payload.new) {
-        // Supabase realtime format
-        orderData = payload.new;
-      } else {
-        // Direct order data
-        orderData = payload;
-      }
-      
-      console.log('📋 Extracted order data:', JSON.stringify(orderData, null, 2));
-      console.log('🎯 Event type:', eventType);
-      
-    } catch (parseError) {
-      console.error('❌ Error parsing request body:', parseError);
+    }
+    
+    console.log(`📡 Request type: ${isInternalRequest ? 'Internal (Database Trigger)' : 'External (API Call)'}`);
+
+    // Parse webhook payload
+    const payload: WebhookPayload = await req.json();
+    console.log('📨 Received webhook payload:', JSON.stringify(payload, null, 2));
+
+    if (!payload.record) {
+      console.error('❌ No record found in webhook payload');
       return new Response(
-        JSON.stringify({ 
-          error: 'Invalid JSON payload', 
-          details: parseError.message 
-        }),
-        { 
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        }
+        JSON.stringify({ error: 'No record found in payload' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Validate required order fields
-    if (!orderData.id || !orderData.service_title) {
-      console.error('❌ Missing required order fields:', orderData);
-      return new Response(
-        JSON.stringify({ 
-          error: 'Missing required order fields (id, service_title)' 
-        }),
-        { 
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
-    let notificationPayload: OneSignalNotificationPayload;
+    const order = payload.record;
+    let notification: OneSignal.Notification;
     let notificationType: string;
 
-    // Determine notification type based on event and order status
-    if (eventType === 'INSERT') {
-      // New order created
-      notificationPayload = createNewOrderNotification(orderData);
+    // Determine notification type based on webhook event
+    if (payload.type === 'INSERT') {
+      notification = createNewOrderNotification(order);
       notificationType = 'new_order';
-    } else if (eventType === 'UPDATE') {
-      // Order status updated
-      notificationPayload = createOrderUpdateNotification(orderData, orderData.status);
+      console.log('📬 Creating new order notification');
+    } else if (payload.type === 'UPDATE') {
+      notification = createOrderUpdateNotification(order, payload.old_record);
       notificationType = 'order_update';
+      console.log('📝 Creating order update notification');
     } else {
-      console.log('ℹ️ Ignoring event type:', eventType);
+      console.log('ℹ️ Ignoring DELETE event');
       return new Response(
-        JSON.stringify({ 
-          message: 'Event type not handled',
-          event_type: eventType 
-        }),
-        { 
-          status: 200,
-          headers: { 'Content-Type': 'application/json' }
-        }
+        JSON.stringify({ message: 'DELETE events ignored' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
     }
-    
-    // Send the notification
-    const sendResult = await sendOneSignalNotification(notificationPayload);
 
-    if (sendResult.success && sendResult.response) {
-      // Log the notification for analytics
-      await logNotification(
-        orderData.id,
-        orderData.vendor_id || 'unknown',
-        notificationType,
-        sendResult.response
+    // Send notification via OneSignal
+    try {
+      console.log('📤 Sending OneSignal notification...');
+      const oneSignalResponse = await oneSignalClient.createNotification(notification);
+      
+      console.log('✅ OneSignal notification sent successfully:', oneSignalResponse);
+
+      // Log successful notification
+      await logNotification(supabase, order.id, notificationType, oneSignalResponse);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Notification sent successfully',
+          order_id: order.id,
+          notification_type: notificationType,
+          onesignal_id: oneSignalResponse.id,
+          recipients: oneSignalResponse.recipients,
+          timestamp: new Date().toISOString()
+        }),
+        {
+          status: 200,
+          headers: { 
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          }
+        }
       );
 
-      const result = {
-        message: 'OneSignal notification sent successfully',
-        notification_type: notificationType,
-        order_id: orderData.id,
-        vendor_id: orderData.vendor_id,
-        onesignal_id: sendResult.response.id,
-        recipients: sendResult.response.recipients,
-        external_id: sendResult.response.external_id,
-        timestamp: new Date().toISOString(),
-      };
-
-      console.log('✅ OneSignal notification completed:', result);
-
-      return new Response(JSON.stringify(result), {
-        status: 200,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      });
-    } else {
-      console.error('❌ Failed to send OneSignal notification:', sendResult.error);
+    } catch (oneSignalError) {
+      console.error('❌ OneSignal error:', oneSignalError);
       
+      // Log failed notification
+      await logNotification(supabase, order.id, notificationType, null, oneSignalError.message);
+
       return new Response(
-        JSON.stringify({ 
-          error: 'Failed to send notification', 
-          details: sendResult.error,
-          order_id: orderData.id,
-          vendor_id: orderData.vendor_id,
-          timestamp: new Date().toISOString(),
+        JSON.stringify({
+          success: false,
+          error: 'Failed to send notification',
+          details: oneSignalError.message,
+          order_id: order.id,
+          timestamp: new Date().toISOString()
         }),
-        { 
+        {
           status: 500,
           headers: { 
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': '*'
           }
         }
       );
@@ -440,16 +309,17 @@ Deno.serve(async (req: Request) => {
     console.error('❌ Edge Function error:', error);
     
     return new Response(
-      JSON.stringify({ 
-        error: 'Internal server error', 
+      JSON.stringify({
+        success: false,
+        error: 'Internal server error',
         details: error.message,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString()
       }),
-      { 
+      {
         status: 500,
         headers: { 
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Origin': '*'
         }
       }
     );

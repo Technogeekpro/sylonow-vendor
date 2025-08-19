@@ -53,7 +53,7 @@ final dashboardDataProvider = FutureProvider<DashboardData>((ref) async {
     data: (vendor) async {
       if (vendor?.id != null) {
         final activityService = ref.read(recentActivityServiceProvider);
-        return await activityService.getRecentActivities(vendor!.id);
+        return await activityService.getRecentActivities(vendor!.id!);
       }
       return <ActivityItem>[];
     },

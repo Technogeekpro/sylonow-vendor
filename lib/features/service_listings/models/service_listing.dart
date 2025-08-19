@@ -1,5 +1,4 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'add_on.dart';
 
 part 'service_listing.freezed.dart';
 part 'service_listing.g.dart';
@@ -24,10 +23,9 @@ class ServiceListing with _$ServiceListing {
     @Default([]) List<String> photos,
     @JsonKey(name: 'video_url') String? videoUrl,
     
-    // Pricing
+    // Pricing (add-ons moved to separate table)
     @JsonKey(name: 'original_price') required double originalPrice,
     @JsonKey(name: 'offer_price') required double offerPrice,
-    @JsonKey(name: 'add_ons') @Default([]) List<AddOn> addOns,
     @JsonKey(name: 'promotional_tag') String? promotionalTag,
     
     // Details
@@ -37,6 +35,10 @@ class ServiceListing with _$ServiceListing {
     @JsonKey(name: 'customization_note') String? customizationNote,
     @JsonKey(name: 'setup_time') required String setupTime,
     @JsonKey(name: 'booking_notice') required String bookingNotice,
+    
+    // Location (populate from vendor data)
+    double? latitude,
+    double? longitude,
     
     // Area
     @Default([]) List<String> pincodes,
@@ -48,7 +50,6 @@ class ServiceListing with _$ServiceListing {
     @JsonKey(name: 'created_at') DateTime? createdAt,
     @JsonKey(name: 'updated_at') DateTime? updatedAt,
   }) = _ServiceListing;
-
 
   factory ServiceListing.fromJson(Map<String, dynamic> json) => _$ServiceListingFromJson(json);
 } 

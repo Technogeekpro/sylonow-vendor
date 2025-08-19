@@ -21,25 +21,25 @@ WalletTransaction _$WalletTransactionFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$WalletTransaction {
   String get id => throw _privateConstructorUsedError;
+  @JsonKey(name: 'vendor_id')
+  String get vendorId => throw _privateConstructorUsedError;
   @JsonKey(name: 'transaction_type')
   String get transactionType => throw _privateConstructorUsedError;
   double get amount => throw _privateConstructorUsedError;
-  String get status => throw _privateConstructorUsedError;
+  String? get status => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
   @JsonKey(name: 'reference_id')
   String? get referenceId => throw _privateConstructorUsedError;
   @JsonKey(name: 'reference_type')
   String? get referenceType => throw _privateConstructorUsedError;
-  @JsonKey(name: 'created_at')
-  DateTime get createdAt => throw _privateConstructorUsedError;
   Map<String, dynamic>? get metadata => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
+  DateTime? get createdAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'updated_at')
+  DateTime? get updatedAt => throw _privateConstructorUsedError;
 
-  /// Serializes this WalletTransaction to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of WalletTransaction
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $WalletTransactionCopyWith<WalletTransaction> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -52,14 +52,16 @@ abstract class $WalletTransactionCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
+      @JsonKey(name: 'vendor_id') String vendorId,
       @JsonKey(name: 'transaction_type') String transactionType,
       double amount,
-      String status,
+      String? status,
       String? description,
       @JsonKey(name: 'reference_id') String? referenceId,
       @JsonKey(name: 'reference_type') String? referenceType,
-      @JsonKey(name: 'created_at') DateTime createdAt,
-      Map<String, dynamic>? metadata});
+      Map<String, dynamic>? metadata,
+      @JsonKey(name: 'created_at') DateTime? createdAt,
+      @JsonKey(name: 'updated_at') DateTime? updatedAt});
 }
 
 /// @nodoc
@@ -72,25 +74,29 @@ class _$WalletTransactionCopyWithImpl<$Res, $Val extends WalletTransaction>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of WalletTransaction
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? id = null,
+    Object? vendorId = null,
     Object? transactionType = null,
     Object? amount = null,
-    Object? status = null,
+    Object? status = freezed,
     Object? description = freezed,
     Object? referenceId = freezed,
     Object? referenceType = freezed,
-    Object? createdAt = null,
     Object? metadata = freezed,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      vendorId: null == vendorId
+          ? _value.vendorId
+          : vendorId // ignore: cast_nullable_to_non_nullable
               as String,
       transactionType: null == transactionType
           ? _value.transactionType
@@ -100,10 +106,10 @@ class _$WalletTransactionCopyWithImpl<$Res, $Val extends WalletTransaction>
           ? _value.amount
           : amount // ignore: cast_nullable_to_non_nullable
               as double,
-      status: null == status
+      status: freezed == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       description: freezed == description
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
@@ -116,14 +122,18 @@ class _$WalletTransactionCopyWithImpl<$Res, $Val extends WalletTransaction>
           ? _value.referenceType
           : referenceType // ignore: cast_nullable_to_non_nullable
               as String?,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
       metadata: freezed == metadata
           ? _value.metadata
           : metadata // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ) as $Val);
   }
 }
@@ -138,14 +148,16 @@ abstract class _$$WalletTransactionImplCopyWith<$Res>
   @useResult
   $Res call(
       {String id,
+      @JsonKey(name: 'vendor_id') String vendorId,
       @JsonKey(name: 'transaction_type') String transactionType,
       double amount,
-      String status,
+      String? status,
       String? description,
       @JsonKey(name: 'reference_id') String? referenceId,
       @JsonKey(name: 'reference_type') String? referenceType,
-      @JsonKey(name: 'created_at') DateTime createdAt,
-      Map<String, dynamic>? metadata});
+      Map<String, dynamic>? metadata,
+      @JsonKey(name: 'created_at') DateTime? createdAt,
+      @JsonKey(name: 'updated_at') DateTime? updatedAt});
 }
 
 /// @nodoc
@@ -156,25 +168,29 @@ class __$$WalletTransactionImplCopyWithImpl<$Res>
       $Res Function(_$WalletTransactionImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of WalletTransaction
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? id = null,
+    Object? vendorId = null,
     Object? transactionType = null,
     Object? amount = null,
-    Object? status = null,
+    Object? status = freezed,
     Object? description = freezed,
     Object? referenceId = freezed,
     Object? referenceType = freezed,
-    Object? createdAt = null,
     Object? metadata = freezed,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
   }) {
     return _then(_$WalletTransactionImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      vendorId: null == vendorId
+          ? _value.vendorId
+          : vendorId // ignore: cast_nullable_to_non_nullable
               as String,
       transactionType: null == transactionType
           ? _value.transactionType
@@ -184,10 +200,10 @@ class __$$WalletTransactionImplCopyWithImpl<$Res>
           ? _value.amount
           : amount // ignore: cast_nullable_to_non_nullable
               as double,
-      status: null == status
+      status: freezed == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       description: freezed == description
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
@@ -200,14 +216,18 @@ class __$$WalletTransactionImplCopyWithImpl<$Res>
           ? _value.referenceType
           : referenceType // ignore: cast_nullable_to_non_nullable
               as String?,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
       metadata: freezed == metadata
           ? _value._metadata
           : metadata // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ));
   }
 }
@@ -217,14 +237,16 @@ class __$$WalletTransactionImplCopyWithImpl<$Res>
 class _$WalletTransactionImpl implements _WalletTransaction {
   const _$WalletTransactionImpl(
       {required this.id,
+      @JsonKey(name: 'vendor_id') required this.vendorId,
       @JsonKey(name: 'transaction_type') required this.transactionType,
       required this.amount,
-      required this.status,
+      this.status,
       this.description,
       @JsonKey(name: 'reference_id') this.referenceId,
       @JsonKey(name: 'reference_type') this.referenceType,
-      @JsonKey(name: 'created_at') required this.createdAt,
-      final Map<String, dynamic>? metadata})
+      final Map<String, dynamic>? metadata,
+      @JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'updated_at') this.updatedAt})
       : _metadata = metadata;
 
   factory _$WalletTransactionImpl.fromJson(Map<String, dynamic> json) =>
@@ -233,12 +255,15 @@ class _$WalletTransactionImpl implements _WalletTransaction {
   @override
   final String id;
   @override
+  @JsonKey(name: 'vendor_id')
+  final String vendorId;
+  @override
   @JsonKey(name: 'transaction_type')
   final String transactionType;
   @override
   final double amount;
   @override
-  final String status;
+  final String? status;
   @override
   final String? description;
   @override
@@ -247,9 +272,6 @@ class _$WalletTransactionImpl implements _WalletTransaction {
   @override
   @JsonKey(name: 'reference_type')
   final String? referenceType;
-  @override
-  @JsonKey(name: 'created_at')
-  final DateTime createdAt;
   final Map<String, dynamic>? _metadata;
   @override
   Map<String, dynamic>? get metadata {
@@ -261,8 +283,15 @@ class _$WalletTransactionImpl implements _WalletTransaction {
   }
 
   @override
+  @JsonKey(name: 'created_at')
+  final DateTime? createdAt;
+  @override
+  @JsonKey(name: 'updated_at')
+  final DateTime? updatedAt;
+
+  @override
   String toString() {
-    return 'WalletTransaction(id: $id, transactionType: $transactionType, amount: $amount, status: $status, description: $description, referenceId: $referenceId, referenceType: $referenceType, createdAt: $createdAt, metadata: $metadata)';
+    return 'WalletTransaction(id: $id, vendorId: $vendorId, transactionType: $transactionType, amount: $amount, status: $status, description: $description, referenceId: $referenceId, referenceType: $referenceType, metadata: $metadata, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -271,6 +300,8 @@ class _$WalletTransactionImpl implements _WalletTransaction {
         (other.runtimeType == runtimeType &&
             other is _$WalletTransactionImpl &&
             (identical(other.id, id) || other.id == id) &&
+            (identical(other.vendorId, vendorId) ||
+                other.vendorId == vendorId) &&
             (identical(other.transactionType, transactionType) ||
                 other.transactionType == transactionType) &&
             (identical(other.amount, amount) || other.amount == amount) &&
@@ -281,28 +312,30 @@ class _$WalletTransactionImpl implements _WalletTransaction {
                 other.referenceId == referenceId) &&
             (identical(other.referenceType, referenceType) ||
                 other.referenceType == referenceType) &&
+            const DeepCollectionEquality().equals(other._metadata, _metadata) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
-            const DeepCollectionEquality().equals(other._metadata, _metadata));
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
       id,
+      vendorId,
       transactionType,
       amount,
       status,
       description,
       referenceId,
       referenceType,
+      const DeepCollectionEquality().hash(_metadata),
       createdAt,
-      const DeepCollectionEquality().hash(_metadata));
+      updatedAt);
 
-  /// Create a copy of WalletTransaction
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$WalletTransactionImplCopyWith<_$WalletTransactionImpl> get copyWith =>
@@ -320,14 +353,17 @@ class _$WalletTransactionImpl implements _WalletTransaction {
 abstract class _WalletTransaction implements WalletTransaction {
   const factory _WalletTransaction(
       {required final String id,
+      @JsonKey(name: 'vendor_id') required final String vendorId,
       @JsonKey(name: 'transaction_type') required final String transactionType,
       required final double amount,
-      required final String status,
+      final String? status,
       final String? description,
       @JsonKey(name: 'reference_id') final String? referenceId,
       @JsonKey(name: 'reference_type') final String? referenceType,
-      @JsonKey(name: 'created_at') required final DateTime createdAt,
-      final Map<String, dynamic>? metadata}) = _$WalletTransactionImpl;
+      final Map<String, dynamic>? metadata,
+      @JsonKey(name: 'created_at') final DateTime? createdAt,
+      @JsonKey(name: 'updated_at')
+      final DateTime? updatedAt}) = _$WalletTransactionImpl;
 
   factory _WalletTransaction.fromJson(Map<String, dynamic> json) =
       _$WalletTransactionImpl.fromJson;
@@ -335,12 +371,15 @@ abstract class _WalletTransaction implements WalletTransaction {
   @override
   String get id;
   @override
+  @JsonKey(name: 'vendor_id')
+  String get vendorId;
+  @override
   @JsonKey(name: 'transaction_type')
   String get transactionType;
   @override
   double get amount;
   @override
-  String get status;
+  String? get status;
   @override
   String? get description;
   @override
@@ -350,15 +389,15 @@ abstract class _WalletTransaction implements WalletTransaction {
   @JsonKey(name: 'reference_type')
   String? get referenceType;
   @override
-  @JsonKey(name: 'created_at')
-  DateTime get createdAt;
-  @override
   Map<String, dynamic>? get metadata;
-
-  /// Create a copy of WalletTransaction
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(name: 'created_at')
+  DateTime? get createdAt;
+  @override
+  @JsonKey(name: 'updated_at')
+  DateTime? get updatedAt;
+  @override
+  @JsonKey(ignore: true)
   _$$WalletTransactionImplCopyWith<_$WalletTransactionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_theme.dart';
+import 'package:heroicons/heroicons.dart';
 import '../controllers/add_service_controller.dart';
 import '../widgets/basic_info_section.dart';
 import '../widgets/media_upload_section.dart';
-import '../widgets/pricing_section.dart';
+import '../widgets/pricing_section_new.dart';
 import '../widgets/details_section.dart';
 import '../widgets/area_section.dart';
 
@@ -42,8 +42,8 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen>
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
       ),
     );
   }
@@ -59,77 +59,87 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen>
     final controller = ref.watch(addServiceControllerProvider);
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      extendBodyBehindAppBar: true,
-      body: Column(
-        children: [
-          // Header
-          _buildHeader(),
-          
-          // Step Indicator
-          _buildStepIndicator(),
-          
-          // Content
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              physics: const NeverScrollableScrollPhysics(),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: CustomScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        slivers: [
+          _buildSliverAppBar(),
+          SliverToBoxAdapter(
+            child: Column(
               children: [
-                BasicInfoSection(controller: controller),
-                MediaUploadSection(controller: controller),
-                PricingSection(controller: controller),
-                DetailsSection(controller: controller),
-                AreaSection(controller: controller),
+                // Step Indicator
+                _buildStepIndicator(),
+                
+                // Content
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.65,
+                  child: TabBarView(
+                    controller: _tabController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: [
+                      BasicInfoSection(controller: controller),
+                      MediaUploadSection(controller: controller),
+                      PricingSectionNew(controller: controller),
+                      DetailsSection(controller: controller),
+                      AreaSection(controller: controller),
+                    ],
+                  ),
+                ),
+                
+                // Navigation Buttons
+                _buildNavigationButtons(controller),
               ],
             ),
           ),
-          
-          // Navigation Buttons
-          _buildNavigationButtons(controller),
         ],
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 20, 20, 20),
-      decoration: BoxDecoration(
-        gradient: AppTheme.primaryGradient,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
+  Widget _buildSliverAppBar() {
+    return SliverAppBar(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      elevation: 0,
+      floating: true,
+      pinned: false,
+      snap: true,
+      centerTitle: true,
+      leading: IconButton(
+        icon: HeroIcon(HeroIcons.arrowLeft, size: 20, color: Theme.of(context).textTheme.bodyLarge?.color),
+        onPressed: () => _showExitDialog(),
+      ),
+      title:  Text(
+        'Add Service',
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).textTheme.titleLarge?.color,
         ),
       ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => _showExitDialog(),
-          ),
-          const Expanded(
-            child: Text(
-              'Add Service',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.help_outline, color: Colors.white),
-            onPressed: () => _showHelpDialog(),
-          ),
-        ],
-      ),
+      actions: [
+        IconButton(
+          icon: HeroIcon(HeroIcons.questionMarkCircle, size: 20, color: Theme.of(context).primaryColor),
+          onPressed: () => _showHelpDialog(),
+        ),
+      ],
     );
   }
 
   Widget _buildStepIndicator() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         children: [
           // Step Progress Bar
@@ -143,20 +153,20 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen>
                   children: [
                     Expanded(
                       child: Container(
-                        height: 4,
+                        height: 3,
                         decoration: BoxDecoration(
                           color: isCompleted || isActive 
-                              ? AppTheme.primaryColor 
-                              : AppTheme.borderColor,
+                              ? Theme.of(context).primaryColor 
+                              : Theme.of(context).dividerColor,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                     ),
                     if (index < _stepTitles.length - 1)
                       Container(
-                        width: 8,
-                        height: 4,
-                        color: AppTheme.backgroundColor,
+                        width: 6,
+                        height: 3,
+                        color: Theme.of(context).scaffoldBackgroundColor,
                       ),
                   ],
                 ),
@@ -168,11 +178,11 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen>
           
           // Step Title
           Text(
-            '${_currentStep + 1}. ${_stepTitles[_currentStep]}',
-            style: const TextStyle(
+            _stepTitles[_currentStep],
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: AppTheme.textPrimaryColor,
+              color: Theme.of(context).textTheme.titleMedium?.color,
             ),
           ),
           
@@ -180,9 +190,9 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen>
           
           Text(
             'Step ${_currentStep + 1} of ${_stepTitles.length}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: AppTheme.textSecondaryColor,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
           ),
         ],
@@ -192,16 +202,15 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen>
 
   Widget _buildNavigationButtons(AddServiceController controller) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
+        color: Theme.of(context).cardColor,
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).dividerColor,
+            width: 1,
           ),
-        ],
+        ),
       ),
       child: Row(
         children: [
@@ -212,17 +221,17 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen>
                 onPressed: _isLoading ? null : _previousStep,
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  side: const BorderSide(color: AppTheme.primaryColor),
+                  side: BorderSide(color: Theme.of(context).primaryColor, width: 1.5),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   'Previous',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryColor,
+                    color: Theme.of(context).primaryColor,
                   ),
                 ),
               ),
@@ -236,11 +245,11 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen>
             child: ElevatedButton(
               onPressed: _isLoading ? null : () => _nextStep(controller),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
+                backgroundColor: Theme.of(context).primaryColor,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 elevation: 0,
               ),
@@ -440,28 +449,28 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen>
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: AppTheme.surfaceColor,
-        title: const Text(
+        backgroundColor: Theme.of(context).dialogBackgroundColor,
+        title: Text(
           'Exit',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimaryColor,
+            color: Theme.of(context).textTheme.titleLarge?.color,
           ),
         ),
-        content: const Text(
+        content: Text(
           'Are you sure you want to exit? All unsaved changes will be lost.',
           style: TextStyle(
             fontSize: 14,
-            color: AppTheme.textSecondaryColor,
+            color: Theme.of(context).textTheme.bodyMedium?.color,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: AppTheme.textSecondaryColor),
+              style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
             ),
           ),
           TextButton(
@@ -469,9 +478,9 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen>
               Navigator.of(context).pop();
               context.pop();
             },
-            child: const Text(
+            child: Text(
               'Exit',
-              style: TextStyle(color: AppTheme.errorColor, fontWeight: FontWeight.w600),
+              style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -484,16 +493,16 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen>
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: AppTheme.surfaceColor,
-        title: const Text(
+        backgroundColor: Theme.of(context).dialogBackgroundColor,
+        title: Text(
           'Help',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimaryColor,
+            color: Theme.of(context).textTheme.titleLarge?.color,
           ),
         ),
-        content: const SingleChildScrollView(
+        content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -503,33 +512,33 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen>
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: AppTheme.textPrimaryColor,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
               SizedBox(height: 12),
               Text(
                 '1. Basic Info: Add title, category, and theme tags',
-                style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodyMedium?.color),
               ),
               SizedBox(height: 4),
               Text(
                 '2. Media Upload: Add photos and videos (optional)',
-                style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodyMedium?.color),
               ),
               SizedBox(height: 4),
               Text(
                 '3. Pricing: Set original and offer prices',
-                style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodyMedium?.color),
               ),
               SizedBox(height: 4),
               Text(
                 '4. Details: Add inclusions, setup time, etc.',
-                style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodyMedium?.color),
               ),
               SizedBox(height: 4),
               Text(
                 '5. Area: Specify service pincodes and venues',
-                style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodyMedium?.color),
               ),
             ],
           ),
@@ -537,10 +546,10 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
+            child: Text(
               'Got it',
               style: TextStyle(
-                color: AppTheme.primaryColor,
+                color: Theme.of(context).primaryColor,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -556,7 +565,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen>
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: AppTheme.surfaceColor,
+        backgroundColor: Theme.of(context).dialogBackgroundColor,
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -564,31 +573,31 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen>
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppTheme.successColor,
+                color: Theme.of(context).colorScheme.primary,
                 borderRadius: BorderRadius.circular(40),
               ),
-              child: const Icon(
-                Icons.check_rounded,
+              child: const HeroIcon(
+                HeroIcons.check,
                 color: Colors.white,
                 size: 40,
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'Service Created!',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimaryColor,
+                color: Theme.of(context).textTheme.titleLarge?.color,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Your service listing has been created successfully and is now live.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: AppTheme.textSecondaryColor,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
               ),
             ),
             const SizedBox(height: 24),
@@ -601,18 +610,18 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen>
                       context.pop();
                     },
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppTheme.primaryColor),
+                      side: BorderSide(color: Theme.of(context).primaryColor),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Back to Home',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppTheme.primaryColor,
+                        color: Theme.of(context).primaryColor,
                       ),
                     ),
                   ),
@@ -625,7 +634,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen>
                       context.pushReplacement('/service-listings');
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
+                      backgroundColor: Theme.of(context).primaryColor,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -655,29 +664,29 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen>
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: AppTheme.surfaceColor,
-        title: const Text(
+        backgroundColor: Theme.of(context).dialogBackgroundColor,
+        title: Text(
           'Error',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: AppTheme.errorColor,
+            color: Theme.of(context).colorScheme.error,
           ),
         ),
         content: Text(
           message,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
-            color: AppTheme.textSecondaryColor,
+            color: Theme.of(context).textTheme.bodyMedium?.color,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
+            child: Text(
               'OK',
               style: TextStyle(
-                color: AppTheme.primaryColor,
+                color: Theme.of(context).primaryColor,
                 fontWeight: FontWeight.w600,
               ),
             ),

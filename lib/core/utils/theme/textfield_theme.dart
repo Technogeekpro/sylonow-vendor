@@ -23,7 +23,7 @@ class TextFieldTheme {
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(30),
-      borderSide: BorderSide(color: TColors.primary),
+      borderSide: const BorderSide(color: TColors.primary),
     ),
     errorBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(30),

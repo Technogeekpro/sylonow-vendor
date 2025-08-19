@@ -28,7 +28,7 @@ class ServiceListingsNotifier extends AsyncNotifier<List<ServiceListing>> {
       }
 
       print('🔵 ServiceListingsNotifier: Vendor ID: ${vendor!.id}');
-      final listings = await _serviceListingService.getVendorListings(vendor.id);
+      final listings = await _serviceListingService.getVendorListings(vendor.id!);
       
       print('🟢 ServiceListingsNotifier: Loaded ${listings.length} listings');
       return listings;
@@ -57,7 +57,7 @@ class ServiceListingsNotifier extends AsyncNotifier<List<ServiceListing>> {
       // Optimistically update the state
       state = const AsyncLoading();
       
-      await _serviceListingService.createListing(listing, vendor.id);
+      await _serviceListingService.createListing(listing, vendor.id!);
       
       // Update state with new listing added
       state = await AsyncValue.guard(() async {

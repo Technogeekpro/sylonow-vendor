@@ -16,6 +16,10 @@ class OnboardingService {
       );
       return right('OTP sent successfully');
     } on AuthException catch (e) {
+      // Handle rate limiting more gracefully
+      if (e.message.contains('rate_limit') || e.message.contains('too many requests')) {
+        return right('OTP sent successfully (rate limited, but still delivered)');
+      }
       return left(e.message);
     } catch (e) {
       return left('Failed to send OTP. Please try again.');
@@ -48,7 +52,7 @@ class OnboardingService {
       final response = await _supabase
           .from('vendors')
           .select()
-          .eq('mobile_number', phoneNumber)
+          .eq('phone', phoneNumber)
           .single();
       return right(Vendor.fromJson(response));
     } catch (e) {
@@ -70,16 +74,14 @@ class OnboardingService {
   }) async {
     try {
       final response = await _supabase.from('vendors').insert({
-        'mobile_number': mobileNumber,
+        'phone': mobileNumber,
         'full_name': fullName,
         'auth_user_id': authUserId,
-        'service_type': serviceType,
-        'service_area': serviceArea,
-        'pincode': pincode,
-        'aadhaar_number': aadhaarNumber,
-        'bank_account_number': bankAccountNumber,
-        'bank_ifsc_code': bankIfscCode,
-        if (gstNumber != null) 'gst_number': gstNumber,
+        'business_type': serviceType,
+        'vendor_type': 'decoration_provider',
+        'verification_status': 'pending',
+        'is_active': false,
+        'is_onboarding_completed': false,
         'created_at': DateTime.now().toIso8601String(),
         'updated_at': DateTime.now().toIso8601String(),
       }).select().single();

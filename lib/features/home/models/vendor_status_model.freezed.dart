@@ -38,12 +38,8 @@ mixin _$VendorStatusModel {
   @JsonKey(name: 'updated_at')
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
-  /// Serializes this VendorStatusModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of VendorStatusModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $VendorStatusModelCopyWith<VendorStatusModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -75,8 +71,6 @@ class _$VendorStatusModelCopyWithImpl<$Res, $Val extends VendorStatusModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of VendorStatusModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -153,8 +147,6 @@ class __$$VendorStatusModelImplCopyWithImpl<$Res>
       $Res Function(_$VendorStatusModelImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of VendorStatusModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -275,7 +267,7 @@ class _$VendorStatusModelImpl implements _VendorStatusModel {
                 other.updatedAt == updatedAt));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -288,9 +280,7 @@ class _$VendorStatusModelImpl implements _VendorStatusModel {
       createdAt,
       updatedAt);
 
-  /// Create a copy of VendorStatusModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$VendorStatusModelImplCopyWith<_$VendorStatusModelImpl> get copyWith =>
@@ -331,8 +321,8 @@ abstract class _VendorStatusModel implements VendorStatusModel {
   bool get isOnboardingComplete;
   @override
   @JsonKey(name: 'verification_status')
-  String get verificationStatus; // pending, approved, rejected
-  @override
+  String get verificationStatus;
+  @override // pending, approved, rejected
   @JsonKey(name: 'rejection_reason')
   String? get rejectionReason;
   @override
@@ -344,11 +334,8 @@ abstract class _VendorStatusModel implements VendorStatusModel {
   @override
   @JsonKey(name: 'updated_at')
   DateTime? get updatedAt;
-
-  /// Create a copy of VendorStatusModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$VendorStatusModelImplCopyWith<_$VendorStatusModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

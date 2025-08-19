@@ -172,11 +172,16 @@ class VendorOnboardingController extends StateNotifier<VendorOnboardingState> {
     required String serviceArea,
     required String pincode,
     required String serviceType,
+    required String vendorType,
     required String businessName,
     required String aadhaarNumber,
     required String bankAccountNumber,
     required String bankIfscCode,
+    required String additionalAddress,
+    String? fcmToken,
     String? gstNumber,
+    double? latitude,
+    double? longitude,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
@@ -247,11 +252,16 @@ class VendorOnboardingController extends StateNotifier<VendorOnboardingState> {
         serviceArea: serviceArea,
         pincode: pincode,
         serviceType: serviceType,
+        vendorType: vendorType,
         businessName: businessName,
         aadhaarNumber: aadhaarNumber,
         bankAccountNumber: bankAccountNumber,
         bankIfscCode: bankIfscCode,
+        additionalAddress: additionalAddress,
+        fcmToken: fcmToken,
         gstNumber: gstNumber,
+        latitude: latitude,
+        longitude: longitude,
         // Images - URLs take priority
         profileImageUrl: state.profileImageUrl,
         profileImageFile: state.profileImage,

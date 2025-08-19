@@ -34,7 +34,7 @@ class VendorNotifier extends AsyncNotifier<Vendor?> {
       }
       
       return vendor;
-    } catch (e, stackTrace) {
+    } catch (e) {
       print('🔴 VendorNotifier: Error loading vendor data: $e');
       rethrow;
     }
@@ -57,14 +57,28 @@ class VendorNotifier extends AsyncNotifier<Vendor?> {
       print('🔵 VendorNotifier: Refreshing vendor data for user: ${user.id.substring(0, 8)}...');
       
       final vendorService = ref.read(vendorServiceProvider);
+      
+      // Add a small delay to ensure auth state is fully propagated
+      await Future.delayed(const Duration(milliseconds: 100));
+      
       final vendor = await vendorService.getVendorByUserId(user.id);
       
       if (vendor != null) {
-        print('🟢 VendorNotifier: Vendor refreshed - ID: ${vendor.id.substring(0, 8)}, Onboarding: ${vendor.isOnboardingComplete}, Verified: ${vendor.isVerified}');
-        // Only update state if we got valid data
+        print('🟢 VendorNotifier: Vendor refreshed - ID: ${vendor.id?.substring(0, 8) ?? 'null'}, Onboarding: ${vendor.isOnboardingComplete}, Verified: ${vendor.isVerified}');
+        // Update state with fresh data
         state = AsyncData(vendor);
       } else {
-        print('🟡 VendorNotifier: No vendor data found during refresh');
+        print('🟡 VendorNotifier: No vendor data found during refresh - checking by email fallback');
+        
+        // Try checking by email as fallback for edge cases
+        final userEmail = user.email;
+        if (userEmail != null) {
+          final vendorByEmail = await vendorService.checkVendorStatus(user.id);
+          if (vendorByEmail['exists'] == true && vendorByEmail['can_link'] == true) {
+            print('🔄 VendorNotifier: Found vendor by email, will need linking');
+          }
+        }
+        
         // Only update to null if we currently have data (don't overwrite loading states)
         if (state.hasValue) {
           state = const AsyncData(null);
@@ -87,5 +101,15 @@ class VendorNotifier extends AsyncNotifier<Vendor?> {
   Future<void> invalidateAndRefresh() async {
     print('🔵 VendorNotifier: Invalidating and refreshing...');
     ref.invalidateSelf();
+  }
+
+  /// Update online status locally without full refresh
+  void updateOnlineStatus(bool isOnline) {
+    final currentVendor = state.valueOrNull;
+    if (currentVendor != null) {
+      final updatedVendor = currentVendor.copyWith(isOnline: isOnline);
+      state = AsyncValue.data(updatedVendor);
+      print('🟢 VendorNotifier: Online status updated to $isOnline');
+    }
   }
 }

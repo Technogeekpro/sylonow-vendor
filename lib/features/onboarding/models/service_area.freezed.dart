@@ -39,12 +39,8 @@ mixin _$ServiceArea {
   @JsonKey(name: 'updated_at')
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
-  /// Serializes this ServiceArea to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of ServiceArea
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ServiceAreaCopyWith<ServiceArea> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -79,8 +75,6 @@ class _$ServiceAreaCopyWithImpl<$Res, $Val extends ServiceArea>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ServiceArea
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -175,8 +169,6 @@ class __$$ServiceAreaImplCopyWithImpl<$Res>
       _$ServiceAreaImpl _value, $Res Function(_$ServiceAreaImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of ServiceArea
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -330,7 +322,7 @@ class _$ServiceAreaImpl implements _ServiceArea {
                 other.updatedAt == updatedAt));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -346,9 +338,7 @@ class _$ServiceAreaImpl implements _ServiceArea {
       createdAt,
       updatedAt);
 
-  /// Create a copy of ServiceArea
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ServiceAreaImplCopyWith<_$ServiceAreaImpl> get copyWith =>
@@ -409,11 +399,8 @@ abstract class _ServiceArea implements ServiceArea {
   @override
   @JsonKey(name: 'updated_at')
   DateTime? get updatedAt;
-
-  /// Create a copy of ServiceArea
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ServiceAreaImplCopyWith<_$ServiceAreaImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

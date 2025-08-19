@@ -62,7 +62,6 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
 
 // Check whether user is verified and onboarding is complete
 class VendorStatusProvider extends ChangeNotifier {
-  final client = SupabaseConfig.client;
   bool _isVendorVerified = false;
   bool _isOnboardingComplete = false;
 
@@ -70,11 +69,27 @@ class VendorStatusProvider extends ChangeNotifier {
   bool get isOnboardingComplete => _isOnboardingComplete;
 
   void checkVendorStatus(ref) async {
-    final user = ref.watch(currentUserProvider);
-    if (user != null) {
-      final vendor = await client.from('vendors').select('is_verified, is_onboarding_complete').eq('auth_user_id', user.id).single();
-      _isVendorVerified = vendor['is_verified'];
-      _isOnboardingComplete = vendor['is_onboarding_complete'];
+    try {
+      // Check if Supabase is properly initialized
+      if (!SupabaseConfig.isInitialized) {
+        print('⚠️ Cannot check vendor status: Supabase not initialized');
+        return;
+      }
+
+      final user = ref.watch(currentUserProvider);
+      if (user != null) {
+        final client = SupabaseConfig.client;
+        final vendor = await client.from('vendors').select('is_verified, is_onboarding_complete').eq('auth_user_id', user.id).single();
+        _isVendorVerified = vendor['is_verified'];
+        _isOnboardingComplete = vendor['is_onboarding_complete'];
+        notifyListeners();
+      }
+    } catch (e) {
+      print('❌ Error checking vendor status: $e');
+      // Reset to safe defaults on error
+      _isVendorVerified = false;
+      _isOnboardingComplete = false;
+      notifyListeners();
     }
   }
 }

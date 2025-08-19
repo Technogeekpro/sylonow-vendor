@@ -170,7 +170,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
       // Upload image to Supabase storage
       final vendorService = VendorService();
-      final imageUrl = await vendorService.uploadImage(permanentFile, 'profile', vendor.id);
+      final imageUrl = await vendorService.uploadImage(permanentFile, 'profile', vendor.id!);
       
       print('🟢 Profile image uploaded successfully: $imageUrl');
 
@@ -178,7 +178,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       await SupabaseConfig.client.from('vendors').update({
         'profile_image_url': imageUrl,
         'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', vendor.id);
+      }).eq('id', vendor.id!);
 
       // Update local state
       setState(() {
@@ -322,7 +322,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               ElevatedButton(
                 onPressed: () => ref.invalidate(vendorProvider),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
                   foregroundColor: Colors.white,
                 ),
                 child: const Text('Retry'),
@@ -338,7 +337,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     return Container(
       padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 20, 20, 24),
       decoration: BoxDecoration(
-        gradient: AppTheme.primaryGradient,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Theme.of(context).primaryColor,
+            Theme.of(context).primaryColor.withValues(alpha: 0.8),
+          ],
+        ),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(24),
           bottomRight: Radius.circular(24),
@@ -388,12 +394,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         TextButton.icon(
           onPressed: _isUploadingImage ? null : _pickAndUploadProfileImage,
           icon: _isUploadingImage 
-              ? const SizedBox(
+              ?  SizedBox(
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: AppTheme.primaryColor,
+                    color: Theme.of(context).primaryColor,
                   ),
                 )
               : const Icon(Icons.camera_alt, color: AppTheme.primaryColor),
@@ -402,7 +408,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             style: TextStyle(
               color: _isUploadingImage 
                   ? AppTheme.textSecondaryColor 
-                  : AppTheme.primaryColor,
+                  : Theme.of(context).primaryColor,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -612,7 +618,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       child: ElevatedButton(
         onPressed: _isLoading ? null : _updateProfile,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.primaryColor,
+          backgroundColor: Theme.of(context).primaryColor,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

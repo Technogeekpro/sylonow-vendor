@@ -26,7 +26,35 @@ class ServiceListingService {
       print('🔵 ServiceListingService: Database response received');
       print('🔵 ServiceListingService: Found ${response.length} listings');
       
-      return response.map((json) => ServiceListing.fromJson(json)).toList();
+      return response.map((json) {
+        // Handle null values that could cause type cast errors
+        final Map<String, dynamic> safeJson = Map<String, dynamic>.from(json);
+        
+        // Ensure required string fields have fallback values
+        safeJson['listing_id'] ??= safeJson['id'] ?? '';
+        safeJson['vendor_id'] ??= '';
+        safeJson['setup_time'] ??= '1 hr';
+        safeJson['booking_notice'] ??= '1 day';
+        
+        // Ensure numeric fields have fallback values
+        safeJson['original_price'] ??= 0.0;
+        safeJson['offer_price'] ??= 0.0;
+        
+        // Ensure list fields are initialized
+        safeJson['theme_tags'] ??= <String>[];
+        safeJson['service_environment'] ??= <String>[];
+        safeJson['photos'] ??= <String>[];
+        safeJson['inclusions'] ??= <String>[];
+        safeJson['pincodes'] ??= <String>[];
+        safeJson['venue_types'] ??= <String>[];
+        
+        // Ensure boolean fields have fallback values
+        safeJson['is_active'] ??= true;
+        safeJson['is_featured'] ??= false;
+        safeJson['customization_available'] ??= false;
+        
+        return ServiceListing.fromJson(safeJson);
+      }).toList();
     } catch (e) {
       print('🔴 ServiceListingService: Error getting listings: $e');
       if (e is PostgrestException) {

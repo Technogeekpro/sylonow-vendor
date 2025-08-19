@@ -20,8 +20,8 @@ Vendor _$VendorFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$Vendor {
-  String get id => throw _privateConstructorUsedError;
-  String get email => throw _privateConstructorUsedError;
+  String? get id => throw _privateConstructorUsedError;
+  String? get email => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
   @JsonKey(name: 'full_name')
   String? get fullName => throw _privateConstructorUsedError;
@@ -29,10 +29,18 @@ mixin _$Vendor {
   String? get businessName => throw _privateConstructorUsedError;
   @JsonKey(name: 'business_type')
   String? get businessType => throw _privateConstructorUsedError;
+  @JsonKey(name: 'vendor_type')
+  String get vendorType => throw _privateConstructorUsedError;
   @JsonKey(name: 'experience_years')
   int? get experienceYears => throw _privateConstructorUsedError;
   @JsonKey(name: 'location')
   Map<String, dynamic>? get location => throw _privateConstructorUsedError;
+  @JsonKey(name: 'service_area')
+  String? get serviceArea => throw _privateConstructorUsedError;
+  @JsonKey(name: 'additional_address')
+  String? get additionalAddress => throw _privateConstructorUsedError;
+  @JsonKey(name: 'fcm_token')
+  String? get fcmToken => throw _privateConstructorUsedError;
   @JsonKey(name: 'profile_image_url')
   String? get profilePicture => throw _privateConstructorUsedError;
   @JsonKey(name: 'business_license_url')
@@ -54,6 +62,8 @@ mixin _$Vendor {
   String get verificationStatus => throw _privateConstructorUsedError;
   @JsonKey(name: 'is_active')
   bool get isActive => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_online')
+  bool get isOnline => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
   DateTime? get createdAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'updated_at')
@@ -63,12 +73,8 @@ mixin _$Vendor {
   @JsonKey(name: 'is_onboarding_completed')
   bool get isOnboardingComplete => throw _privateConstructorUsedError;
 
-  /// Serializes this Vendor to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Vendor
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $VendorCopyWith<Vendor> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -78,14 +84,18 @@ abstract class $VendorCopyWith<$Res> {
       _$VendorCopyWithImpl<$Res, Vendor>;
   @useResult
   $Res call(
-      {String id,
-      String email,
+      {String? id,
+      String? email,
       String? phone,
       @JsonKey(name: 'full_name') String? fullName,
       @JsonKey(name: 'business_name') String? businessName,
       @JsonKey(name: 'business_type') String? businessType,
+      @JsonKey(name: 'vendor_type') String vendorType,
       @JsonKey(name: 'experience_years') int? experienceYears,
       @JsonKey(name: 'location') Map<String, dynamic>? location,
+      @JsonKey(name: 'service_area') String? serviceArea,
+      @JsonKey(name: 'additional_address') String? additionalAddress,
+      @JsonKey(name: 'fcm_token') String? fcmToken,
       @JsonKey(name: 'profile_image_url') String? profilePicture,
       @JsonKey(name: 'business_license_url') String? businessLicenseUrl,
       @JsonKey(name: 'identity_verification_url')
@@ -99,6 +109,7 @@ abstract class $VendorCopyWith<$Res> {
       @JsonKey(name: 'total_jobs_completed') int totalJobsCompleted,
       @JsonKey(name: 'verification_status') String verificationStatus,
       @JsonKey(name: 'is_active') bool isActive,
+      @JsonKey(name: 'is_online') bool isOnline,
       @JsonKey(name: 'created_at') DateTime? createdAt,
       @JsonKey(name: 'updated_at') DateTime? updatedAt,
       @JsonKey(name: 'auth_user_id') String? authUserId,
@@ -115,19 +126,21 @@ class _$VendorCopyWithImpl<$Res, $Val extends Vendor>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Vendor
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
-    Object? email = null,
+    Object? id = freezed,
+    Object? email = freezed,
     Object? phone = freezed,
     Object? fullName = freezed,
     Object? businessName = freezed,
     Object? businessType = freezed,
+    Object? vendorType = null,
     Object? experienceYears = freezed,
     Object? location = freezed,
+    Object? serviceArea = freezed,
+    Object? additionalAddress = freezed,
+    Object? fcmToken = freezed,
     Object? profilePicture = freezed,
     Object? businessLicenseUrl = freezed,
     Object? identityVerificationUrl = freezed,
@@ -139,20 +152,21 @@ class _$VendorCopyWithImpl<$Res, $Val extends Vendor>
     Object? totalJobsCompleted = null,
     Object? verificationStatus = null,
     Object? isActive = null,
+    Object? isOnline = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? authUserId = freezed,
     Object? isOnboardingComplete = null,
   }) {
     return _then(_value.copyWith(
-      id: null == id
+      id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      email: null == email
+              as String?,
+      email: freezed == email
           ? _value.email
           : email // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       phone: freezed == phone
           ? _value.phone
           : phone // ignore: cast_nullable_to_non_nullable
@@ -169,6 +183,10 @@ class _$VendorCopyWithImpl<$Res, $Val extends Vendor>
           ? _value.businessType
           : businessType // ignore: cast_nullable_to_non_nullable
               as String?,
+      vendorType: null == vendorType
+          ? _value.vendorType
+          : vendorType // ignore: cast_nullable_to_non_nullable
+              as String,
       experienceYears: freezed == experienceYears
           ? _value.experienceYears
           : experienceYears // ignore: cast_nullable_to_non_nullable
@@ -177,6 +195,18 @@ class _$VendorCopyWithImpl<$Res, $Val extends Vendor>
           ? _value.location
           : location // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      serviceArea: freezed == serviceArea
+          ? _value.serviceArea
+          : serviceArea // ignore: cast_nullable_to_non_nullable
+              as String?,
+      additionalAddress: freezed == additionalAddress
+          ? _value.additionalAddress
+          : additionalAddress // ignore: cast_nullable_to_non_nullable
+              as String?,
+      fcmToken: freezed == fcmToken
+          ? _value.fcmToken
+          : fcmToken // ignore: cast_nullable_to_non_nullable
+              as String?,
       profilePicture: freezed == profilePicture
           ? _value.profilePicture
           : profilePicture // ignore: cast_nullable_to_non_nullable
@@ -221,6 +251,10 @@ class _$VendorCopyWithImpl<$Res, $Val extends Vendor>
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
+      isOnline: null == isOnline
+          ? _value.isOnline
+          : isOnline // ignore: cast_nullable_to_non_nullable
+              as bool,
       createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -249,14 +283,18 @@ abstract class _$$VendorImplCopyWith<$Res> implements $VendorCopyWith<$Res> {
   @override
   @useResult
   $Res call(
-      {String id,
-      String email,
+      {String? id,
+      String? email,
       String? phone,
       @JsonKey(name: 'full_name') String? fullName,
       @JsonKey(name: 'business_name') String? businessName,
       @JsonKey(name: 'business_type') String? businessType,
+      @JsonKey(name: 'vendor_type') String vendorType,
       @JsonKey(name: 'experience_years') int? experienceYears,
       @JsonKey(name: 'location') Map<String, dynamic>? location,
+      @JsonKey(name: 'service_area') String? serviceArea,
+      @JsonKey(name: 'additional_address') String? additionalAddress,
+      @JsonKey(name: 'fcm_token') String? fcmToken,
       @JsonKey(name: 'profile_image_url') String? profilePicture,
       @JsonKey(name: 'business_license_url') String? businessLicenseUrl,
       @JsonKey(name: 'identity_verification_url')
@@ -270,6 +308,7 @@ abstract class _$$VendorImplCopyWith<$Res> implements $VendorCopyWith<$Res> {
       @JsonKey(name: 'total_jobs_completed') int totalJobsCompleted,
       @JsonKey(name: 'verification_status') String verificationStatus,
       @JsonKey(name: 'is_active') bool isActive,
+      @JsonKey(name: 'is_online') bool isOnline,
       @JsonKey(name: 'created_at') DateTime? createdAt,
       @JsonKey(name: 'updated_at') DateTime? updatedAt,
       @JsonKey(name: 'auth_user_id') String? authUserId,
@@ -284,19 +323,21 @@ class __$$VendorImplCopyWithImpl<$Res>
       _$VendorImpl _value, $Res Function(_$VendorImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Vendor
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
-    Object? email = null,
+    Object? id = freezed,
+    Object? email = freezed,
     Object? phone = freezed,
     Object? fullName = freezed,
     Object? businessName = freezed,
     Object? businessType = freezed,
+    Object? vendorType = null,
     Object? experienceYears = freezed,
     Object? location = freezed,
+    Object? serviceArea = freezed,
+    Object? additionalAddress = freezed,
+    Object? fcmToken = freezed,
     Object? profilePicture = freezed,
     Object? businessLicenseUrl = freezed,
     Object? identityVerificationUrl = freezed,
@@ -308,20 +349,21 @@ class __$$VendorImplCopyWithImpl<$Res>
     Object? totalJobsCompleted = null,
     Object? verificationStatus = null,
     Object? isActive = null,
+    Object? isOnline = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? authUserId = freezed,
     Object? isOnboardingComplete = null,
   }) {
     return _then(_$VendorImpl(
-      id: null == id
+      id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      email: null == email
+              as String?,
+      email: freezed == email
           ? _value.email
           : email // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       phone: freezed == phone
           ? _value.phone
           : phone // ignore: cast_nullable_to_non_nullable
@@ -338,6 +380,10 @@ class __$$VendorImplCopyWithImpl<$Res>
           ? _value.businessType
           : businessType // ignore: cast_nullable_to_non_nullable
               as String?,
+      vendorType: null == vendorType
+          ? _value.vendorType
+          : vendorType // ignore: cast_nullable_to_non_nullable
+              as String,
       experienceYears: freezed == experienceYears
           ? _value.experienceYears
           : experienceYears // ignore: cast_nullable_to_non_nullable
@@ -346,6 +392,18 @@ class __$$VendorImplCopyWithImpl<$Res>
           ? _value._location
           : location // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      serviceArea: freezed == serviceArea
+          ? _value.serviceArea
+          : serviceArea // ignore: cast_nullable_to_non_nullable
+              as String?,
+      additionalAddress: freezed == additionalAddress
+          ? _value.additionalAddress
+          : additionalAddress // ignore: cast_nullable_to_non_nullable
+              as String?,
+      fcmToken: freezed == fcmToken
+          ? _value.fcmToken
+          : fcmToken // ignore: cast_nullable_to_non_nullable
+              as String?,
       profilePicture: freezed == profilePicture
           ? _value.profilePicture
           : profilePicture // ignore: cast_nullable_to_non_nullable
@@ -390,6 +448,10 @@ class __$$VendorImplCopyWithImpl<$Res>
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
+      isOnline: null == isOnline
+          ? _value.isOnline
+          : isOnline // ignore: cast_nullable_to_non_nullable
+              as bool,
       createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -414,14 +476,18 @@ class __$$VendorImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$VendorImpl extends _Vendor {
   const _$VendorImpl(
-      {required this.id,
-      required this.email,
+      {this.id,
+      this.email,
       this.phone,
       @JsonKey(name: 'full_name') this.fullName,
       @JsonKey(name: 'business_name') this.businessName,
       @JsonKey(name: 'business_type') this.businessType,
+      @JsonKey(name: 'vendor_type') this.vendorType = 'decoration_provider',
       @JsonKey(name: 'experience_years') this.experienceYears,
       @JsonKey(name: 'location') final Map<String, dynamic>? location,
+      @JsonKey(name: 'service_area') this.serviceArea,
+      @JsonKey(name: 'additional_address') this.additionalAddress,
+      @JsonKey(name: 'fcm_token') this.fcmToken,
       @JsonKey(name: 'profile_image_url') this.profilePicture,
       @JsonKey(name: 'business_license_url') this.businessLicenseUrl,
       @JsonKey(name: 'identity_verification_url') this.identityVerificationUrl,
@@ -434,6 +500,7 @@ class _$VendorImpl extends _Vendor {
       @JsonKey(name: 'total_jobs_completed') this.totalJobsCompleted = 0,
       @JsonKey(name: 'verification_status') this.verificationStatus = 'pending',
       @JsonKey(name: 'is_active') this.isActive = true,
+      @JsonKey(name: 'is_online') this.isOnline = true,
       @JsonKey(name: 'created_at') this.createdAt,
       @JsonKey(name: 'updated_at') this.updatedAt,
       @JsonKey(name: 'auth_user_id') this.authUserId,
@@ -448,9 +515,9 @@ class _$VendorImpl extends _Vendor {
       _$$VendorImplFromJson(json);
 
   @override
-  final String id;
+  final String? id;
   @override
-  final String email;
+  final String? email;
   @override
   final String? phone;
   @override
@@ -462,6 +529,9 @@ class _$VendorImpl extends _Vendor {
   @override
   @JsonKey(name: 'business_type')
   final String? businessType;
+  @override
+  @JsonKey(name: 'vendor_type')
+  final String vendorType;
   @override
   @JsonKey(name: 'experience_years')
   final int? experienceYears;
@@ -476,6 +546,15 @@ class _$VendorImpl extends _Vendor {
     return EqualUnmodifiableMapView(value);
   }
 
+  @override
+  @JsonKey(name: 'service_area')
+  final String? serviceArea;
+  @override
+  @JsonKey(name: 'additional_address')
+  final String? additionalAddress;
+  @override
+  @JsonKey(name: 'fcm_token')
+  final String? fcmToken;
   @override
   @JsonKey(name: 'profile_image_url')
   final String? profilePicture;
@@ -526,6 +605,9 @@ class _$VendorImpl extends _Vendor {
   @JsonKey(name: 'is_active')
   final bool isActive;
   @override
+  @JsonKey(name: 'is_online')
+  final bool isOnline;
+  @override
   @JsonKey(name: 'created_at')
   final DateTime? createdAt;
   @override
@@ -540,7 +622,7 @@ class _$VendorImpl extends _Vendor {
 
   @override
   String toString() {
-    return 'Vendor(id: $id, email: $email, phone: $phone, fullName: $fullName, businessName: $businessName, businessType: $businessType, experienceYears: $experienceYears, location: $location, profilePicture: $profilePicture, businessLicenseUrl: $businessLicenseUrl, identityVerificationUrl: $identityVerificationUrl, portfolioImages: $portfolioImages, bio: $bio, availabilitySchedule: $availabilitySchedule, rating: $rating, totalReviews: $totalReviews, totalJobsCompleted: $totalJobsCompleted, verificationStatus: $verificationStatus, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt, authUserId: $authUserId, isOnboardingComplete: $isOnboardingComplete)';
+    return 'Vendor(id: $id, email: $email, phone: $phone, fullName: $fullName, businessName: $businessName, businessType: $businessType, vendorType: $vendorType, experienceYears: $experienceYears, location: $location, serviceArea: $serviceArea, additionalAddress: $additionalAddress, fcmToken: $fcmToken, profilePicture: $profilePicture, businessLicenseUrl: $businessLicenseUrl, identityVerificationUrl: $identityVerificationUrl, portfolioImages: $portfolioImages, bio: $bio, availabilitySchedule: $availabilitySchedule, rating: $rating, totalReviews: $totalReviews, totalJobsCompleted: $totalJobsCompleted, verificationStatus: $verificationStatus, isActive: $isActive, isOnline: $isOnline, createdAt: $createdAt, updatedAt: $updatedAt, authUserId: $authUserId, isOnboardingComplete: $isOnboardingComplete)';
   }
 
   @override
@@ -557,9 +639,17 @@ class _$VendorImpl extends _Vendor {
                 other.businessName == businessName) &&
             (identical(other.businessType, businessType) ||
                 other.businessType == businessType) &&
+            (identical(other.vendorType, vendorType) ||
+                other.vendorType == vendorType) &&
             (identical(other.experienceYears, experienceYears) ||
                 other.experienceYears == experienceYears) &&
             const DeepCollectionEquality().equals(other._location, _location) &&
+            (identical(other.serviceArea, serviceArea) ||
+                other.serviceArea == serviceArea) &&
+            (identical(other.additionalAddress, additionalAddress) ||
+                other.additionalAddress == additionalAddress) &&
+            (identical(other.fcmToken, fcmToken) ||
+                other.fcmToken == fcmToken) &&
             (identical(other.profilePicture, profilePicture) ||
                 other.profilePicture == profilePicture) &&
             (identical(other.businessLicenseUrl, businessLicenseUrl) ||
@@ -581,6 +671,8 @@ class _$VendorImpl extends _Vendor {
                 other.verificationStatus == verificationStatus) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
+            (identical(other.isOnline, isOnline) ||
+                other.isOnline == isOnline) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -591,7 +683,7 @@ class _$VendorImpl extends _Vendor {
                 other.isOnboardingComplete == isOnboardingComplete));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
@@ -601,8 +693,12 @@ class _$VendorImpl extends _Vendor {
         fullName,
         businessName,
         businessType,
+        vendorType,
         experienceYears,
         const DeepCollectionEquality().hash(_location),
+        serviceArea,
+        additionalAddress,
+        fcmToken,
         profilePicture,
         businessLicenseUrl,
         identityVerificationUrl,
@@ -614,15 +710,14 @@ class _$VendorImpl extends _Vendor {
         totalJobsCompleted,
         verificationStatus,
         isActive,
+        isOnline,
         createdAt,
         updatedAt,
         authUserId,
         isOnboardingComplete
       ]);
 
-  /// Create a copy of Vendor
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$VendorImplCopyWith<_$VendorImpl> get copyWith =>
@@ -638,14 +733,18 @@ class _$VendorImpl extends _Vendor {
 
 abstract class _Vendor extends Vendor {
   const factory _Vendor(
-      {required final String id,
-      required final String email,
+      {final String? id,
+      final String? email,
       final String? phone,
       @JsonKey(name: 'full_name') final String? fullName,
       @JsonKey(name: 'business_name') final String? businessName,
       @JsonKey(name: 'business_type') final String? businessType,
+      @JsonKey(name: 'vendor_type') final String vendorType,
       @JsonKey(name: 'experience_years') final int? experienceYears,
       @JsonKey(name: 'location') final Map<String, dynamic>? location,
+      @JsonKey(name: 'service_area') final String? serviceArea,
+      @JsonKey(name: 'additional_address') final String? additionalAddress,
+      @JsonKey(name: 'fcm_token') final String? fcmToken,
       @JsonKey(name: 'profile_image_url') final String? profilePicture,
       @JsonKey(name: 'business_license_url') final String? businessLicenseUrl,
       @JsonKey(name: 'identity_verification_url')
@@ -659,6 +758,7 @@ abstract class _Vendor extends Vendor {
       @JsonKey(name: 'total_jobs_completed') final int totalJobsCompleted,
       @JsonKey(name: 'verification_status') final String verificationStatus,
       @JsonKey(name: 'is_active') final bool isActive,
+      @JsonKey(name: 'is_online') final bool isOnline,
       @JsonKey(name: 'created_at') final DateTime? createdAt,
       @JsonKey(name: 'updated_at') final DateTime? updatedAt,
       @JsonKey(name: 'auth_user_id') final String? authUserId,
@@ -669,9 +769,9 @@ abstract class _Vendor extends Vendor {
   factory _Vendor.fromJson(Map<String, dynamic> json) = _$VendorImpl.fromJson;
 
   @override
-  String get id;
+  String? get id;
   @override
-  String get email;
+  String? get email;
   @override
   String? get phone;
   @override
@@ -684,11 +784,23 @@ abstract class _Vendor extends Vendor {
   @JsonKey(name: 'business_type')
   String? get businessType;
   @override
+  @JsonKey(name: 'vendor_type')
+  String get vendorType;
+  @override
   @JsonKey(name: 'experience_years')
   int? get experienceYears;
   @override
   @JsonKey(name: 'location')
   Map<String, dynamic>? get location;
+  @override
+  @JsonKey(name: 'service_area')
+  String? get serviceArea;
+  @override
+  @JsonKey(name: 'additional_address')
+  String? get additionalAddress;
+  @override
+  @JsonKey(name: 'fcm_token')
+  String? get fcmToken;
   @override
   @JsonKey(name: 'profile_image_url')
   String? get profilePicture;
@@ -721,6 +833,9 @@ abstract class _Vendor extends Vendor {
   @JsonKey(name: 'is_active')
   bool get isActive;
   @override
+  @JsonKey(name: 'is_online')
+  bool get isOnline;
+  @override
   @JsonKey(name: 'created_at')
   DateTime? get createdAt;
   @override
@@ -732,11 +847,8 @@ abstract class _Vendor extends Vendor {
   @override
   @JsonKey(name: 'is_onboarding_completed')
   bool get isOnboardingComplete;
-
-  /// Create a copy of Vendor
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$VendorImplCopyWith<_$VendorImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

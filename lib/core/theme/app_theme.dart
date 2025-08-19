@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'models/theme_config.dart';
 
 class AppTheme {
   // Primary Brand Colors
@@ -61,9 +62,9 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: primaryColor,
+        seedColor: secondaryColor,
         brightness: Brightness.light,
-        primary: primaryColor,
+        primary: secondaryColor,
         primaryContainer: primarySurface,
         secondary: secondaryColor,
         secondaryContainer: const Color(0xFFE3F2FD),
@@ -86,8 +87,8 @@ class AppTheme {
       appBarTheme: const AppBarTheme(
         elevation: 0,
         centerTitle: true,
-        backgroundColor: Colors.transparent,
-        foregroundColor: textPrimaryColor,
+        backgroundColor:secondaryColor,
+        foregroundColor: Colors.white,
         titleTextStyle: TextStyle(
           color: textPrimaryColor,
           fontSize: 18,
@@ -101,7 +102,7 @@ class AppTheme {
       // Button Themes
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
+          backgroundColor: secondaryColor,
           foregroundColor: textOnPrimary,
           elevation: 0,
           shadowColor: shadowColor,
@@ -220,7 +221,7 @@ class AppTheme {
       
       // FloatingActionButton Theme
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: primaryColor,
+        backgroundColor: secondaryColor,
         foregroundColor: textOnPrimary,
         elevation: 4,
         shape: RoundedRectangleBorder(
@@ -263,7 +264,7 @@ class AppTheme {
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith<Color>((states) {
           if (states.contains(WidgetState.selected)) {
-            return primaryColor;
+            return secondaryColor;
           }
           return Colors.grey.shade400;
         }),
@@ -280,7 +281,7 @@ class AppTheme {
       checkboxTheme: CheckboxThemeData(
         fillColor: WidgetStateProperty.resolveWith<Color>((states) {
           if (states.contains(WidgetState.selected)) {
-            return primaryColor;
+            return secondaryColor;
           }
           return Colors.transparent;
         }),
@@ -295,7 +296,7 @@ class AppTheme {
       radioTheme: RadioThemeData(
         fillColor: WidgetStateProperty.resolveWith<Color>((states) {
           if (states.contains(WidgetState.selected)) {
-            return primaryColor;
+            return secondaryColor;
           }
           return borderColor;
         }),
@@ -303,10 +304,10 @@ class AppTheme {
       
       // Slider Theme
       sliderTheme: SliderThemeData(
-        activeTrackColor: primaryColor,
+        activeTrackColor: secondaryColor,
         // ignore: deprecated_member_use
         inactiveTrackColor: primaryLight.withOpacity(0.3),
-        thumbColor: primaryColor,
+        thumbColor: secondaryColor,
         // ignore: deprecated_member_use
         overlayColor: primaryLight.withOpacity(0.2),
         valueIndicatorColor: primaryColor,
@@ -319,7 +320,7 @@ class AppTheme {
       
       // ProgressIndicator Theme
       progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: primaryColor,
+        color: secondaryColor,
         linearTrackColor: Color(0xFFE8E8E8),
         circularTrackColor: Color(0xFFE8E8E8),
       ),
@@ -357,4 +358,309 @@ class AppTheme {
     blurRadius: 20,
     offset: const Offset(0, 8),
   );
+
+  // Create theme data from dynamic configuration
+  static ThemeData createThemeFromConfig(ThemeConfig config) {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: config.secondaryColorValue,
+        brightness: Brightness.light,
+        primary: config.secondaryColorValue,
+        primaryContainer: config.primarySurfaceValue,
+        secondary: config.secondaryColorValue,
+        secondaryContainer: const Color(0xFFE3F2FD),
+        tertiary: config.accentPinkValue,
+        surface: config.surfaceColorValue,
+        // ignore: deprecated_member_use
+        background: config.backgroundColorValue,
+        error: config.errorColorValue,
+        onPrimary: config.textOnPrimaryValue,
+        onSecondary: Colors.white,
+        onSurface: config.textOnSurfaceValue,
+        // ignore: deprecated_member_use
+        onBackground: config.textPrimaryColorValue,
+        onError: Colors.white,
+      ),
+      primaryColor: config.primaryColorValue,
+      scaffoldBackgroundColor: config.backgroundColorValue,
+      
+      // AppBar Theme
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        centerTitle: true,
+        backgroundColor: config.primaryColorValue,
+        foregroundColor: config.textPrimaryColorValue,
+        titleTextStyle: TextStyle(
+          color: config.textPrimaryColorValue,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+        ),
+        iconTheme: IconThemeData(
+          color: config.textPrimaryColorValue,
+        ),
+      ),
+      
+      // Button Themes
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: config.secondaryColorValue,
+          foregroundColor: config.textOnPrimaryValue,
+          elevation: 0,
+          shadowColor: config.shadowColorValue,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: config.primaryColorValue,
+          side: BorderSide(color: config.primaryColorValue, width: 1.5),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: config.primaryColorValue,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      
+      // Input Decoration Theme
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: config.surfaceColorValue,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: config.borderColorValue, width: 1),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: config.borderColorValue, width: 1),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: config.primaryColorValue, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: config.errorColorValue, width: 1),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: config.errorColorValue, width: 2),
+        ),
+        labelStyle: TextStyle(
+          color: config.textSecondaryColorValue,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        hintStyle: TextStyle(
+          color: config.textDisabledColorValue,
+          fontSize: 14,
+        ),
+        errorStyle: TextStyle(
+          color: config.errorColorValue,
+          fontSize: 12,
+        ),
+      ),
+      
+      // Card Theme
+      cardTheme: CardThemeData(
+        elevation: 2,
+        shadowColor: config.elevationShadowValue,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        color: config.cardColorValue,
+        margin: const EdgeInsets.all(8),
+      ),
+      
+      // Divider Theme
+      dividerTheme: DividerThemeData(
+        color: config.dividerColorValue,
+        thickness: 1,
+        space: 1,
+      ),
+      
+      // Chip Theme
+      chipTheme: ChipThemeData(
+        backgroundColor: config.primarySurfaceValue,
+        selectedColor: config.primaryColorValue,
+        labelStyle: TextStyle(
+          color: config.textPrimaryColorValue,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+      
+      // FloatingActionButton Theme
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: config.secondaryColorValue,
+        foregroundColor: config.textOnPrimaryValue,
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+      
+      // BottomNavigationBar Theme
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: config.surfaceColorValue,
+        selectedItemColor: config.primaryColorValue,
+        unselectedItemColor: config.textSecondaryColorValue,
+        type: BottomNavigationBarType.fixed,
+        elevation: 8,
+        selectedLabelStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      
+      // SnackBar Theme
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: config.textPrimaryColorValue,
+        contentTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+      
+      // Switch Theme
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith<Color>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return config.secondaryColorValue;
+          }
+          return Colors.grey.shade400;
+        }),
+        trackColor: WidgetStateProperty.resolveWith<Color>((states) {
+          if (states.contains(WidgetState.selected)) {
+            // ignore: deprecated_member_use
+            return config.primaryLightValue.withOpacity(0.5);
+          }
+          return Colors.grey.shade300;
+        }),
+      ),
+      
+      // Checkbox Theme
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return config.secondaryColorValue;
+          }
+          return Colors.transparent;
+        }),
+        checkColor: WidgetStateProperty.all(config.textOnPrimaryValue),
+        side: BorderSide(color: config.borderColorValue, width: 1.5),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4),
+        ),
+      ),
+      
+      // Radio Theme
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return config.secondaryColorValue;
+          }
+          return config.borderColorValue;
+        }),
+      ),
+      
+      // Slider Theme
+      sliderTheme: SliderThemeData(
+        activeTrackColor: config.secondaryColorValue,
+        // ignore: deprecated_member_use
+        inactiveTrackColor: config.primaryLightValue.withOpacity(0.3),
+        thumbColor: config.secondaryColorValue,
+        // ignore: deprecated_member_use
+        overlayColor: config.primaryLightValue.withOpacity(0.2),
+        valueIndicatorColor: config.primaryColorValue,
+        valueIndicatorTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      
+      // ProgressIndicator Theme
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: config.secondaryColorValue,
+        linearTrackColor: const Color(0xFFE8E8E8),
+        circularTrackColor: const Color(0xFFE8E8E8),
+      ),
+    );
+  }
+
+  // Create gradients from dynamic configuration
+  static LinearGradient createPrimaryGradientFromConfig(ThemeConfig config) =>
+      LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [config.primaryColorValue, config.primaryDarkValue],
+      );
+
+  static LinearGradient createSecondaryGradientFromConfig(ThemeConfig config) =>
+      LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [config.secondaryColorValue, config.secondaryDarkValue],
+      );
+
+  static LinearGradient createAccentGradientFromConfig(ThemeConfig config) =>
+      LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [config.accentPinkValue, config.accentPurpleValue],
+      );
+
+  static BoxShadow createCardShadowFromConfig(ThemeConfig config) => BoxShadow(
+        color: config.shadowColorValue,
+        blurRadius: 10,
+        offset: const Offset(0, 4),
+      );
+
+  static BoxShadow createElevatedShadowFromConfig(ThemeConfig config) => BoxShadow(
+        // ignore: deprecated_member_use
+        color: config.primaryColorValue.withOpacity(0.3),
+        blurRadius: 20,
+        offset: const Offset(0, 8),
+      );
 } 

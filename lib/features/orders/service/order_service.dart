@@ -12,7 +12,7 @@ class OrderService {
       print('🔵 OrderService: Calling get_vendor_orders RPC with status: $status');
       
       final response = await SupabaseConfig.client.rpc(
-        'get_vendor_orders',
+        'get_vendor_orders_enhanced',
         params: {
           'p_status': status,
         },

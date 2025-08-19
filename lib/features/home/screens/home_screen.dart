@@ -2,19 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:heroicons/heroicons.dart';
+import 'package:lottie/lottie.dart';
 import 'package:intl/intl.dart';
 import 'package:sylonow_vendor/features/dashboard/models/booking.dart';
-import 'package:sylonow_vendor/features/dashboard/models/dashboard_data.dart';
 import 'package:sylonow_vendor/features/dashboard/models/dashboard_stats.dart';
 import 'package:sylonow_vendor/features/dashboard/models/activity_item.dart';
 import 'package:sylonow_vendor/features/dashboard/providers/dashboard_provider.dart';
 import 'package:sylonow_vendor/features/dashboard/services/booking_service.dart';
+import 'package:sylonow_vendor/features/onboarding/service/vendor_service.dart'
+    as vendor_service;
+
 import 'package:sylonow_vendor/features/onboarding/models/vendor.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../onboarding/providers/vendor_provider.dart';
-import '../../onboarding/providers/service_area_provider.dart';
 import '../../../core/services/firebase_analytics_service.dart';
-
+import '../../service_addon/widgets/service_addon_summary_card.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -25,6 +28,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with TickerProviderStateMixin {
+  bool _isOnline = false;
+  bool _isToggling = false; // Prevent sync during toggle operations
   int _selectedIndex = 0;
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
@@ -33,14 +38,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   void initState() {
     super.initState();
+    _selectedIndex = 0; // Always reset to home when screen initializes
     _setupAnimations();
     _startAnimations();
     _setStatusBarColor();
-    
+
     // Track screen view
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FirebaseAnalyticsService().logScreenView(screenName: 'home_screen');
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reset navigation to home whenever this screen is active
+    if (_selectedIndex != 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _selectedIndex = 0;
+          });
+        }
+      });
+    }
   }
 
   void _setupAnimations() {
@@ -93,11 +114,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget build(BuildContext context) {
     final vendorAsync = ref.watch(vendorProvider);
     final dashboardDataAsync = ref.watch(dashboardDataProvider);
-    final primaryServiceAreaAsync = ref.watch(primaryServiceAreaProvider);
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       extendBodyBehindAppBar: true,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: _buildFloatingActionButton(),
+      bottomNavigationBar: _buildBottomNavigation(),
       body: dashboardDataAsync.when(
         data: (dashboardData) {
           return FadeTransition(
@@ -105,8 +128,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             child: Column(
               children: [
                 // Minimalistic Header
-                _buildHeader(vendorAsync, primaryServiceAreaAsync),
-                
+                _buildHeader(vendorAsync),
+
                 // Main Content - Flexible and Scrollable with Pull-to-Refresh
                 Expanded(
                   child: RefreshIndicator(
@@ -117,27 +140,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       physics: const AlwaysScrollableScrollPhysics(
                         parent: BouncingScrollPhysics(),
                       ),
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      padding: const EdgeInsets.fromLTRB(
+                          16, 16, 16, 80), // Added padding
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Business Overview - Four Cards
-                          _buildBusinessOverview(dashboardData.stats),
-                          
-                          const SizedBox(height: 20),
-                          
-                          // New Booking Alert
-                          _buildNewBookingAlert(dashboardData.latestPendingBooking),
-                          
-                          const SizedBox(height: 20),
-                          
-                          // Recent Activity
+                          _buildStatsGrid(dashboardData.stats),
+                          const SizedBox(height: 24),
+                          const ServiceAddonSummaryCard(),
+                          const SizedBox(height: 24),
+                          _buildNewBookingCard(
+                              dashboardData.latestPendingBooking),
+                          const SizedBox(height: 24),
                           _buildRecentActivity(dashboardData.recentActivities),
-                          
-                          const SizedBox(height: 20),
-                          
-                          // Bottom padding for navigation bar
-                          SizedBox(height: MediaQuery.of(context).padding.bottom + 80),
                         ],
                       ),
                     ),
@@ -147,231 +161,197 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Error: $err'),
-              ElevatedButton(
-                onPressed: () => ref.invalidate(dashboardDataProvider),
-                child: const Text('Retry'),
-              )
-            ],
-          ),
+        loading: () => Column(
+          children: [
+            _buildHeader(vendorAsync),
+            const Expanded(child: Center(child: CircularProgressIndicator())),
+          ],
+        ),
+        error: (error, stack) => Column(
+          children: [
+            _buildHeader(vendorAsync),
+            Expanded(
+              child: Center(
+                child: Text('Error: ${error.toString()}'),
+              ),
+            ),
+          ],
         ),
       ),
-      floatingActionButton: _buildFloatingActionButton(),
-      bottomNavigationBar: _buildBottomNavigation(),
     );
   }
 
   Future<void> _handleRefresh() async {
-    try {
-      print('🔄 Refreshing home screen data...');
-      
-      // Track refresh action
-      FirebaseAnalyticsService().logFeatureUsed(
-        featureName: 'pull_to_refresh',
-        screenName: 'home_screen',
-      );
-      
-      // Show haptic feedback
-      HapticFeedback.lightImpact();
-      
-      // Use safer refresh approach that doesn't trigger router
-      ref.read(vendorProvider.notifier).invalidateAndRefresh();
-      ref.invalidate(dashboardDataProvider);
-      ref.invalidate(primaryServiceAreaProvider);
-      
-      // Small delay to allow UI to update
-      await Future.delayed(const Duration(milliseconds: 300));
-      
-      print('🟢 Home screen refresh completed');
-    } catch (e) {
-      print('🔴 Home screen refresh failed: $e');
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to refresh: ${e.toString()}'),
-            backgroundColor: AppTheme.errorColor,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-    }
+    ref.invalidate(vendorProvider);
+    ref.invalidate(dashboardDataProvider);
+    await Future.delayed(const Duration(seconds: 1));
   }
 
-  Widget _buildHeader(AsyncValue vendorAsync, AsyncValue primaryServiceAreaAsync) {
+  Widget _buildHeader(AsyncValue vendorAsync) {
     return Container(
-      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 15, 20, 16),
+      padding: EdgeInsets.fromLTRB(
+          20, MediaQuery.of(context).padding.top + 15, 20, 16),
       decoration: BoxDecoration(
-        gradient: AppTheme.primaryGradient,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Theme.of(context).primaryColor,
+            Theme.of(context).primaryColor.withValues(alpha: 0.8),
+          ],
+        ),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(24),
           bottomRight: Radius.circular(24),
         ),
       ),
       child: vendorAsync.when(
-        data: (vendor) => Column(
-          children: [
-            Row(
-              children: [
-                // Profile Picture
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [AppTheme.cardShadow],
+        data: (vendor) {
+          // Initialize local state on first load if not set
+          if (!_isToggling && _isOnline != vendor.isOnline) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && !_isToggling) {
+                setState(() {
+                  _isOnline = vendor.isOnline;
+                });
+              }
+            });
+          }
+
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                children: [
+                  // Profile Picture
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [AppTheme.cardShadow],
+                    ),
+                    child: ClipOval(
+                      child: _buildHeaderProfileImage(vendor),
+                    ),
                   ),
-                  child: ClipOval(
-                    child: _buildHeaderProfileImage(vendor),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                
-                // User Info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Welcome back,',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white.withOpacity(0.8),
-                          fontWeight: FontWeight.w400,
+                  const SizedBox(width: 16),
+
+                  // User Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Welcome back,',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.8),
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        vendor?.fullName ?? 'Vendor Partner',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (vendor?.vendorId != null) ...[
                         const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.badge_outlined,
-                              color: Colors.white.withOpacity(0.7),
-                              size: 12,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              vendor!.vendorId!,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.white.withOpacity(0.7),
-                                fontWeight: FontWeight.w500,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                
-                // Status & Notifications
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppTheme.successColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.circle,
-                            size: 6,
+                        Text(
+                          vendor.fullName ?? 'Vendor Partner',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
                             color: Colors.white,
                           ),
-                          SizedBox(width: 4),
-                          Text(
-                            'Online',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (vendor.vendorId != null) ...[
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.badge_outlined,
+                                color: Colors.white.withOpacity(0.7),
+                                size: 12,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                vendor.vendorId!,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white.withOpacity(0.7),
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
-                      ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
-                        shape: BoxShape.circle,
+                  ),
+
+                  // Status & Notifications
+                  Column(
+                    children: [
+                      Transform.scale(
+                        scale: 0.8, // Make the switch a bit smaller
+                        child: Switch(
+                          value: _isToggling ? _isOnline : vendor.isOnline,
+                          onChanged: (value) {
+                            _toggleOnlineStatus(vendor, value);
+                          },
+                          activeTrackColor:
+                              AppTheme.successColor.withOpacity(0.5),
+                          inactiveTrackColor: Colors.black.withOpacity(0.2),
+                          activeColor: Colors.white,
+                          inactiveThumbColor: Colors.white.withOpacity(0.9),
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.notifications_outlined,
+                      GestureDetector(
+                        onTap: () => context.push('/notifications'),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.notifications_outlined,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // Location
+              Row(
+                children: [
+                  HeroIcon(
+                    HeroIcons.map,
+                    color: Colors.white.withOpacity(0.8),
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      vendor.serviceArea ?? 'Location not set',
+                      style: const TextStyle(
                         color: Colors.white,
-                        size: 20,
+                        fontWeight: FontWeight.w500,
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Location
-            Row(
-              children: [
-                Icon(
-                  Icons.location_on_rounded,
-                  color: Colors.white.withOpacity(0.8),
-                  size: 16,
-                ),
-                const SizedBox(width: 6),
-                primaryServiceAreaAsync.when(
-                  data: (serviceArea) => Text(
-                    serviceArea?.areaName ?? 'Service Area',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withOpacity(0.8),
-                      fontWeight: FontWeight.w500,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  loading: () => Text(
-                    'Loading...',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withOpacity(0.6),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  error: (error, stack) => Text(
-                    'Service Area',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withOpacity(0.8),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+                ],
+              ),
+            ],
+          );
+        },
         loading: () => _buildHeaderSkeleton(),
         error: (error, stack) => _buildHeaderError(),
       ),
@@ -379,88 +359,65 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   Widget _buildHeaderSkeleton() {
-    return Row(
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.3),
-            shape: BoxShape.circle,
-          ),
+        Row(
+          children: [
+            const CircleAvatar(radius: 28, backgroundColor: Colors.white24),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(height: 14, width: 100, color: Colors.white24),
+                  const SizedBox(height: 6),
+                  Container(height: 18, width: 150, color: Colors.white24),
+                  const SizedBox(height: 6),
+                  Container(height: 12, width: 80, color: Colors.white24),
+                ],
+              ),
+            ),
+            Container(
+              width: 40,
+              height: 40,
+              decoration: const BoxDecoration(
+                color: Colors.white24,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                height: 14,
-                width: 100,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              const SizedBox(height: 6),
-              Container(
-                height: 18,
-                width: 150,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ],
-          ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            const Icon(Icons.location_on_rounded,
+                color: Colors.white24, size: 16),
+            const SizedBox(width: 8),
+            Container(height: 14, width: 200, color: Colors.white24),
+          ],
         ),
       ],
     );
   }
 
   Widget _buildHeaderError() {
-    return const Row(
-      children: [
-        Icon(
-          Icons.person_rounded,
-          color: Colors.white,
-          size: 28,
-        ),
-        SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Welcome back,',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white70,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              Text(
-                'Vendor Partner',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return const Center(
+      child: Text(
+        'Failed to load vendor data.',
+        style: TextStyle(color: Colors.white),
+      ),
     );
   }
 
   Widget _buildHeaderProfileImage(Vendor vendor) {
     // Debug information for home screen
     print('🔍 Home Header Profile Image Debug:');
-    print('🔍 Vendor ID: ${vendor.id}');
+    print('🔍 Vendor ID: ${vendor.id ?? 'null'}');
     print('🔍 Profile Picture URL: ${vendor.profilePicture}');
     print('🔍 Profile Picture null? ${vendor.profilePicture == null}');
-    print('🔍 Profile Picture empty? ${vendor.profilePicture?.isEmpty ?? true}');
+    print(
+        '🔍 Profile Picture empty? ${vendor.profilePicture?.isEmpty ?? true}');
 
     if (vendor.profilePicture != null && vendor.profilePicture!.isNotEmpty) {
       return Image.network(
@@ -534,136 +491,77 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     }
   }
 
-  Widget _buildBusinessOverview(DashboardStats stats) {
+  Widget _buildStatsGrid(DashboardStats stats) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    int crossAxisCount = 2;
+    double childAspectRatio = 0.95;
+
+    if (screenWidth >= 1200) {
+      crossAxisCount = 4;
+      childAspectRatio = 1.3;
+    } else if (screenWidth >= 600) {
+      crossAxisCount = 2;
+      childAspectRatio = 1.4;
+    }
+
     return GridView.count(
-      crossAxisCount: 2,
+      crossAxisCount: crossAxisCount,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.1,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
+      childAspectRatio: childAspectRatio,
       children: [
-        // Gross Sales
-        _buildOverviewCard(
-          icon: Icons.trending_up_rounded,
+        _HomeStatCard(
+          path: 'assets/animations/growth.json',
           label: 'Gross Sales',
-          value: '₹${stats.grossSales.toStringAsFixed(0)}',
+          value: _formatCurrency(stats.grossSales),
           color: AppTheme.successColor,
+          isLoading: false,
+          onTap: null, // Non-clickable
         ),
-        // Earnings
-        _buildOverviewCard(
-          icon: Icons.account_balance_wallet_rounded,
+        _HomeStatCard(
+          path: 'assets/animations/earning.json',
           label: 'Earnings',
-          value: '₹${stats.grossSales.toStringAsFixed(0)}', // Assuming earnings are same as gross for now
-          color: AppTheme.accentPink,
+          value: _formatCurrency(
+              stats.grossSales), // Assuming earnings are same as gross for now
+          color: AppTheme.primaryColor,
+          isLoading: false,
+          onTap: null, // Non-clickable
         ),
-        // Service Listings
-        _buildOverviewCard(
-          icon: Icons.list_alt_rounded,
-          label: 'Service Listings',
-          value: stats.serviceListingsCount.toString(),
-          color: AppTheme.accentBlue,
-        ),
-        // Total Orders
-        _buildOverviewCard(
-          icon: Icons.shopping_bag_rounded,
+        _HomeStatCard(
+          path: 'assets/animations/orders.json',
           label: 'Total Orders',
-          value: stats.totalOrdersCount.toString(),
+          value: '${stats.totalOrdersCount}',
+          color: AppTheme.accentBlue,
+          isLoading: false,
+          onTap: (context) => context.push('/orders'),
+        ),
+        _HomeStatCard(
+          path: 'assets/animations/service.json',
+          label: 'Service Listings',
+          value: '${stats.serviceListingsCount}',
           color: AppTheme.accentTeal,
+          isLoading: false,
+          onTap: (context) => context.push('/service-listings'),
         ),
       ],
     );
   }
 
-  Widget _buildOverviewCard({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
-    bool isServiceListings = label == 'Service Listings';
-    
-    return GestureDetector(
-      onTap: isServiceListings ? () {
-        context.push('/service-listings');
-      } : null,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: color.withOpacity(0.1),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.08),
-              spreadRadius: 0,
-              blurRadius: 15,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 20,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Flexible(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.textSecondaryColor,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.textPrimaryColor,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            if (isServiceListings)
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 14,
-                color: color,
-              ),
-          ],
-        ),
-      ),
-    );
+  String _formatCurrency(double amount) {
+    if (amount >= 100000) {
+      return '₹${(amount / 100000).toStringAsFixed(1)}L';
+    } else if (amount >= 1000) {
+      return '₹${(amount / 1000).toStringAsFixed(1)}K';
+    } else {
+      return '₹${amount.toStringAsFixed(0)}';
+    }
   }
 
-  Widget _buildNewBookingAlert(Booking? booking) {
+
+
+  Widget _buildNewBookingCard(Booking? booking) {
     if (booking == null) {
       return Container(
         padding: const EdgeInsets.all(24),
@@ -685,12 +583,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withOpacity(0.1),
+                color: Theme.of(context).primaryColor.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.schedule_rounded,
-                color: AppTheme.primaryColor,
+                color: Theme.of(context).primaryColor,
                 size: 30,
               ),
             ),
@@ -848,7 +746,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  Widget _buildRecentActivity(List<dynamic> recentActivities) {
+  Widget _buildRecentActivity(List<ActivityItem> recentActivities) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -861,7 +759,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ),
         const SizedBox(height: 16),
-        
         if (recentActivities.isEmpty)
           Container(
             padding: const EdgeInsets.all(20),
@@ -886,82 +783,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 child: _buildDynamicActivityItem(activity),
               )),
       ],
-    );
-  }
-
-  Widget _buildActivityItem({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required String status,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppTheme.borderColor,
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              icon,
-              color: iconColor,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimaryColor,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppTheme.textSecondaryColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              status,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: iconColor,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -1041,108 +862,165 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   Widget _buildFloatingActionButton() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: AppTheme.primaryGradient,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryColor.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: FloatingActionButton(
-        onPressed: () => context.push('/add-service'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        child: const Icon(
-          Icons.add_rounded,
-          color: Colors.white,
-          size: 28,
-        ),
-      ),
+    return FloatingActionButton(
+      onPressed: () {
+        print('🔵 Add Service button pressed');
+        context.push('/add-service');
+      },
+      foregroundColor: Colors.white,
+      backgroundColor: Theme.of(context).primaryColor,
+      child: const HeroIcon(HeroIcons.plusCircle),
     );
   }
 
   Widget _buildBottomNavigation() {
     return Container(
+      height: 80,
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: Colors.white,
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+          topLeft: Radius.circular(28),
+          topRight: Radius.circular(28),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 32,
+            offset: const Offset(0, -8),
+            spreadRadius: 0,
           ),
         ],
       ),
       child: ClipRRect(
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+          topLeft: Radius.circular(28),
+          topRight: Radius.circular(28),
         ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-
-            switch (index) {
-              case 1:
-                context.push('/orders');
-                break;
-              case 2:
-                context.push('/wallet');
-                break;
-              case 3:
-                context.push('/support');
-                break;
-              case 4:
-                context.push('/profile');
-                break;
-              default:
-                break;
-            }
-          },
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: AppTheme.surfaceColor,
-          selectedItemColor: AppTheme.primaryColor,
-          unselectedItemColor: AppTheme.textSecondaryColor,
-          selectedFontSize: 12,
-          unselectedFontSize: 12,
-          elevation: 0,
-          items: const [
-            BottomNavigationBarItem(
-              icon: HeroIcon(HeroIcons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_bag_rounded),
-              label: 'Orders',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet_rounded),
-              label: 'Wallet',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.support_agent_rounded),
-              label: 'Support',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_rounded),
-              label: 'Profile',
-            ),
-          ],
+        child: Material(
+          color: Colors.transparent,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildNavItem(
+                icon: HeroIcons.home,
+                label: 'Home',
+                index: 0,
+                isSelected: _selectedIndex == 0,
+                onTap: () => _handleNavTap(0),
+              ),
+              _buildNavItem(
+                icon: HeroIcons.shoppingBag,
+                label: 'Orders',
+                index: 1,
+                isSelected: _selectedIndex == 1,
+                onTap: () => _handleNavTap(1, '/orders'),
+              ),
+              _buildNavItem(
+                icon: HeroIcons.lifebuoy,
+                label: 'Support',
+                index: 2,
+                isSelected: _selectedIndex == 2,
+                onTap: () => _handleNavTap(2, '/support'),
+              ),
+              _buildNavItem(
+                icon: HeroIcons.user,
+                label: 'Profile',
+                index: 3,
+                isSelected: _selectedIndex == 3,
+                onTap: () => _handleNavTap(3, '/profile'),
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Widget _buildNavItem({
+    required HeroIcons icon,
+    required String label,
+    required int index,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          height: 80,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Icon with Material 3 style indicator
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    width: isSelected ? 64 : 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Theme.of(context)
+                              .primaryColor
+                              .withValues(alpha: 0.12)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Center(
+                      child: AnimatedScale(
+                        duration: const Duration(milliseconds: 200),
+                        scale: isSelected ? 1.1 : 1.0,
+                        child: HeroIcon(
+                          icon,
+                          size: 24,
+                          color: isSelected
+                              ? Theme.of(context).primaryColor
+                              : AppTheme.textSecondaryColor,
+                          style: isSelected
+                              ? HeroIconStyle.solid
+                              : HeroIconStyle.outline,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              // Label with animation
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: TextStyle(
+                  fontSize: isSelected ? 12 : 11,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected
+                      ? Theme.of(context).primaryColor
+                      : AppTheme.textSecondaryColor,
+                  height: 1.2,
+                ),
+                child: Text(label),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleNavTap(int index, [String? route]) {
+    if (route != null) {
+      // For navigation to other screens, don't update state
+      // The state will be reset when user returns
+      context.push(route);
+    } else if (_selectedIndex != index) {
+      // Only update state if staying on current screen (Home)
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
 
   // Accept booking functionality
@@ -1150,11 +1028,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     try {
       print('🔄 Accepting booking: ${booking.id}');
       print('🔍 Full booking data: ${booking.toJson()}');
-      
+
       // Show loading state
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Row(
               children: [
                 SizedBox(
@@ -1162,26 +1040,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).primaryColor),
                   ),
                 ),
                 SizedBox(width: 16),
                 Text('Accepting booking...'),
               ],
             ),
-            backgroundColor: Colors.orange,
+            backgroundColor: Theme.of(context).primaryColor,
             duration: Duration(seconds: 2),
           ),
         );
       }
-      
+
       final success = await _bookingService.acceptBooking(booking.id);
-      
+
       if (success) {
         if (mounted) {
           // Clear any existing snackbars
           ScaffoldMessenger.of(context).clearSnackBars();
-          
+
           // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -1210,7 +1089,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ),
                 ],
               ),
-              backgroundColor: Colors.green,
+              backgroundColor: AppTheme.successColor,
               duration: const Duration(seconds: 4),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -1218,7 +1097,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
             ),
           );
-          
+
           // Refresh the dashboard data to update the UI and clear the accepted booking
           ref.invalidate(dashboardDataProvider);
         }
@@ -1226,7 +1105,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         if (mounted) {
           // Clear any existing snackbars
           ScaffoldMessenger.of(context).clearSnackBars();
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Row(
@@ -1236,7 +1115,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   Text('Failed to accept booking. Please try again.'),
                 ],
               ),
-              backgroundColor: Colors.red,
+              backgroundColor: AppTheme.errorColor,
               duration: Duration(seconds: 3),
               behavior: SnackBarBehavior.floating,
             ),
@@ -1248,7 +1127,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       if (mounted) {
         // Clear any existing snackbars
         ScaffoldMessenger.of(context).clearSnackBars();
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -1256,7 +1135,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 const Icon(Icons.error, color: Colors.white),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text('Error accepting booking: ${e.toString().length > 50 ? '${e.toString().substring(0, 50)}...' : e}'),
+                  child: Text(
+                      'Error accepting booking: ${e.toString().length > 50 ? '${e.toString().substring(0, 50)}...' : e}'),
                 ),
               ],
             ),
@@ -1273,7 +1153,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void _viewBookingDetails(Booking booking) {
     print('🔍 Navigating to booking details: ${booking.id}');
     print('🔍 Navigation path: /booking-details/${booking.id}');
-    
+
     if (booking.id.isEmpty) {
       print('❌ Booking ID is empty, cannot navigate');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1284,14 +1164,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       );
       return;
     }
-    
+
     try {
       // Use Uri.encodeComponent to properly encode the booking ID for URL
       final encodedBookingId = Uri.encodeComponent(booking.id);
       final navigationPath = '/booking-details/$encodedBookingId';
-      
+
       print('🔍 Encoded navigation path: $navigationPath');
-      
+
       context.push(navigationPath).then((result) {
         // If the booking was accepted or declined, refresh the data
         if (result == true) {
@@ -1315,5 +1195,146 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ),
       );
     }
+  }
+
+  Future<void> _toggleOnlineStatus(Vendor vendor, bool newStatus) async {
+    if (vendor.id == null) return;
+
+    // Set toggling flag and optimistic state
+    setState(() {
+      _isToggling = true;
+      _isOnline = newStatus; // Show immediate feedback
+    });
+
+    try {
+      // Update on server
+      await ref
+          .read(vendor_service.vendorServiceProvider)
+          .updateVendorOnlineStatus(vendor.id!, newStatus);
+
+      // Refresh provider data
+      ref.invalidate(vendorProvider);
+
+      // Give a moment for provider to update, then clear toggling flag
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      if (mounted) {
+        setState(() {
+          _isToggling = false;
+        });
+      }
+    } catch (e) {
+      // On error, clear toggling flag and let switch show server state
+      if (mounted) {
+        setState(() {
+          _isToggling = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating status: $e')),
+        );
+      }
+    }
+  }
+}
+
+class _HomeStatCard extends StatelessWidget {
+  final String path;
+  final String label;
+  final String value;
+  final Color color;
+  final bool isLoading;
+  final void Function(BuildContext)? onTap;
+
+  const _HomeStatCard({
+    required this.path,
+    required this.label,
+    required this.value,
+    required this.color,
+    this.isLoading = false,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    Widget cardContent = Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            offset: const Offset(0, 2),
+            blurRadius: 8,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: Lottie.asset(
+              path,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.textSecondaryColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                if (isLoading)
+                  Container(
+                    width: 60,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  )
+                else
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimaryColor,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (onTap != null) {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => onTap!(context),
+          borderRadius: BorderRadius.circular(16),
+          child: cardContent,
+        ),
+      );
+    }
+
+    return cardContent;
   }
 }

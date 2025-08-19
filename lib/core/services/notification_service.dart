@@ -1,8 +1,6 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '../config/supabase_config.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -14,17 +12,14 @@ class NotificationService {
   // Initialize the notification service
   Future<void> initialize() async {
     try {
-      print('Initializing notification service...'); // Debug log
-      
       // Request notification permissions
       await _requestPermissions();
       
       // Initialize local notifications
       await _initializeLocalNotifications();
       
-      print('Notification service initialized successfully'); // Debug log
     } catch (e) {
-      print('Error initializing notification service: $e'); // Debug log
+      // Handle error silently or log to a crash reporting service
     }
   }
 
@@ -33,11 +28,10 @@ class NotificationService {
     try {
       // Request system notification permissions (Android 13+)
       if (Platform.isAndroid) {
-        final status = await Permission.notification.request();
-        print('System notification permission: $status'); // Debug log
+        await Permission.notification.request();
       }
     } catch (e) {
-      print('Error requesting permissions: $e'); // Debug log
+      // Handle error silently or log to a crash reporting service
     }
   }
 
@@ -65,16 +59,14 @@ class NotificationService {
         onDidReceiveNotificationResponse: _onNotificationTapped,
       );
 
-      print('Local notifications initialized'); // Debug log
     } catch (e) {
-      print('Error initializing local notifications: $e'); // Debug log
+      // Handle error silently or log to a crash reporting service
     }
   }
 
   // Handle notification tap
   void _onNotificationTapped(NotificationResponse response) {
-    print('Local notification tapped: ${response.id}'); // Debug log
-    print('Payload: ${response.payload}'); // Debug log
+    // Handle notification tap logic, e.g., navigate to a specific screen
   }
 
   // Show local notification
