@@ -1120,7 +1120,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           elevation: 0,
           items: const [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home_rounded),
+              icon: HeroIcon(HeroIcons.home),
               label: 'Home',
             ),
             BottomNavigationBarItem(
