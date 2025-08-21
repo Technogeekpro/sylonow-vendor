@@ -45,5 +45,13 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to your photo library to allow you to select and upload images for your service listings and profile.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs access to your camera to take photos for your service listings and profile.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs access to your location to provide location-based services and help customers find your business.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to your location to provide location-based services and help customers find your business.</string>
 </dict>
 </plist>
