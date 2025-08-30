@@ -1,0 +1,50 @@
+{
+  "project_info": {
+    "project_number": "828054656956",
+    "project_id": "sylonow-85de9",
+    "storage_bucket": "sylonow-85de9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:828054656956:android:9afbccbdb587f4d1553db9",
+        "android_client_info": {
+          "package_name": "com.sylonow.sylonowVendor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "828054656956-oc87buc835s6pp65fn1tmkqglij6k5sj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sylonow.sylonowVendor",
+            "certificate_hash": "9e722d213913afe5f4d13140dd348066b06f3499"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjRzLOvUo0y8T28WJ9URR7oLTOa9Z0eR8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "828054656956-9lb66n0bjgeoo7ta808ank5acj09uno7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "828054656956-rr7l8n671eistd5o0cbjgn9smpgf2o39.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.sylonow.sylonowVendor"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

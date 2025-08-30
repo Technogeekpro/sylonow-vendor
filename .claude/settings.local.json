@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(/usr/bin/flutter analyze)",
+      "Bash(chmod:*)",
+      "Bash(\"/mnt/e/Flutter Projects - 2025/Sylonow/sylonow_user/analyze.sh\")",
+      "Bash(mv:*)",
+      "Bash(dart analyze:*)",
+      "Bash(rm:*)",
+      "mcp__supabase__apply_migration",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__execute_sql",
+      "Bash(flutter packages pub run:*)",
+      "Bash(cd:*)",
+      "Bash(git commit:*)",
+      "Bash(git add:*)",
+      "Bash(bash -c \"cd ''/mnt/e/Flutter Projects - 2025/Sylonow/sylonow_user'' && flutter analyze\")",
+      "Bash(/bin/bash -c \"flutter analyze\")",
+      "Bash(/mnt/e/flutter/bin/flutter analyze)",
+      "mcp__supabase__deploy_edge_function",
+      "mcp__supabase__get_logs",
+      "Bash(./test_onesignal_integration.sh:*)",
+      "Bash(bash:*)",
+      "mcp__supabase__list_projects",
+      "Bash(flutter build:*)"
+    ],
+    "deny": []
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
+}

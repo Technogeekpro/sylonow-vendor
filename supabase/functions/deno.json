@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "lib": ["deno.window"],
+    "strict": true
+  },
+  "imports": {
+    "supabase": "https://esm.sh/@supabase/supabase-js@2",
+    "onesignal": "https://esm.sh/@onesignal/node-onesignal@5.0.0-alpha-01"
+  }
+} 

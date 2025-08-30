@@ -1,0 +1,200 @@
+APP STORE LEGAL COMPLIANCE GUIDE
+For Sylonow Vendor App
+
+========================================
+PART 1: HOSTING LEGAL DOCUMENTS
+========================================
+
+1. WEBSITE HOSTING REQUIREMENTS
+
+Host these 4 legal documents on your website www.sylonow.com:
+
+a) Privacy Policy: www.sylonow.com/privacy-policy
+b) Terms and Conditions: www.sylonow.com/terms-and-conditions  
+c) Revenue Policy: www.sylonow.com/revenue-policy
+d) Cookies Policy: www.sylonow.com/cookies-policy
+
+2. WEBSITE IMPLEMENTATION STEPS
+
+Step 1: Create dedicated pages for each legal document
+Step 2: Ensure URLs are accessible without login
+Step 3: Use clean, readable formatting (HTML/CSS)
+Step 4: Add "Last Updated" dates prominently
+Step 5: Ensure mobile-responsive design
+Step 6: Test all links before app submission
+
+3. LEGAL DOCUMENT UPDATES
+
+• Update effective dates to your actual launch date
+• Replace "[Insert Launch Date]" with actual date
+• Verify company address and contact details
+• Ensure consistency across all documents
+
+========================================
+PART 2: APP STORE COMPLIANCE
+========================================
+
+GOOGLE PLAY STORE REQUIREMENTS:
+
+1. Privacy Policy Requirements:
+✓ Must be hosted on publicly accessible website
+✓ Must describe data collection, use, sharing
+✓ Must include user rights and contact information
+✓ Required for apps that handle personal data
+
+2. Target Audience & Content Rating:
+✓ Declare target audience as "Business/Professional"
+✓ Content rating: Business application
+✓ No mature content or gambling elements
+
+3. Permissions Justification:
+✓ Camera: For QR code scanning and photo uploads
+✓ Location: For vendor location and navigation
+✓ Storage: For temporary image storage
+✓ Phone: For vendor verification calls
+✓ Internet: For app functionality
+
+4. Data Safety Form:
+Complete Google Play's Data Safety form declaring:
+- Personal info collection (name, email, phone)
+- Location data collection
+- Financial info collection (payment details)
+- Data encryption in transit and at rest
+- User data deletion options
+
+APPLE APP STORE REQUIREMENTS:
+
+1. Privacy Policy:
+✓ Must be accessible from app and website
+✓ Must be in same language as app
+✓ Must describe all data practices
+
+2. App Privacy Details:
+Complete Apple's privacy labels for:
+- Contact Info (email, phone, name)
+- Location data
+- Financial Info (payment details)
+- Usage Data
+- Identifiers (device ID)
+
+3. Age Rating:
+✓ Select "17+" or "Business" category
+✓ No inappropriate content
+
+4. Review Guidelines Compliance:
+✓ App must function as described
+✓ No misleading content
+✓ Proper user authentication
+✓ Working QR scanner functionality
+
+========================================
+PART 3: LEGAL COMPLIANCE CHECKLIST
+========================================
+
+BEFORE APP SUBMISSION:
+
+□ All legal documents hosted on website
+□ Links tested and accessible
+□ Company registration details verified
+□ GST registration completed (if applicable)
+□ Data protection measures implemented
+□ Privacy policy reflects actual app behavior
+□ Terms clearly define vendor-platform relationship
+□ Revenue sharing model documented
+□ Dispute resolution process defined
+
+INDIAN LEGAL COMPLIANCE:
+
+□ Information Technology Act, 2000 compliance
+□ IT Rules 2011 for sensitive data handling
+□ Consumer Protection Act compliance
+□ GST registration and compliance
+□ Company registration (Private Limited)
+□ Trademark registration (recommended)
+
+DATA PROTECTION COMPLIANCE:
+
+□ User consent mechanisms implemented
+□ Data encryption in place
+□ Secure data transmission (HTTPS/SSL)
+□ Data retention policies defined
+□ User data deletion procedures
+□ Breach notification procedures
+□ Third-party data sharing agreements
+
+========================================
+PART 4: POST-LAUNCH REQUIREMENTS
+========================================
+
+ONGOING COMPLIANCE:
+
+1. Regular Policy Updates:
+• Review and update policies annually
+• Notify users of material changes
+• Maintain version history
+
+2. Data Audit:
+• Regular security audits
+• Monitor third-party integrations
+• Update privacy practices as needed
+
+3. User Rights Management:
+• Respond to data requests within 30 days
+• Implement data deletion requests
+• Provide data portability options
+
+4. Legal Monitoring:
+• Monitor regulatory changes
+• Update compliance measures
+• Maintain legal documentation
+
+========================================
+PART 5: RECOMMENDED ADDITIONAL MEASURES
+========================================
+
+ENHANCED LEGAL PROTECTION:
+
+1. Insurance:
+• Professional indemnity insurance
+• Cyber liability insurance
+• General business insurance
+
+2. Legal Documentation:
+• Vendor agreement templates
+• Customer service agreements
+• Data processing agreements
+
+3. Compliance Tools:
+• Cookie consent management
+• Data mapping and inventory
+• Privacy impact assessments
+
+4. Professional Services:
+• Legal counsel consultation
+• Compliance audit services
+• Data protection officer (if required)
+
+========================================
+CONTACT FOR LEGAL UPDATES
+========================================
+
+Company: Sylonow Vision Private Limited
+Email: info@sylonow.com
+Phone: +91-9480709432
+Address: JP Nagar Bengaluru 560078
+
+Legal Counsel: [Add your legal advisor details]
+Compliance Officer: [Add compliance officer details]
+
+========================================
+IMPORTANT DISCLAIMERS
+========================================
+
+1. This guide provides general compliance information
+2. Consult with qualified legal counsel for specific advice
+3. Laws and regulations may change - stay updated
+4. App store policies evolve - monitor for changes
+5. Compliance is an ongoing responsibility
+
+Last Updated: January 2025
+Review Date: January 2026
